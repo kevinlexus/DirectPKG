@@ -1,0 +1,10 @@
+create global temporary table SCOTT.LOAD_TMP_BULK
+(
+  s1 VARCHAR2(4000)
+)
+on commit preserve rows;
+comment on table SCOTT.LOAD_TMP_BULK
+  is 'Таблица для загрузки необработанного TXT файла из любых источников';
+comment on column SCOTT.LOAD_TMP_BULK.s1
+  is 'Длинная строка, только для загрузки текстового файла';
+

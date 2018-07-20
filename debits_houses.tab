@@ -1,0 +1,30 @@
+create table SCOTT.DEBITS_HOUSES
+(
+  reu       CHAR(3),
+  kul       CHAR(4),
+  nd        CHAR(6),
+  summa     NUMBER,
+  mg        VARCHAR2(8),
+  dat       DATE,
+  kol_month NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 128K
+  )
+nologging;
+create index SCOTT.DEB_REU on SCOTT.DEBITS_HOUSES (REU, DAT)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  )
+  nologging;
+

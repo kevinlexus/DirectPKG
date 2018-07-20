@@ -1,0 +1,43 @@
+create table SCOTT.STATISTICS_LG_TREST
+(
+  reu    CHAR(3) not null,
+  spk_id NUMBER not null,
+  usl    CHAR(3) not null,
+  org    NUMBER not null,
+  main   NUMBER not null,
+  cnt    NUMBER not null,
+  dat    DATE,
+  mg     CHAR(6)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 8M
+  )
+nologging;
+comment on table SCOTT.STATISTICS_LG_TREST
+  is 'Статистика по льготникам, по ЖЭО';
+create index SCOTT.STAT_LG_TR_DAT_REU on SCOTT.STATISTICS_LG_TREST (DAT, REU, USL, ORG, SPK_ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 10M
+  )
+  nologging;
+create index SCOTT.STAT_LG_TR_MG_REU on SCOTT.STATISTICS_LG_TREST (MG, REU, USL, ORG, SPK_ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 20M
+  )
+  nologging;
+

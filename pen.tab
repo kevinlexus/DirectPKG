@@ -1,0 +1,88 @@
+create table SCOTT.PEN
+(
+  id      NUMBER not null,
+  lsk     CHAR(8) not null,
+  usl     CHAR(3) not null,
+  org     NUMBER not null,
+  penin   NUMBER,
+  penchrg NUMBER,
+  pencorr NUMBER,
+  penpay  NUMBER,
+  penout  NUMBER,
+  days    NUMBER,
+  mg      NUMBER,
+  mgfrom  NUMBER not null,
+  mgto    NUMBER not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 15M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.PEN
+  is 'Пеня по периодам, услугам, организациям';
+comment on column SCOTT.PEN.id
+  is 'ID записи';
+comment on column SCOTT.PEN.lsk
+  is 'Лицевой счет';
+comment on column SCOTT.PEN.usl
+  is 'Код услуги';
+comment on column SCOTT.PEN.org
+  is 'ID организации';
+comment on column SCOTT.PEN.penin
+  is 'Входящее сальдо по пене';
+comment on column SCOTT.PEN.penchrg
+  is 'Пеня начисленная в текущем периоде (в т.ч. корректировки пени)';
+comment on column SCOTT.PEN.pencorr
+  is 'Корректировки начисления пени';
+comment on column SCOTT.PEN.penpay
+  is 'Пеня оплаченная';
+comment on column SCOTT.PEN.penout
+  is 'Исходящее сальдо по пене';
+comment on column SCOTT.PEN.days
+  is 'Кол-во дней просрочки (актуально по услугам, так как пеня перенаправляется по услугам в одну)';
+comment on column SCOTT.PEN.mg
+  is 'Период задолженности';
+comment on column SCOTT.PEN.mgfrom
+  is 'Бухгалтерский период - начало';
+comment on column SCOTT.PEN.mgto
+  is 'Бухгалтерский период  - окончание';
+create unique index SCOTT.PEN_U_I on SCOTT.PEN (LSK, USL, ORG, MGFROM, MGTO, MG)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.PEN
+  add constraint PEN_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.PEN
+  add constraint PEN_F_ORG foreign key (ORG)
+  references SCOTT.T_ORG (ID);
+alter table SCOTT.PEN
+  add constraint PEN_F_USL foreign key (USL)
+  references SCOTT.USL (USL);
+

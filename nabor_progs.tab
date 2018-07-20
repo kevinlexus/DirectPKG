@@ -1,0 +1,54 @@
+create table SCOTT.NABOR_PROGS
+(
+  lsk      CHAR(8) not null,
+  usl      CHAR(3) not null,
+  fk_tarif NUMBER,
+  id       NUMBER not null,
+  id_dvb   NUMBER
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.NABOR_PROGS
+  is 'Справочник декодеров, наборов программ, пакетов по ним';
+comment on column SCOTT.NABOR_PROGS.usl
+  is 'ID услуги';
+comment on column SCOTT.NABOR_PROGS.fk_tarif
+  is 'ID Тариф (Антенн)';
+comment on column SCOTT.NABOR_PROGS.id
+  is 'ID';
+comment on column SCOTT.NABOR_PROGS.id_dvb
+  is '№ DVB устройства';
+create unique index SCOTT.NABOR_PROGS_I on SCOTT.NABOR_PROGS (ID, LSK, USL, FK_TARIF)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 10M
+  )
+  compress 2;
+alter table SCOTT.NABOR_PROGS
+  add constraint NABOR_PROGS_P_ID primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+alter table SCOTT.NABOR_PROGS
+  add constraint NABOR_PROGS_FK_TARIF foreign key (FK_TARIF)
+  references SCOTT.SPR_TARIF (ID);
+alter table SCOTT.NABOR_PROGS
+  add constraint NABOR_PROGS_F_LSK foreign key (LSK)
+  references SCOTT.KART (LSK) on delete cascade;
+

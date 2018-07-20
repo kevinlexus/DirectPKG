@@ -1,0 +1,32 @@
+create table SCOTT.IMP_SCH_VOL
+(
+  lsk    VARCHAR2(8 CHAR),
+  cd_usl VARCHAR2(32 CHAR),
+  vol    NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.IMP_SCH_VOL
+  is 'Промежуточная таблица - Расход по счетчикам для импорта из ЛК';
+comment on column SCOTT.IMP_SCH_VOL.lsk
+  is 'Л/C';
+comment on column SCOTT.IMP_SCH_VOL.cd_usl
+  is 'CD услуги';
+comment on column SCOTT.IMP_SCH_VOL.vol
+  is 'Объем';
+create unique index SCOTT.IMP_SCH_VOL_I on SCOTT.IMP_SCH_VOL (LSK, CD_USL)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+

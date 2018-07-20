@@ -1,0 +1,27 @@
+create table SCOTT.PREP_ERR
+(
+  id   NUMBER,
+  lsk  VARCHAR2(8),
+  text VARCHAR2(1000)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on table SCOTT.PREP_ERR
+  is 'Сообщения об ошибках для выполнения формирования в потоках';
+comment on column SCOTT.PREP_ERR.id
+  is 'ID';
+comment on column SCOTT.PREP_ERR.lsk
+  is 'Лиц.счет';
+comment on column SCOTT.PREP_ERR.text
+  is 'Комментарий';
+

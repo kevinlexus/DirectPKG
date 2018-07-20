@@ -1,0 +1,34 @@
+create table SCOTT.C_LSK
+(
+  id NUMBER not null
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.C_LSK
+  is 'ID финансовых идентификаторов';
+comment on column SCOTT.C_LSK.id
+  is 'ID финансового идентификатора';
+alter table SCOTT.C_LSK
+  add constraint C_LSK_P_KEY primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 896K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

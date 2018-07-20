@@ -1,0 +1,64 @@
+create table SCOTT.C_PENYA
+(
+  summa NUMBER,
+  penya NUMBER,
+  mg1   CHAR(6),
+  days  NUMBER,
+  lsk   CHAR(8),
+  id    NUMBER not null
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 7M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.C_PENYA
+  is 'Исходящее сальдо по пене';
+comment on column SCOTT.C_PENYA.summa
+  is 'Сумма долга';
+comment on column SCOTT.C_PENYA.penya
+  is 'Сумма пени';
+comment on column SCOTT.C_PENYA.mg1
+  is 'Период';
+comment on column SCOTT.C_PENYA.days
+  is 'Кол-во дней долга';
+comment on column SCOTT.C_PENYA.lsk
+  is 'Лицевой счет';
+comment on column SCOTT.C_PENYA.id
+  is 'Id';
+create index SCOTT.C_PENYA_I on SCOTT.C_PENYA (LSK)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.C_PENYA
+  add constraint C_PENYA_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.C_PENYA
+  add constraint C_PENYA_F_LSK foreign key (LSK)
+  references SCOTT.KART (LSK) on delete cascade;
+

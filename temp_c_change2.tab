@@ -1,0 +1,36 @@
+create global temporary table SCOTT.TEMP_C_CHANGE2
+(
+  lsk      VARCHAR2(8),
+  usl      CHAR(3),
+  org      NUMBER,
+  proc     NUMBER,
+  abs_set  NUMBER,
+  mg       CHAR(6),
+  tp       NUMBER,
+  for_usl  CHAR(3),
+  cnt_days NUMBER,
+  uslm     CHAR(3)
+)
+on commit preserve rows;
+comment on table SCOTT.TEMP_C_CHANGE2
+  is 'Таблица для проведения перерасчетов';
+comment on column SCOTT.TEMP_C_CHANGE2.usl
+  is 'Услуга';
+comment on column SCOTT.TEMP_C_CHANGE2.org
+  is 'Организация 1';
+comment on column SCOTT.TEMP_C_CHANGE2.proc
+  is 'Процент по 1 орг';
+comment on column SCOTT.TEMP_C_CHANGE2.abs_set
+  is 'Абсолютное значение по перерасчету';
+comment on column SCOTT.TEMP_C_CHANGE2.mg
+  is 'Период';
+comment on column SCOTT.TEMP_C_CHANGE2.tp
+  is 'Добавочные операции (хол.вода + канализ) - 1 else - null,0';
+comment on column SCOTT.TEMP_C_CHANGE2.for_usl
+  is 'Выполняется для услуги (например для снятия г.воды и канализ)';
+comment on column SCOTT.TEMP_C_CHANGE2.cnt_days
+  is 'Кол-во дней перерасчета (1-ый процент)';
+comment on column SCOTT.TEMP_C_CHANGE2.uslm
+  is 'Услуга главная';
+create index SCOTT.TEMP_C_CHANGE2_I on SCOTT.TEMP_C_CHANGE2 (LSK, USL, ORG);
+

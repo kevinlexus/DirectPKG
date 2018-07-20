@@ -1,0 +1,59 @@
+create table SCOTT.T_RLXFUNCT
+(
+  id        NUMBER default 0 not null,
+  cd        VARCHAR2(32),
+  fk_role   NUMBER default 0,
+  fk_role2  NUMBER not null,
+  fk_funct  NUMBER,
+  v         NUMBER default 1 not null,
+  grantable NUMBER default 0 not null,
+  fk_type   NUMBER not null,
+  fk_type2  NUMBER not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.T_RLXFUNCT
+  is 'видимость документов другими пользователями';
+comment on column SCOTT.T_RLXFUNCT.cd
+  is 'Код - независящий от ID';
+comment on column SCOTT.T_RLXFUNCT.fk_role
+  is 'ссылка на роль создающего событие';
+comment on column SCOTT.T_RLXFUNCT.fk_role2
+  is 'ссылка на роль просматривающего событие';
+comment on column SCOTT.T_RLXFUNCT.fk_funct
+  is 'ссылка на функцию';
+comment on column SCOTT.T_RLXFUNCT.v
+  is 'вкл/выкл.  включено, если = 1';
+comment on column SCOTT.T_RLXFUNCT.grantable
+  is 'GRANTABLE  (with admin option)  , если = 1';
+comment on column SCOTT.T_RLXFUNCT.fk_type
+  is 'Вид доступа 0-просмотр, 1-создание, 2- ред(1)., 3-ред(2), 4- ред(1) при созд.., 5-ред(2)  при созд. 6-удаление';
+comment on column SCOTT.T_RLXFUNCT.fk_type2
+  is 'Доступ: 1- возможность применить ф-цию к документам, созданным другими польз. с такой ролью, 0 -нет';
+alter table SCOTT.T_RLXFUNCT
+  add constraint T_RLXFUNCT_PK primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+alter table SCOTT.T_RLXFUNCT
+  add constraint T_RLXFUNCT_FK_FUNCT foreign key (FK_FUNCT)
+  references SCOTT.R_DOC_FUNCT (ID) on delete cascade;
+alter table SCOTT.T_RLXFUNCT
+  add constraint T_RLXFUNCT_FK_ROLE foreign key (FK_ROLE)
+  references SCOTT.T_ROLE (ID) on delete cascade;
+alter table SCOTT.T_RLXFUNCT
+  add constraint T_RLXFUNCT_FK_ROLE2 foreign key (FK_ROLE2)
+  references SCOTT.T_ROLE (ID) on delete cascade;
+

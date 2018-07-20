@@ -1,0 +1,28 @@
+create table SCOTT.ARCH_KWTP
+(
+  lsk    CHAR(8),
+  usl_id CHAR(3),
+  summa  NUMBER,
+  mg     VARCHAR2(6)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 11M
+  )
+nologging;
+comment on table SCOTT.ARCH_KWTP
+  is '--ARCH_KWTP больше не обслуживаем';
+create index SCOTT.ARCH_KWTP_LSK_USL_ID on SCOTT.ARCH_KWTP (LSK, USL_ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 20M
+  );
+

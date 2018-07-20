@@ -1,0 +1,52 @@
+create table SCOTT.DU_OBJ
+(
+  id  NUMBER not null,
+  cd  VARCHAR2(1024) not null,
+  obj BLOB not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.DU_OBJ
+  is 'Объект для обновления';
+comment on column SCOTT.DU_OBJ.id
+  is 'ID';
+comment on column SCOTT.DU_OBJ.cd
+  is 'Наименование объекта';
+comment on column SCOTT.DU_OBJ.obj
+  is 'Файл (BLOB)';
+create unique index SCOTT.DU_OBJ_I on SCOTT.DU_OBJ (CD)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.DU_OBJ
+  add constraint DU_OBJ_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

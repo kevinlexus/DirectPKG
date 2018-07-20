@@ -1,0 +1,46 @@
+create table SCOTT.SPR_TARIF
+(
+  id   NUMBER not null,
+  usl  CHAR(3) not null,
+  name VARCHAR2(32),
+  mask VARCHAR2(992),
+  cd   VARCHAR2(32) not null,
+  cdtp VARCHAR2(32)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.SPR_TARIF
+  is 'Тарифы';
+comment on column SCOTT.SPR_TARIF.id
+  is 'ID';
+comment on column SCOTT.SPR_TARIF.usl
+  is 'Код услуги по тарифу';
+comment on column SCOTT.SPR_TARIF.name
+  is 'Наименование';
+comment on column SCOTT.SPR_TARIF.mask
+  is 'BIN - маска канала';
+comment on column SCOTT.SPR_TARIF.cd
+  is 'CD';
+comment on column SCOTT.SPR_TARIF.cdtp
+  is 'Тип тарифа (для классификации в Э+)';
+alter table SCOTT.SPR_TARIF
+  add constraint SPR_TARIF_P_ID primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+alter table SCOTT.SPR_TARIF
+  add constraint SPR_TARIF_F_USL foreign key (USL)
+  references SCOTT.USL (USL);
+

@@ -1,0 +1,23 @@
+create table SCOTT.LOAD_EN_D
+(
+  lsk   CHAR(8),
+  kul   CHAR(4),
+  nyl   CHAR(25),
+  nd    CHAR(6),
+  kw    CHAR(7),
+  fio   CHAR(25),
+  ndog  CHAR(10),
+  ska   NUMBER(9,2),
+  polis CHAR(8)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 512K
+  );
+comment on table SCOTT.LOAD_EN_D
+  is 'файл выгрузки признаков по антенне по договору, для энергии+ ';
+

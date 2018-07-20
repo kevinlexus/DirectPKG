@@ -1,0 +1,41 @@
+create table SCOTT.SPR_TYPESLIST
+(
+  id   NUMBER not null,
+  cd   VARCHAR2(32),
+  name VARCHAR2(125),
+  npp  NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.SPR_TYPESLIST
+  is 'Справочник видов оплаты';
+comment on column SCOTT.SPR_TYPESLIST.id
+  is 'ID';
+comment on column SCOTT.SPR_TYPESLIST.cd
+  is 'CD';
+comment on column SCOTT.SPR_TYPESLIST.name
+  is 'NAME';
+alter table SCOTT.SPR_TYPESLIST
+  add constraint SPR_TYPESLIST_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

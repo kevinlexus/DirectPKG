@@ -1,0 +1,43 @@
+create table SCOTT.PRIVS
+(
+  lsk    CHAR(8) not null,
+  summa  NUMBER,
+  nomer  NUMBER not null,
+  usl_id CHAR(3) not null,
+  lg_id  NUMBER not null,
+  main   NUMBER not null
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 2M
+  )
+nologging;
+comment on table SCOTT.PRIVS
+  is 'Возмещение по льготам';
+comment on column SCOTT.PRIVS.lsk
+  is 'Л/С';
+comment on column SCOTT.PRIVS.summa
+  is 'Сумма';
+comment on column SCOTT.PRIVS.nomer
+  is 'ID проживающего';
+comment on column SCOTT.PRIVS.usl_id
+  is 'ID услуги';
+comment on column SCOTT.PRIVS.lg_id
+  is 'ID льготы';
+comment on column SCOTT.PRIVS.main
+  is 'Признак носителя льготы';
+create index SCOTT.PRIVS_I on SCOTT.PRIVS (LSK, USL_ID, LG_ID, MAIN)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+  )
+  nologging;
+

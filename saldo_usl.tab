@@ -1,0 +1,35 @@
+create table SCOTT.SALDO_USL
+(
+  lsk   CHAR(8) not null,
+  usl   CHAR(3),
+  org   NUMBER not null,
+  summa NUMBER,
+  mg    VARCHAR2(6) not null,
+  uslm  CHAR(3)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 21M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+create index SCOTT.SALDO_USL_LSK on SCOTT.SALDO_USL (LSK)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 20M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+

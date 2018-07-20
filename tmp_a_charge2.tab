@@ -1,0 +1,27 @@
+create global temporary table SCOTT.TMP_A_CHARGE2
+(
+  id            NUMBER not null,
+  lsk           CHAR(8) not null,
+  usl           CHAR(3) not null,
+  summa         NUMBER,
+  kart_pr_id    NUMBER,
+  spk_id        NUMBER,
+  type          NUMBER,
+  test_opl      NUMBER,
+  test_cena     NUMBER,
+  test_tarkoef  NUMBER,
+  test_spk_koef NUMBER,
+  main          NUMBER,
+  lg_doc_id     NUMBER,
+  npp           NUMBER,
+  sch           NUMBER,
+  kpr           NUMBER,
+  kprz          NUMBER,
+  kpro          NUMBER,
+  kpr2          NUMBER,
+  opl           NUMBER,
+  mgfrom        NUMBER not null,
+  mgto          NUMBER not null
+)
+on commit preserve rows;
+

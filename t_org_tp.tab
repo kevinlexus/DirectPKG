@@ -1,0 +1,79 @@
+create table SCOTT.T_ORG_TP
+(
+  id        NUMBER not null,
+  cd        VARCHAR2(32) default '32' not null,
+  name      VARCHAR2(32) default '32' not null,
+  npp       NUMBER default 0 not null,
+  v         NUMBER default 1 not null,
+  parent_id NUMBER,
+  type      NUMBER,
+  menu_id   NUMBER,
+  name_0    VARCHAR2(25),
+  name_1    VARCHAR2(25),
+  comm      VARCHAR2(255) default '/'
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.T_ORG_TP
+  is 'ТИП ОРГАНИЗАЦИИ';
+comment on column SCOTT.T_ORG_TP.id
+  is 'ТИП ОРГАНИЗАЦИИ';
+comment on column SCOTT.T_ORG_TP.cd
+  is 'Код - независящий от ID';
+comment on column SCOTT.T_ORG_TP.name
+  is 'наименование полное';
+comment on column SCOTT.T_ORG_TP.npp
+  is 'номер по порядку - для сортировки пользователя';
+comment on column SCOTT.T_ORG_TP.v
+  is 'вкл/выкл.  включено, если = 1';
+comment on column SCOTT.T_ORG_TP.parent_id
+  is 'не используется (сылка на вышестоящий тип организации в организационной структуре)';
+comment on column SCOTT.T_ORG_TP.type
+  is 'дополнение для FinDay.permissions';
+comment on column SCOTT.T_ORG_TP.menu_id
+  is 'дополнение для FinDay.permissions';
+comment on column SCOTT.T_ORG_TP.name_0
+  is 'дополнение для FinDay.permissions';
+comment on column SCOTT.T_ORG_TP.name_1
+  is 'дополнение для FinDay.permissions';
+alter table SCOTT.T_ORG_TP
+  add constraint T_ORGTP_PK primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.T_ORG_TP
+  add constraint T_ORGTP_UK_CD unique (CD)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.T_ORG_TP
+  add constraint T_ORGTP_FKS_PARID foreign key (PARENT_ID)
+  references SCOTT.T_ORG_TP (ID) on delete set null;
+

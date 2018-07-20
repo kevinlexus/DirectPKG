@@ -1,0 +1,20 @@
+create table SCOTT.DAY_HINTS
+(
+  user_name VARCHAR2(200),
+  dat       DATE
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+  );
+comment on table SCOTT.DAY_HINTS
+  is 'Отметки по "Советы дня"';
+comment on column SCOTT.DAY_HINTS.user_name
+  is 'Имя пользователя (USER)';
+comment on column SCOTT.DAY_HINTS.dat
+  is 'Дата входа пользователя';
+

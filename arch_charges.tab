@@ -1,0 +1,38 @@
+create table SCOTT.ARCH_CHARGES
+(
+  lsk      CHAR(8),
+  usl_id   CHAR(3),
+  summa    NUMBER,
+  mg       VARCHAR2(6),
+  summa_it NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 21M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on column SCOTT.ARCH_CHARGES.summa
+  is 'начисл, с учетом всего (итог.)';
+comment on column SCOTT.ARCH_CHARGES.summa_it
+  is 'начисл без льгот(по тарифу).';
+create index SCOTT.ARCH_CHARGES_LSK_USLID on SCOTT.ARCH_CHARGES (LSK, USL_ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 20M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+

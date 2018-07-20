@@ -1,0 +1,40 @@
+create table SCOTT.PREP_SAL
+(
+  id      NUMBER not null,
+  lsk     VARCHAR2(8),
+  p_iter  NUMBER,
+  p_iter1 NUMBER,
+  p_err   NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.PREP_SAL
+  is 'Заголовок сальдо, для загрузки сальдо по периодам';
+comment on column SCOTT.PREP_SAL.id
+  is 'ID';
+comment on column SCOTT.PREP_SAL.lsk
+  is 'Лиц.счет';
+comment on column SCOTT.PREP_SAL.p_iter
+  is 'Кол-во итераций основного распределения';
+comment on column SCOTT.PREP_SAL.p_iter1
+  is 'Кол-во итераций округления';
+comment on column SCOTT.PREP_SAL.p_err
+  is 'Результат (0-нет ошибок, 1,...-ошибка)';
+alter table SCOTT.PREP_SAL
+  add constraint PREP_SAL_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+

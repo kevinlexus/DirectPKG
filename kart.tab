@@ -1,0 +1,430 @@
+create table SCOTT.KART
+(
+  lsk         CHAR(8) not null,
+  kul         CHAR(4) not null,
+  nd          CHAR(6) not null,
+  kw          CHAR(7) not null,
+  fio         VARCHAR2(55),
+  kpr         NUMBER(3) not null,
+  kpr_wr      NUMBER(3) not null,
+  kpr_ot      NUMBER(3) not null,
+  kpr_cem     NUMBER(3),
+  kpr_s       NUMBER(2),
+  opl         NUMBER(7,2),
+  ppl         NUMBER(7,2),
+  pldop       NUMBER(5,1),
+  ki          NUMBER(2),
+  psch        NUMBER(1),
+  psch_dt     DATE,
+  status      NUMBER(1),
+  kwt         NUMBER(8,3),
+  lodpl       NUMBER(5,1),
+  bekpl       NUMBER(5,1),
+  balpl       NUMBER(5,1),
+  komn        NUMBER(2),
+  et          NUMBER(2),
+  kfg         NUMBER(2),
+  kfot        NUMBER(2),
+  phw         NUMBER(10,3),
+  mhw         NUMBER(8,3),
+  pgw         NUMBER(10,3),
+  mgw         NUMBER(8,3),
+  pel         NUMBER(10,3),
+  mel         NUMBER(9,3),
+  sub_nach    DATE,
+  subsidii    NUMBER(9,2),
+  sub_data    DATE,
+  polis       CHAR(8),
+  sch_el      NUMBER(1),
+  reu         CHAR(3) not null,
+  text        CHAR(35),
+  schel_dt    DATE,
+  eksub1      NUMBER(10,2),
+  eksub2      NUMBER(10,2),
+  kran        NUMBER(1),
+  kran1       NUMBER(1),
+  el          NUMBER(6,2),
+  el1         NUMBER(6,2),
+  sgku        NUMBER(9,2),
+  doppl       NUMBER(9,2),
+  subs_cor    NUMBER(9,2),
+  house_id    NUMBER not null,
+  c_lsk_id    NUMBER not null,
+  mg1         CHAR(6) not null,
+  mg2         CHAR(6) not null,
+  kan_sch     NUMBER,
+  subs_inf    NUMBER,
+  k_lsk_id    NUMBER not null,
+  dog_num     CHAR(35),
+  schel_end   DATE,
+  fk_deb_org  NUMBER,
+  subs_cur    NUMBER(9,2),
+  k_fam       VARCHAR2(25),
+  k_im        VARCHAR2(15),
+  k_ot        VARCHAR2(15),
+  memo        VARCHAR2(50),
+  fk_distr    NUMBER,
+  law_doc     VARCHAR2(50),
+  fk_pasp_org NUMBER,
+  flag        NUMBER,
+  flag1       NUMBER,
+  fk_err      NUMBER,
+  law_doc_dt  DATE,
+  prvt_doc    VARCHAR2(50),
+  prvt_doc_dt DATE,
+  cpn         NUMBER,
+  kpr_wrp     NUMBER,
+  pn_dt       DATE,
+  lsk_ext     VARCHAR2(25),
+  fk_tp       NUMBER,
+  sel1        NUMBER default 1,
+  vvod_ot     NUMBER,
+  entr        NUMBER,
+  pot         NUMBER,
+  mot         NUMBER,
+  elsk        VARCHAR2(255),
+  parent_lsk  CHAR(8),
+  fk_klsk_obj NUMBER
+)
+tablespace USERS
+  pctfree 60
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 20M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.KART
+  is 'Лицевые счета клиентов';
+comment on column SCOTT.KART.fio
+  is 'ФИО квартиросъемщика';
+comment on column SCOTT.KART.kpr
+  is 'Кол-во проживающих';
+comment on column SCOTT.KART.kpr_wr
+  is 'Кол-во вр.зарег.';
+comment on column SCOTT.KART.kpr_ot
+  is 'Кол-во вр.отсут.';
+comment on column SCOTT.KART.kpr_cem
+  is 'Кол-во льготников на жильё';
+comment on column SCOTT.KART.kpr_s
+  is 'Кол-во льготников на коммун.усл.';
+comment on column SCOTT.KART.opl
+  is 'Общ.площадь';
+comment on column SCOTT.KART.ppl
+  is 'Жилая площадь';
+comment on column SCOTT.KART.pldop
+  is 'Дополн. площадь';
+comment on column SCOTT.KART.ki
+  is 'Кол-во льготников';
+comment on column SCOTT.KART.psch
+  is 'Признак карточки';
+comment on column SCOTT.KART.status
+  is 'Статус квартиры (муницип, приват)';
+comment on column SCOTT.KART.komn
+  is 'Кол-во комнат';
+comment on column SCOTT.KART.et
+  is 'Этаж';
+comment on column SCOTT.KART.kfg
+  is 'Коэфф жилья';
+comment on column SCOTT.KART.kfot
+  is 'Коэфф отоп';
+comment on column SCOTT.KART.phw
+  is 'Показания сч. х.в.';
+comment on column SCOTT.KART.mhw
+  is 'Расход сч. х.в.';
+comment on column SCOTT.KART.pgw
+  is 'Показания сч. г.в.';
+comment on column SCOTT.KART.mgw
+  is 'Расход сч. г.в.';
+comment on column SCOTT.KART.pel
+  is 'Показания сч. Эл.эн';
+comment on column SCOTT.KART.mel
+  is 'Расход сч. х.в. Эл.эн';
+comment on column SCOTT.KART.sub_data
+  is 'Дата окончания субсидии';
+comment on column SCOTT.KART.polis
+  is 'Служебное поле, лицевой счет клиента, в базе контрагента (МУП)';
+comment on column SCOTT.KART.sch_el
+  is 'Наличие счетчика Эл.эн.(0-нет, 1 - есть)';
+comment on column SCOTT.KART.text
+  is '№ телефона абонента (антенн), Квартиросъемщика';
+comment on column SCOTT.KART.schel_dt
+  is 'Дата начала договора (антенн)';
+comment on column SCOTT.KART.eksub1
+  is 'Совокуп. Доход';
+comment on column SCOTT.KART.eksub2
+  is 'Душевой доход';
+comment on column SCOTT.KART.kran1
+  is 'Сист.отоп.';
+comment on column SCOTT.KART.el
+  is 'Эл.энергия субсидии';
+comment on column SCOTT.KART.el1
+  is 'Эл.энергия';
+comment on column SCOTT.KART.sgku
+  is 'СЖКУ';
+comment on column SCOTT.KART.doppl
+  is 'Увеличение';
+comment on column SCOTT.KART.subs_cor
+  is 'Возврат субсидии';
+comment on column SCOTT.KART.house_id
+  is 'ID Дома';
+comment on column SCOTT.KART.c_lsk_id
+  is 'NOT USED';
+comment on column SCOTT.KART.mg1
+  is 'Период работы Л/С -нач.';
+comment on column SCOTT.KART.mg2
+  is 'Период работы Л/С -кон.';
+comment on column SCOTT.KART.kan_sch
+  is '1- учит канализ по счетчикам, 0, null - не учит. ';
+comment on column SCOTT.KART.subs_inf
+  is 'Субсидия для информации';
+comment on column SCOTT.KART.k_lsk_id
+  is 'KLSK Помещения';
+comment on column SCOTT.KART.dog_num
+  is '№ договора (антенн)';
+comment on column SCOTT.KART.schel_end
+  is 'Дата окончания договора (антенн)';
+comment on column SCOTT.KART.fk_deb_org
+  is 'Организация, в которой работает должник';
+comment on column SCOTT.KART.subs_cur
+  is 'Субсидия';
+comment on column SCOTT.KART.k_fam
+  is 'Фамилия квартиросъемщика';
+comment on column SCOTT.KART.k_im
+  is 'Имя квартиросъемщика';
+comment on column SCOTT.KART.k_ot
+  is 'Отчество квартиросъемщика';
+comment on column SCOTT.KART.memo
+  is 'Примечание по л/с';
+comment on column SCOTT.KART.fk_distr
+  is 'Район города';
+comment on column SCOTT.KART.law_doc
+  is 'Правоустанавливающий документ';
+comment on column SCOTT.KART.fk_pasp_org
+  is 'ID Паспортного стола';
+comment on column SCOTT.KART.flag
+  is 'Служебное поле, для переноса в новое УК и проч...';
+comment on column SCOTT.KART.flag1
+  is 'Служебное поле, для переноса в новое УК и проч...';
+comment on column SCOTT.KART.fk_err
+  is 'Признак корректности карточки (0, null- корректна, 1-некорректна)';
+comment on column SCOTT.KART.law_doc_dt
+  is 'Дата правоустанавливающего документа';
+comment on column SCOTT.KART.prvt_doc
+  is 'Документ приватизации';
+comment on column SCOTT.KART.prvt_doc_dt
+  is 'Дата приватизации';
+comment on column SCOTT.KART.cpn
+  is 'Начислять пеню? (0, null, -да, 1 - нет)';
+comment on column SCOTT.KART.kpr_wrp
+  is 'Кол-во временно проживающих (не путать с вр.зарег)';
+comment on column SCOTT.KART.pn_dt
+  is 'Дата ограничения пени';
+comment on column SCOTT.KART.lsk_ext
+  is 'Лицевой счет в внешней базе данных (Денис)';
+comment on column SCOTT.KART.fk_tp
+  is 'FK на тип лицевого счета (основной, дополнительный)';
+comment on column SCOTT.KART.sel1
+  is 'Лиц.счет отобран для выгрузки реестра для УСЗН';
+comment on column SCOTT.KART.vvod_ot
+  is 'Ввод (для ведомости по отоплению) (Бред, но никуда не денешься)';
+comment on column SCOTT.KART.entr
+  is '№ подъезда';
+comment on column SCOTT.KART.pot
+  is 'Последнее показание счетчика отопления';
+comment on column SCOTT.KART.mot
+  is 'Объем по счетчику отопления';
+comment on column SCOTT.KART.elsk
+  is 'Единый лиц.счет для ГИС ЖКХ';
+comment on column SCOTT.KART.parent_lsk
+  is 'Родительский (основной лиц.счет)';
+comment on column SCOTT.KART.fk_klsk_obj
+  is 'KLSK Лиц.счета';
+create index SCOTT.KART_C_LSK_ID on SCOTT.KART (C_LSK_ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  compress;
+create index SCOTT.KART_HOUSE_ID on SCOTT.KART (HOUSE_ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  compress;
+create index SCOTT.KART_KUL_ND_KW_I on SCOTT.KART (KUL, ND, KW)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  compress;
+create index SCOTT.KART_K_LSK_ID on SCOTT.KART (K_LSK_ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  compress;
+create index SCOTT.KART_LSK_I2 on SCOTT.KART (LSK, REU, KUL, ND, PSCH)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  compress;
+create index SCOTT.KART_LSK_REU_KUL_ND on SCOTT.KART (LSK, REU, KUL, ND)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  compress;
+create index SCOTT.KART_POLIS_I on SCOTT.KART (POLIS)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  compress;
+create index SCOTT.KART_PSCH_LSK on SCOTT.KART (PSCH, LSK)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  compress;
+create index SCOTT.KART_REU_KUL_ND on SCOTT.KART (REU, KUL, ND)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  compress;
+alter table SCOTT.KART
+  add constraint KART_P_LSK primary key (LSK)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.KART
+  add constraint KART_FK_DEB_ORG foreign key (FK_DEB_ORG)
+  references SCOTT.T_ORG (ID);
+alter table SCOTT.KART
+  add constraint KART_F_C_LSK_ID foreign key (C_LSK_ID)
+  references SCOTT.C_LSK (ID);
+alter table SCOTT.KART
+  add constraint KART_F_FK_DISTR foreign key (FK_DISTR)
+  references SCOTT.U_LIST (ID);
+alter table SCOTT.KART
+  add constraint KART_F_FK_PASP_ORG foreign key (FK_PASP_ORG)
+  references SCOTT.T_ORG (ID);
+alter table SCOTT.KART
+  add constraint KART_F_FK_TP foreign key (FK_TP)
+  references SCOTT.U_LIST (ID);
+alter table SCOTT.KART
+  add constraint KART_F_HOUSE_ID foreign key (HOUSE_ID)
+  references SCOTT.C_HOUSES (ID);
+alter table SCOTT.KART
+  add constraint KART_F_KFG foreign key (KFG)
+  references SCOTT.SPR_KOEFF (ID);
+alter table SCOTT.KART
+  add constraint KART_F_KUL foreign key (KUL)
+  references SCOTT.SPUL (ID);
+alter table SCOTT.KART
+  add constraint KART_F_K_LSK_ID foreign key (K_LSK_ID)
+  references SCOTT.K_LSK (ID);
+alter table SCOTT.KART
+  add constraint KART_F_K_LSK_OBJ foreign key (FK_KLSK_OBJ)
+  references SCOTT.K_LSK (ID);
+alter table SCOTT.KART
+  add constraint KART_F_PARENT_LSK foreign key (PARENT_LSK)
+  references SCOTT.KART (LSK);
+alter table SCOTT.KART
+  add constraint KART_F_STATUS foreign key (STATUS)
+  references SCOTT.STATUS (ID);
+alter table SCOTT.KART
+  add constraint KART_KUL
+  check (LENGTH(TRIM(KUL))=4);
+alter table SCOTT.KART
+  add constraint KART_KW
+  check (LENGTH(TRIM(kw))=7);
+alter table SCOTT.KART
+  add constraint KART_LSK
+  check (LENGTH(TRIM(LSK))=8);
+alter table SCOTT.KART
+  add constraint KART_ND
+  check (LENGTH(TRIM(ND))=6);
+alter table SCOTT.KART
+  add constraint KART_REU
+  check (LENGTH(TRIM(REU))=2)
+  disable
+  novalidate;
+

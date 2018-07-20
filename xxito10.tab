@@ -1,0 +1,102 @@
+create table SCOTT.XXITO10
+(
+  usl    CHAR(3),
+  org    NUMBER(3),
+  trest  CHAR(2),
+  reu    CHAR(3),
+  summa  NUMBER(10,2),
+  dat    DATE,
+  mg     CHAR(6),
+  var    NUMBER,
+  forreu CHAR(3),
+  oborot NUMBER(1),
+  dopl   CHAR(6)
+)
+tablespace USERS
+  pctfree 5
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.XXITO10
+  is 'Оплата по предпр., трестам, услугам / статусу жилья';
+comment on column SCOTT.XXITO10.usl
+  is 'Услуга';
+comment on column SCOTT.XXITO10.org
+  is 'Предприятие';
+comment on column SCOTT.XXITO10.trest
+  is 'Трест, за который принята оплата';
+comment on column SCOTT.XXITO10.reu
+  is 'РЭУ, который принял оплату (от номера компьютера)';
+comment on column SCOTT.XXITO10.summa
+  is 'Сумма оплаты';
+comment on column SCOTT.XXITO10.dat
+  is 'Дата , в которую вошла оплата';
+comment on column SCOTT.XXITO10.mg
+  is 'Период (месяц-год)';
+comment on column SCOTT.XXITO10.var
+  is 'Признак отдельных организаций (для расчетов)';
+comment on column SCOTT.XXITO10.forreu
+  is 'РЭУ, за который принята оплата';
+comment on column SCOTT.XXITO10.oborot
+  is 'Оплата относится к оборотной ведомости (1) или нет (0)';
+comment on column SCOTT.XXITO10.dopl
+  is 'Период оплаты';
+create index SCOTT.XXITO10_DAT on SCOTT.XXITO10 (DAT)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+create index SCOTT.XXITO10_I on SCOTT.XXITO10 (DAT, OBOROT, REU, FORREU, TREST, ORG, USL, VAR)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+create index SCOTT.XXITO10_I2 on SCOTT.XXITO10 (MG, OBOROT, REU, FORREU, TREST, ORG, USL, VAR)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+create index SCOTT.XXITO10_MG on SCOTT.XXITO10 (MG)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+

@@ -1,0 +1,38 @@
+create table SCOTT.PREP_STREET_FIAS
+(
+  kul    CHAR(4),
+  aoguid VARCHAR2(36)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 128K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.PREP_STREET_FIAS
+  is 'Таблица соответствий кодов Справочника улиц - Списку улиц из УСЗН';
+comment on column SCOTT.PREP_STREET_FIAS.kul
+  is 'FK на ID из справочника SPUL';
+comment on column SCOTT.PREP_STREET_FIAS.aoguid
+  is 'GUID улицы из справочника FIAS';
+create unique index SCOTT.PREP_STREET_FIAS_IU on SCOTT.PREP_STREET_FIAS (KUL)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.PREP_STREET_FIAS
+  add constraint PREP_STREET_FIAS_F foreign key (KUL)
+  references SCOTT.SPUL (ID);
+

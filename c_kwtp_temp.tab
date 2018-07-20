@@ -1,0 +1,26 @@
+create global temporary table SCOTT.C_KWTP_TEMP
+(
+  summa    NUMBER(12,2),
+  penya    NUMBER(12,2),
+  oper     CHAR(2) not null,
+  cnt_sch  NUMBER,
+  cnt_sch0 NUMBER,
+  itog     NUMBER(12,2)
+)
+on commit delete rows;
+comment on table SCOTT.C_KWTP_TEMP
+  is 'Временная таблица для оплаты';
+comment on column SCOTT.C_KWTP_TEMP.summa
+  is 'Сумма';
+comment on column SCOTT.C_KWTP_TEMP.penya
+  is 'Сумма пени';
+comment on column SCOTT.C_KWTP_TEMP.oper
+  is 'Код операции';
+comment on column SCOTT.C_KWTP_TEMP.cnt_sch
+  is 'показания счетчиков после, для 13, 14 опер';
+comment on column SCOTT.C_KWTP_TEMP.cnt_sch0
+  is 'показания счетчиков до, для 13, 14 опер';
+comment on column SCOTT.C_KWTP_TEMP.itog
+  is 'Итого';
+create unique index SCOTT.C_KWTP_TEMP_I on SCOTT.C_KWTP_TEMP (OPER);
+

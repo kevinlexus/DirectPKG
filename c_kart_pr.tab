@@ -1,0 +1,248 @@
+create table SCOTT.C_KART_PR
+(
+  id            NUMBER not null,
+  lsk           CHAR(8),
+  fio           CHAR(55),
+  status        NUMBER default 1 not null,
+  dat_rog       DATE,
+  pol           NUMBER,
+  dok           CHAR(15),
+  dok_c         CHAR(8),
+  dok_n         CHAR(7),
+  dok_d         DATE,
+  dok_v         CHAR(65),
+  dat_prop      DATE,
+  dat_ub        DATE,
+  relat_id      NUMBER,
+  old_id        NUMBER,
+  status_dat    DATE,
+  status_chng   DATE,
+  k_fam         VARCHAR2(25),
+  k_im          VARCHAR2(15),
+  k_ot          VARCHAR2(15),
+  fk_doc_tp     NUMBER,
+  fk_nac        NUMBER,
+  b_place       VARCHAR2(60),
+  fk_frm_cntr   NUMBER,
+  fk_frm_regn   NUMBER,
+  fk_frm_distr  NUMBER,
+  frm_town      VARCHAR2(30),
+  frm_dat       DATE,
+  fk_frm_kul    CHAR(4),
+  frm_nd        VARCHAR2(6),
+  frm_kw        VARCHAR2(7),
+  w_place       VARCHAR2(60),
+  fk_ub         NUMBER,
+  fk_to_cntr    NUMBER,
+  fk_to_regn    NUMBER,
+  fk_to_distr   NUMBER,
+  to_town       VARCHAR2(30),
+  fk_to_kul     CHAR(4),
+  to_nd         VARCHAR2(6),
+  to_kw         VARCHAR2(7),
+  fk_citiz      NUMBER,
+  fk_milit      NUMBER,
+  fk_milit_regn NUMBER,
+  status_datb   DATE,
+  fk_deb_org    NUMBER,
+  priv_proc     VARCHAR2(10)
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 7M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on table SCOTT.C_KART_PR
+  is 'Картотека проживающих';
+comment on column SCOTT.C_KART_PR.id
+  is 'ID проживающего';
+comment on column SCOTT.C_KART_PR.lsk
+  is 'Л.С.';
+comment on column SCOTT.C_KART_PR.fio
+  is 'ФИО';
+comment on column SCOTT.C_KART_PR.status
+  is 'Статус (1-постоянно зарег, 2-временно отсут, 3-временно зарег, 4 -выбыл, 6-временно прожив.)';
+comment on column SCOTT.C_KART_PR.dat_rog
+  is 'Дата рождения';
+comment on column SCOTT.C_KART_PR.pol
+  is 'Пол';
+comment on column SCOTT.C_KART_PR.dok
+  is 'Документ';
+comment on column SCOTT.C_KART_PR.dok_c
+  is 'Док.серия';
+comment on column SCOTT.C_KART_PR.dok_n
+  is 'Док.номер';
+comment on column SCOTT.C_KART_PR.dok_d
+  is 'Док.дата выд.';
+comment on column SCOTT.C_KART_PR.dok_v
+  is 'Док.кем выдан';
+comment on column SCOTT.C_KART_PR.dat_prop
+  is 'Дата прописки';
+comment on column SCOTT.C_KART_PR.dat_ub
+  is 'Дата выписки';
+comment on column SCOTT.C_KART_PR.relat_id
+  is 'Отношение к квартиросъемщику....';
+comment on column SCOTT.C_KART_PR.old_id
+  is 'Старый ID проживающего (для переноса в УК)';
+comment on column SCOTT.C_KART_PR.status_dat
+  is 'Дата окончания действия статуса (для врем. отсут, врем зарег)';
+comment on column SCOTT.C_KART_PR.status_chng
+  is 'Дата изменения статуса ';
+comment on column SCOTT.C_KART_PR.k_fam
+  is 'Фамилия ';
+comment on column SCOTT.C_KART_PR.k_im
+  is 'Имя ';
+comment on column SCOTT.C_KART_PR.k_ot
+  is 'Отчество ';
+comment on column SCOTT.C_KART_PR.fk_doc_tp
+  is 'Тип документа';
+comment on column SCOTT.C_KART_PR.fk_nac
+  is 'Национальность';
+comment on column SCOTT.C_KART_PR.b_place
+  is 'Место рождения';
+comment on column SCOTT.C_KART_PR.fk_frm_cntr
+  is 'Откуда: Страна';
+comment on column SCOTT.C_KART_PR.fk_frm_regn
+  is 'Откуда: Область';
+comment on column SCOTT.C_KART_PR.fk_frm_distr
+  is 'Откуда: Район';
+comment on column SCOTT.C_KART_PR.frm_town
+  is 'Откуда: Нас.пункт';
+comment on column SCOTT.C_KART_PR.frm_dat
+  is 'Откуда: Дата прибытия';
+comment on column SCOTT.C_KART_PR.fk_frm_kul
+  is 'Откуда: Код ул';
+comment on column SCOTT.C_KART_PR.frm_nd
+  is 'Откуда: № дома';
+comment on column SCOTT.C_KART_PR.frm_kw
+  is 'Откуда: № кв.';
+comment on column SCOTT.C_KART_PR.w_place
+  is 'Место работы и должность ';
+comment on column SCOTT.C_KART_PR.fk_ub
+  is 'Причина выписки';
+comment on column SCOTT.C_KART_PR.fk_to_cntr
+  is 'Куда: Страна';
+comment on column SCOTT.C_KART_PR.fk_to_regn
+  is 'Куда: Область';
+comment on column SCOTT.C_KART_PR.fk_to_distr
+  is 'Куда: Район';
+comment on column SCOTT.C_KART_PR.to_town
+  is 'Куда: Нас.пункт';
+comment on column SCOTT.C_KART_PR.fk_to_kul
+  is 'Куда: Код ул';
+comment on column SCOTT.C_KART_PR.to_nd
+  is 'Куда: № дома';
+comment on column SCOTT.C_KART_PR.to_kw
+  is 'Куда: № кв.';
+comment on column SCOTT.C_KART_PR.fk_citiz
+  is 'Гражданство';
+comment on column SCOTT.C_KART_PR.fk_milit
+  is 'Военнообязанность';
+comment on column SCOTT.C_KART_PR.fk_milit_regn
+  is 'Военкомат';
+comment on column SCOTT.C_KART_PR.status_datb
+  is 'Дата начала действия статуса (для врем. отсут, врем зарег)';
+comment on column SCOTT.C_KART_PR.fk_deb_org
+  is 'Организация - задолжник';
+comment on column SCOTT.C_KART_PR.priv_proc
+  is 'Доля приватизированной площади в STR (например 1/5)';
+create index SCOTT.C_KART_PR_I on SCOTT.C_KART_PR (LSK, ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create index SCOTT.C_KART_PR_I2 on SCOTT.C_KART_PR (LSK, STATUS)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.C_KART_PR
+  add constraint C_KART_PR_P_ID primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.C_KART_PR
+  add constraint C_KART_PR_F_FK_CITIZ foreign key (FK_CITIZ)
+  references SCOTT.U_LIST (ID);
+alter table SCOTT.C_KART_PR
+  add constraint C_KART_PR_F_FK_DEB_ORG foreign key (FK_DEB_ORG)
+  references SCOTT.T_ORG (ID);
+alter table SCOTT.C_KART_PR
+  add constraint C_KART_PR_F_FK_DOC_TP foreign key (FK_DOC_TP)
+  references SCOTT.U_LIST (ID);
+alter table SCOTT.C_KART_PR
+  add constraint C_KART_PR_F_FK_MILIT foreign key (FK_MILIT)
+  references SCOTT.U_LIST (ID);
+alter table SCOTT.C_KART_PR
+  add constraint C_KART_PR_F_FK_MILIT_REGN foreign key (FK_MILIT_REGN)
+  references SCOTT.U_LIST (ID);
+alter table SCOTT.C_KART_PR
+  add constraint C_KART_PR_F_FK_NAC foreign key (FK_NAC)
+  references SCOTT.U_LIST (ID);
+alter table SCOTT.C_KART_PR
+  add constraint C_KART_PR_F_FK_UB foreign key (FK_UB)
+  references SCOTT.U_LIST (ID);
+alter table SCOTT.C_KART_PR
+  add constraint C_KART_PR_F_FRM_CNTR foreign key (FK_FRM_CNTR)
+  references SCOTT.U_LIST (ID);
+alter table SCOTT.C_KART_PR
+  add constraint C_KART_PR_F_FRM_DISTR foreign key (FK_FRM_DISTR)
+  references SCOTT.U_LIST (ID);
+alter table SCOTT.C_KART_PR
+  add constraint C_KART_PR_F_FRM_KUL foreign key (FK_FRM_KUL)
+  references SCOTT.SPUL (ID);
+alter table SCOTT.C_KART_PR
+  add constraint C_KART_PR_F_FRM_REGN foreign key (FK_FRM_REGN)
+  references SCOTT.U_LIST (ID);
+alter table SCOTT.C_KART_PR
+  add constraint C_KART_PR_F_LSK foreign key (LSK)
+  references SCOTT.KART (LSK);
+alter table SCOTT.C_KART_PR
+  add constraint C_KART_PR_F_REL_ID foreign key (RELAT_ID)
+  references SCOTT.RELATIONS (ID);
+alter table SCOTT.C_KART_PR
+  add constraint C_KART_PR_F_STATUS_ID foreign key (STATUS)
+  references SCOTT.C_STATUS_PR (ID);
+alter table SCOTT.C_KART_PR
+  add constraint C_KART_PR_F_TO_CNTR foreign key (FK_TO_CNTR)
+  references SCOTT.U_LIST (ID);
+alter table SCOTT.C_KART_PR
+  add constraint C_KART_PR_F_TO_DISTR foreign key (FK_TO_DISTR)
+  references SCOTT.U_LIST (ID);
+alter table SCOTT.C_KART_PR
+  add constraint C_KART_PR_F_TO_KUL foreign key (FK_TO_KUL)
+  references SCOTT.SPUL (ID);
+alter table SCOTT.C_KART_PR
+  add constraint C_KART_PR_F_TO_REGN foreign key (FK_TO_REGN)
+  references SCOTT.U_LIST (ID);
+

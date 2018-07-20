@@ -1,0 +1,43 @@
+create table SCOTT.SPUL
+(
+  id       CHAR(4) not null,
+  name     VARCHAR2(25),
+  cd_kladr VARCHAR2(256),
+  cd_uszn  VARCHAR2(256)
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.SPUL
+  is 'Справочник улиц';
+comment on column SCOTT.SPUL.id
+  is 'ID';
+comment on column SCOTT.SPUL.name
+  is 'Наименование улицы';
+comment on column SCOTT.SPUL.cd_kladr
+  is 'Улица из справочника KLADR';
+comment on column SCOTT.SPUL.cd_uszn
+  is 'Улица из справочника УСЗН';
+alter table SCOTT.SPUL
+  add constraint SPUL_P_ID primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

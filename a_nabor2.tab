@@ -1,0 +1,103 @@
+create table SCOTT.A_NABOR2
+(
+  lsk            CHAR(8) not null,
+  usl            CHAR(3) not null,
+  org            NUMBER(3) not null,
+  koeff          NUMBER,
+  norm           NUMBER,
+  fk_tarif       NUMBER,
+  fk_vvod        NUMBER,
+  vol            NUMBER,
+  fk_dvb         NUMBER,
+  vol_add        NUMBER,
+  kf_kpr         NUMBER,
+  sch_auto       NUMBER,
+  nrm_kpr        NUMBER,
+  kf_kpr_sch     NUMBER,
+  kf_kpr_wrz     NUMBER,
+  kf_kpr_wro     NUMBER,
+  kf_kpr_wrz_sch NUMBER,
+  kf_kpr_wro_sch NUMBER,
+  limit          NUMBER,
+  nrm_kpr2       NUMBER,
+  id             NUMBER not null,
+  mgfrom         NUMBER not null,
+  mgto           NUMBER not null,
+  kpr            NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 8M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on column SCOTT.A_NABOR2.fk_tarif
+  is 'ID Тариф (Антенн)';
+comment on column SCOTT.A_NABOR2.fk_vvod
+  is 'ID ввода по услуге';
+comment on column SCOTT.A_NABOR2.vol
+  is 'Расход по услуге';
+comment on column SCOTT.A_NABOR2.fk_dvb
+  is 'ID DVB устройства';
+comment on column SCOTT.A_NABOR2.vol_add
+  is 'добавочный расход по услуге (например доначисление по 307 постановлению)';
+comment on column SCOTT.A_NABOR2.kf_kpr
+  is 'Коэфф прожив для долевого расчета по услуге';
+comment on column SCOTT.A_NABOR2.sch_auto
+  is 'Автоначисление? (0-нет,1-да)';
+comment on column SCOTT.A_NABOR2.nrm_kpr
+  is 'Кол-во проживающих для расчета норматива';
+comment on column SCOTT.A_NABOR2.kf_kpr_sch
+  is 'Коэфф прожив для долевого расчета  по услуге (по счетчику)';
+comment on column SCOTT.A_NABOR2.kf_kpr_wrz
+  is 'Коэфф временно зарег.(по нормативу)';
+comment on column SCOTT.A_NABOR2.kf_kpr_wro
+  is 'Коэфф временно отсут.(по нормативу)';
+comment on column SCOTT.A_NABOR2.kf_kpr_wrz_sch
+  is 'Коэфф временно зарег.(по счетчику)';
+comment on column SCOTT.A_NABOR2.kf_kpr_wro_sch
+  is 'Коэфф временно отсут.(по счетчику)';
+comment on column SCOTT.A_NABOR2.limit
+  is 'Лимит объема по услуге (Используется при начислении по ОДН)';
+comment on column SCOTT.A_NABOR2.nrm_kpr2
+  is 'Кол-во проживающих для расценки';
+comment on column SCOTT.A_NABOR2.id
+  is 'ID';
+comment on column SCOTT.A_NABOR2.mgfrom
+  is 'Начальный период';
+comment on column SCOTT.A_NABOR2.mgto
+  is 'Конечный период';
+comment on column SCOTT.A_NABOR2.kpr
+  is 'Кол-во проживающих для расчета норматива';
+create index SCOTT.A_NABOR2_I on SCOTT.A_NABOR2 (LSK)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 5M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.A_NABOR2
+  add constraint A_NABOR2_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

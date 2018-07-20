@@ -1,0 +1,25 @@
+create table SCOTT.IMP_C_HOUSES
+(
+  id          NUMBER not null,
+  reu         CHAR(3) not null,
+  kul         CHAR(4) not null,
+  nd          CHAR(6) not null,
+  uch         NUMBER,
+  maxlsk      CHAR(8),
+  kw          NUMBER,
+  minlsk      CHAR(8),
+  house_type  NUMBER,
+  opl         NUMBER,
+  psch        NUMBER,
+  fk_pasp_org NUMBER,
+  kran1       NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+

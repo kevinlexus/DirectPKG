@@ -1,0 +1,21 @@
+create table SCOTT.EXPKWNIUSL
+(
+  house_id NUMBER not null,
+  kul      CHAR(4),
+  adr      VARCHAR2(25),
+  summa    NUMBER,
+  usl      CHAR(3) not null,
+  opl      NUMBER,
+  mg       VARCHAR2(6),
+  reu      CHAR(3)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 128K
+  )
+nologging;
+

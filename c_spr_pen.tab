@@ -1,0 +1,35 @@
+create table SCOTT.C_SPR_PEN
+(
+  mg        VARCHAR2(6) not null,
+  dat       DATE not null,
+  fk_lsk_tp NUMBER,
+  reu       CHAR(3),
+  id        NUMBER
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.C_SPR_PEN
+  is 'Справочник дат начисления пени';
+comment on column SCOTT.C_SPR_PEN.mg
+  is 'Период';
+comment on column SCOTT.C_SPR_PEN.dat
+  is 'Дата, с которой идёт начисление пени';
+comment on column SCOTT.C_SPR_PEN.fk_lsk_tp
+  is 'Тип лиц счета, по которому определяется пеня';
+comment on column SCOTT.C_SPR_PEN.reu
+  is 'REU по которому определена дата начала пени';
+comment on column SCOTT.C_SPR_PEN.id
+  is 'ID';
+alter table SCOTT.C_SPR_PEN
+  add constraint C_SPR_PEN_F_LSK_TP foreign key (FK_LSK_TP)
+  references SCOTT.U_LIST (ID);
+

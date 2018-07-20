@@ -1,0 +1,48 @@
+create table SCOTT.USLM
+(
+  uslm    CHAR(3) not null,
+  nm1     CHAR(35),
+  type    NUMBER,
+  ed_izm  NUMBER,
+  kol_lsk NUMBER,
+  kol_kpr NUMBER
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 128K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on column SCOTT.USLM.uslm
+  is 'ID Услуги (главной)';
+comment on column SCOTT.USLM.nm1
+  is 'Наименование услуги';
+comment on column SCOTT.USLM.type
+  is 'Тип услуги (для сверки ведомостей 1- принадлежит Жилью в ведомости по операциям, 2-не принадлежит)';
+comment on column SCOTT.USLM.ed_izm
+  is 'Возможность сбора статистики по услугам по ед.измерения';
+comment on column SCOTT.USLM.kol_lsk
+  is 'Возможность сбора статистики по услугам по кол-ву лицевых счетов';
+comment on column SCOTT.USLM.kol_kpr
+  is 'Возможность сбора статистики по услугам по кол-ву проживающих';
+create index SCOTT.USLM_USLM_TYPE on SCOTT.USLM (USLM, TYPE)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+alter table SCOTT.USLM
+  add constraint USLM_P_USLM primary key (USLM);
+

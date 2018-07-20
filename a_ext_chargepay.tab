@@ -1,0 +1,49 @@
+create table SCOTT.A_EXT_CHARGEPAY
+(
+  lsk2     CHAR(8) not null,
+  usl      CHAR(3) not null,
+  kul      CHAR(4) not null,
+  nd       CHAR(6) not null,
+  kw       CHAR(7) not null,
+  mg       CHAR(6),
+  sum_chrg NUMBER,
+  sum_chng NUMBER,
+  sum_pay  NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 4M
+  );
+comment on column SCOTT.A_EXT_CHARGEPAY.lsk2
+  is 'Внешний LSK';
+comment on column SCOTT.A_EXT_CHARGEPAY.usl
+  is 'Услуга';
+comment on column SCOTT.A_EXT_CHARGEPAY.kul
+  is 'Код ул';
+comment on column SCOTT.A_EXT_CHARGEPAY.nd
+  is '№ дома';
+comment on column SCOTT.A_EXT_CHARGEPAY.kw
+  is '№ кв.';
+comment on column SCOTT.A_EXT_CHARGEPAY.mg
+  is 'Период';
+comment on column SCOTT.A_EXT_CHARGEPAY.sum_chrg
+  is 'Сумма начисления';
+comment on column SCOTT.A_EXT_CHARGEPAY.sum_chng
+  is 'Сумма изменений';
+comment on column SCOTT.A_EXT_CHARGEPAY.sum_pay
+  is 'Сумма оплаты';
+create index SCOTT.A_EXT_CHARGEPAY_I_MG on SCOTT.A_EXT_CHARGEPAY (MG)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  )
+  compress;
+

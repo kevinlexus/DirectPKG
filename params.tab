@@ -1,0 +1,126 @@
+create table SCOTT.PARAMS
+(
+  param         NUMBER,
+  message       VARCHAR2(700),
+  ver           NUMBER,
+  period        VARCHAR2(6),
+  agent_uptime  DATE,
+  mess_hint     VARCHAR2(1000),
+  period_pl     VARCHAR2(6),
+  subs_ob       NUMBER,
+  id            NUMBER,
+  period_debits DATE,
+  dt_otop1      DATE,
+  dt_otop2      DATE,
+  part          NUMBER,
+  cnt_sch       NUMBER,
+  kan_sch       NUMBER,
+  sv_soc        NUMBER,
+  state_base_   NUMBER,
+  kan_var       NUMBER,
+  org_var       NUMBER,
+  splash        NUMBER,
+  gen_exp_lst   NUMBER,
+  kan_var2      NUMBER,
+  kart_ed1      NUMBER,
+  auto_sign     NUMBER,
+  find_street   NUMBER,
+  penya_month   NUMBER,
+  corr_lg       NUMBER,
+  recharge_bill NUMBER,
+  show_exp_pay  NUMBER,
+  distrib_pay   NUMBER,
+  bill_pen      NUMBER,
+  period_back   VARCHAR2(6),
+  period_forwrd VARCHAR2(6),
+  penya_var     NUMBER,
+  is_fullmonth  NUMBER,
+  wait_ver      NUMBER,
+  is_det_chrg   NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.PARAMS
+  is 'Параметры программы';
+comment on column SCOTT.PARAMS.param
+  is 'Состояние параметра';
+comment on column SCOTT.PARAMS.message
+  is 'Сообщение для пользователей';
+comment on column SCOTT.PARAMS.ver
+  is 'Версия продукта';
+comment on column SCOTT.PARAMS.period
+  is 'Текущий период (расчетный)';
+comment on column SCOTT.PARAMS.agent_uptime
+  is 'Включен ли агент?';
+comment on column SCOTT.PARAMS.mess_hint
+  is 'Совет дня';
+comment on column SCOTT.PARAMS.period_pl
+  is 'Текущий период, для плана';
+comment on column SCOTT.PARAMS.subs_ob
+  is 'Включать субсидию в обороты? (0, null-нет, 1-да)';
+comment on column SCOTT.PARAMS.id
+  is 'ID';
+comment on column SCOTT.PARAMS.dt_otop1
+  is 'Период1 неначисления за отопление, где краны';
+comment on column SCOTT.PARAMS.dt_otop2
+  is 'Период2 неначисления за отопление, где краны';
+comment on column SCOTT.PARAMS.part
+  is 'Включена ли опция partition tables? (0, null-нет, 1-да)';
+comment on column SCOTT.PARAMS.cnt_sch
+  is 'Ввод показаний по расходу счётчика';
+comment on column SCOTT.PARAMS.kan_sch
+  is 'Учитывать счетчики в канализ. (глобальный признак)';
+comment on column SCOTT.PARAMS.sv_soc
+  is 'Считать свыше соц нормы услугу по расценке св. соц нормы? (0 - нет, 1-да)';
+comment on column SCOTT.PARAMS.state_base_
+  is '0-не выполнено итоговое форм.(переход запрещен) 1- выполнено';
+comment on column SCOTT.PARAMS.kan_var
+  is 'Вариант подсчета задолженности';
+comment on column SCOTT.PARAMS.org_var
+  is 'Вариант работы программы (0-киселевск, тсж, 1 - энерг+)';
+comment on column SCOTT.PARAMS.splash
+  is 'Показывать Сплэш скрин';
+comment on column SCOTT.PARAMS.gen_exp_lst
+  is 'Формировать списки на экспорт при итог.форм.';
+comment on column SCOTT.PARAMS.kan_var2
+  is 'Рассчет канализ (0 - Кисел., тсж, 1- Полыс) (определяет, как считать объем канализ по норме)';
+comment on column SCOTT.PARAMS.kart_ed1
+  is 'Возможность правки вкладки "Дополнительно" в карточке';
+comment on column SCOTT.PARAMS.auto_sign
+  is 'Автоматически подписывать все отчёты';
+comment on column SCOTT.PARAMS.find_street
+  is 'Поиск улицы (0 - по наименованию, 1 - по коду, )';
+comment on column SCOTT.PARAMS.penya_month
+  is 'Гарантированная отсрочка пени на N месяцев (1-да, 0-нет)';
+comment on column SCOTT.PARAMS.corr_lg
+  is 'Учитывать ли теку корректировки в начислении льготы (1-да, 0-нет)';
+comment on column SCOTT.PARAMS.recharge_bill
+  is 'Перерасчитывать счет по умолчанию?';
+comment on column SCOTT.PARAMS.show_exp_pay
+  is 'Показывать развернутую оплату (ТСЖ) (0 -нет, 1-да)';
+comment on column SCOTT.PARAMS.distrib_pay
+  is 'Распределять ли оплату по периодам (1-Кисел, 0 - остальные)';
+comment on column SCOTT.PARAMS.bill_pen
+  is 'Рассчитывать ли пеню в счёте, на текущий день (1-да, Полыс, 0  - остальные (Кис))';
+comment on column SCOTT.PARAMS.period_back
+  is 'начальный период для корректировки оплаты';
+comment on column SCOTT.PARAMS.period_forwrd
+  is 'Последний период для корректировки оплаты';
+comment on column SCOTT.PARAMS.penya_var
+  is 'Варианты начисления пени: (0-с неначислением пени за N месяцев, 1- с отсрочкой пени)';
+comment on column SCOTT.PARAMS.is_fullmonth
+  is 'Считать начисление с начала месяца, если прописались с 15 (0-нет, 1-да)';
+comment on column SCOTT.PARAMS.wait_ver
+  is 'Номер ожидаемой на обновление версии';
+comment on column SCOTT.PARAMS.is_det_chrg
+  is 'Считать ли c_charge_prep детально? (0, null - нет, 1 - да)';
+

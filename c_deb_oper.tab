@@ -1,0 +1,55 @@
+create table SCOTT.C_DEB_OPER
+(
+  id      NUMBER not null,
+  fk_oper CHAR(2) not null,
+  fk_lsk  CHAR(8) not null,
+  summa   NUMBER,
+  n1      NUMBER,
+  s1      VARCHAR2(256)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.C_DEB_OPER
+  is 'Долги по операциям (для приёма оплаты по внешним услугам и лиц.счетам)';
+comment on column SCOTT.C_DEB_OPER.id
+  is 'ID';
+comment on column SCOTT.C_DEB_OPER.fk_oper
+  is 'FK на операцию';
+comment on column SCOTT.C_DEB_OPER.fk_lsk
+  is 'FK на ЛС';
+comment on column SCOTT.C_DEB_OPER.summa
+  is 'Сумма долга';
+comment on column SCOTT.C_DEB_OPER.n1
+  is 'Служебное поле (может хранить последние показания и т.п.)';
+comment on column SCOTT.C_DEB_OPER.s1
+  is 'Служебное поле (может хранить фио и т.п.)';
+alter table SCOTT.C_DEB_OPER
+  add constraint C_DEB_OPER_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.C_DEB_OPER
+  add constraint C_DEB_OPER_F_LSK foreign key (FK_LSK)
+  references SCOTT.KART (LSK);
+alter table SCOTT.C_DEB_OPER
+  add constraint C_DEB_OPER_F_OPER foreign key (FK_OPER)
+  references SCOTT.OPER (OPER);
+

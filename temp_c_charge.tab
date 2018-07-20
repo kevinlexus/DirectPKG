@@ -1,0 +1,24 @@
+create table SCOTT.TEMP_C_CHARGE
+(
+  lsk   CHAR(8) not null,
+  summa NUMBER,
+  usl   CHAR(3)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+create index SCOTT.TEMP_C_CHARGE_I on SCOTT.TEMP_C_CHARGE (LSK, USL)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+

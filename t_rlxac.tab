@@ -1,0 +1,69 @@
+create table SCOTT.T_RLXAC
+(
+  id        NUMBER default 0 not null,
+  cd        VARCHAR2(32) default '32' not null,
+  fk_role   NUMBER default 0 not null,
+  fk_obj    NUMBER,
+  fk_act    NUMBER default 0 not null,
+  v         NUMBER default 1 not null,
+  grantable NUMBER default 0 not null,
+  fk_objt   NUMBER,
+  fk_doctp  NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.T_RLXAC
+  is 'ПРИВИЛЕГИЯ РОЛИ НА ОБЪЕКТ / ТИП ДОКУМЕНТА';
+comment on column SCOTT.T_RLXAC.id
+  is 'ПРИВИЛЕГИЯ РОЛИ НА ОБЪЕКТ / ТИП ДОКУМЕНТА';
+comment on column SCOTT.T_RLXAC.cd
+  is 'Код - независящий от ID';
+comment on column SCOTT.T_RLXAC.fk_role
+  is 'указатель на РОЛЬ';
+comment on column SCOTT.T_RLXAC.fk_obj
+  is 'указатель на ОБЪЕКТ';
+comment on column SCOTT.T_RLXAC.fk_act
+  is 'указатель на ДЕЙСТВИЕ (метод объекта)';
+comment on column SCOTT.T_RLXAC.v
+  is 'вкл/выкл.  включено, если = 1';
+comment on column SCOTT.T_RLXAC.grantable
+  is 'GRANTABLE  (with admin option)   если = 1';
+comment on column SCOTT.T_RLXAC.fk_objt
+  is 'суказатель на ТИП ОБЪЕКТА';
+comment on column SCOTT.T_RLXAC.fk_doctp
+  is 'указатель на ТИП ДОКУМЕНТА ';
+alter table SCOTT.T_RLXAC
+  add constraint T_RLXAC_PK primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+alter table SCOTT.T_RLXAC
+  add constraint T_RLXAC_UK_CD unique (CD)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+alter table SCOTT.T_RLXAC
+  add constraint T_RLXAC_FK_ACT foreign key (FK_ACT)
+  references SCOTT.T_ACT (ID) on delete cascade;
+alter table SCOTT.T_RLXAC
+  add constraint T_RLXAC_FK_ROLE foreign key (FK_ROLE)
+  references SCOTT.T_ROLE (ID) on delete cascade;
+

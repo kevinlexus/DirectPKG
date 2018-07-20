@@ -1,0 +1,42 @@
+create table SCOTT.PROC_PLAN_LOADED
+(
+  reu  CHAR(3),
+  dat  DATE,
+  oper CHAR(2),
+  ska  NUMBER,
+  pn   NUMBER
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+  );
+comment on table SCOTT.PROC_PLAN_LOADED
+  is 'Таблица, для загруженных платежей для плана с агента';
+comment on column SCOTT.PROC_PLAN_LOADED.reu
+  is '№ РЭУ';
+comment on column SCOTT.PROC_PLAN_LOADED.dat
+  is 'Дата квитанций';
+comment on column SCOTT.PROC_PLAN_LOADED.oper
+  is 'Код операции';
+comment on column SCOTT.PROC_PLAN_LOADED.ska
+  is 'Сумма оплаты';
+comment on column SCOTT.PROC_PLAN_LOADED.pn
+  is 'Пеня';
+create index SCOTT.PROC_PLAN_I_DAT on SCOTT.PROC_PLAN_LOADED (DAT)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  )
+  nologging;
+alter table SCOTT.PROC_PLAN_LOADED
+  add constraint PROC_PLAN_LD_OPER foreign key (OPER)
+  references SCOTT.OPER (OPER);
+

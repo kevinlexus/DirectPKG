@@ -1,0 +1,41 @@
+create table SCOTT.T_ROLE
+(
+  id        NUMBER default 0 not null,
+  cd        VARCHAR2(32) default '32' not null,
+  name      VARCHAR2(32) default '32',
+  npp       NUMBER default 0 not null,
+  v         NUMBER default 1 not null,
+  grantable NUMBER default 1 not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.T_ROLE
+  is 'FIN_SEQ.справочник РОЛЬ.';
+comment on column SCOTT.T_ROLE.cd
+  is 'Код - независящий от ID';
+comment on column SCOTT.T_ROLE.name
+  is 'наименование полное';
+comment on column SCOTT.T_ROLE.npp
+  is 'номер по порядку - для сортировки пользователя';
+comment on column SCOTT.T_ROLE.v
+  is 'вкл/выкл.  включено, если = 1';
+comment on column SCOTT.T_ROLE.grantable
+  is 'вкл/выкл.  включено, если = 1';
+alter table SCOTT.T_ROLE
+  add constraint T_ROLE_PK primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+

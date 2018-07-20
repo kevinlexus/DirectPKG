@@ -1,0 +1,17 @@
+create global temporary table SCOTT.LIST_CHOICES_UCH
+(
+  reu CHAR(3),
+  sel NUMBER(1),
+  uch NUMBER
+)
+on commit delete rows;
+comment on table SCOTT.LIST_CHOICES_UCH
+  is 'Таблица для выбора участков пользователем';
+comment on column SCOTT.LIST_CHOICES_UCH.reu
+  is '№ РЭУ';
+comment on column SCOTT.LIST_CHOICES_UCH.sel
+  is 'Отмечено';
+comment on column SCOTT.LIST_CHOICES_UCH.uch
+  is 'Участок';
+create index SCOTT.LIST_CHOICES_UCH_RUS on SCOTT.LIST_CHOICES_UCH (REU, UCH, SEL);
+

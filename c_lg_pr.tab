@@ -1,0 +1,48 @@
+create table SCOTT.C_LG_PR
+(
+  c_lg_docs_id NUMBER,
+  spk_id       NUMBER default 1 not null,
+  type         NUMBER default 1 not null
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 30M
+  )
+nologging;
+comment on table SCOTT.C_LG_PR
+  is 'Картотека проживающих';
+comment on column SCOTT.C_LG_PR.c_lg_docs_id
+  is 'ID - документа по льготе';
+comment on column SCOTT.C_LG_PR.type
+  is '1-льгота на жильё, 0- льгота на коммун.усл';
+create index SCOTT.C_LG_PR_I on SCOTT.C_LG_PR (C_LG_DOCS_ID, TYPE, SPK_ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 20M
+  )
+  compress;
+create index SCOTT.C_LG_PR_I2 on SCOTT.C_LG_PR (C_LG_DOCS_ID, SPK_ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 20M
+  )
+  compress;
+alter table SCOTT.C_LG_PR
+  add constraint C_LG_PR_F_DOC_ID foreign key (C_LG_DOCS_ID)
+  references SCOTT.C_LG_DOCS (ID) on delete cascade;
+alter table SCOTT.C_LG_PR
+  add constraint C_LG_PR_F_SPK_ID foreign key (SPK_ID)
+  references SCOTT.SPK (ID);
+

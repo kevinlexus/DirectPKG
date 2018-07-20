@@ -1,0 +1,56 @@
+create table SCOTT.A_PEN_CUR
+(
+  lsk     CHAR(8),
+  mg1     CHAR(6),
+  curdays NUMBER,
+  summa2  NUMBER,
+  penya   NUMBER,
+  fk_stav NUMBER,
+  dt1     DATE,
+  dt2     DATE,
+  mg      CHAR(6)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.A_PEN_CUR
+  is 'Начисление пени за текущий период';
+comment on column SCOTT.A_PEN_CUR.lsk
+  is 'Лиц. счет';
+comment on column SCOTT.A_PEN_CUR.mg1
+  is 'Период';
+comment on column SCOTT.A_PEN_CUR.curdays
+  is 'Кол-во текущих дней долга';
+comment on column SCOTT.A_PEN_CUR.summa2
+  is 'Сумма задолжности, по которой расчёт пени';
+comment on column SCOTT.A_PEN_CUR.penya
+  is 'Сумма пени';
+comment on column SCOTT.A_PEN_CUR.fk_stav
+  is 'fk использованной ставки';
+comment on column SCOTT.A_PEN_CUR.dt1
+  is 'Дата начала';
+comment on column SCOTT.A_PEN_CUR.dt2
+  is 'Дата окончания';
+comment on column SCOTT.A_PEN_CUR.mg
+  is 'Период';
+create index SCOTT.A_PEN_CUR_I on SCOTT.A_PEN_CUR (LSK, MG1)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

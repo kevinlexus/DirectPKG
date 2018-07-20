@@ -1,0 +1,29 @@
+create table SCOTT.PROC_PLAN_LOAD
+(
+  reu  CHAR(3),
+  dat  DATE,
+  oper CHAR(2),
+  ska  NUMBER,
+  pn   NUMBER
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+  );
+comment on table SCOTT.PROC_PLAN_LOAD
+  is 'Временная таблица, для загрузки платежей для плана с агента';
+comment on column SCOTT.PROC_PLAN_LOAD.reu
+  is '№ РЭУ';
+comment on column SCOTT.PROC_PLAN_LOAD.dat
+  is 'Дата квитанций';
+comment on column SCOTT.PROC_PLAN_LOAD.oper
+  is 'Код операции';
+comment on column SCOTT.PROC_PLAN_LOAD.ska
+  is 'Сумма оплаты';
+comment on column SCOTT.PROC_PLAN_LOAD.pn
+  is 'Пеня';
+

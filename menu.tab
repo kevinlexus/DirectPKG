@@ -1,0 +1,40 @@
+create table SCOTT.MENU
+(
+  id    NUMBER not null,
+  name  VARCHAR2(25),
+  name1 VARCHAR2(25)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.MENU
+  is 'Справочник менюшек';
+comment on column SCOTT.MENU.id
+  is 'ID';
+comment on column SCOTT.MENU.name
+  is 'Наименование пункта меню';
+comment on column SCOTT.MENU.name1
+  is 'Наименование пункта, для отчета';
+alter table SCOTT.MENU
+  add constraint MENU_P_ID primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

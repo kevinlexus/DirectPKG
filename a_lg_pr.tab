@@ -1,0 +1,26 @@
+create table SCOTT.A_LG_PR
+(
+  c_lg_docs_id NUMBER,
+  spk_id       NUMBER default 1 not null,
+  type         NUMBER default 0 not null,
+  mg           CHAR(6)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 9M
+  )
+nologging;
+create index SCOTT.A_LG_PR_I on SCOTT.A_LG_PR (C_LG_DOCS_ID, SPK_ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 20M
+  );
+

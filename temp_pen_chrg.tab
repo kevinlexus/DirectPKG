@@ -1,0 +1,28 @@
+create global temporary table SCOTT.TEMP_PEN_CHRG
+(
+  mg1      CHAR(6),
+  days     NUMBER,
+  summa    NUMBER,
+  penya    NUMBER,
+  day_iter DATE,
+  fk_stav  NUMBER,
+  summa2   NUMBER
+)
+on commit delete rows;
+comment on table SCOTT.TEMP_PEN_CHRG
+  is 'Начисление пени за текущий период - Temporary table';
+comment on column SCOTT.TEMP_PEN_CHRG.mg1
+  is 'Период';
+comment on column SCOTT.TEMP_PEN_CHRG.days
+  is 'Кол-во дней долга';
+comment on column SCOTT.TEMP_PEN_CHRG.summa
+  is 'Сумма фактической задолжности, на конец дня';
+comment on column SCOTT.TEMP_PEN_CHRG.penya
+  is 'Сумма пени';
+comment on column SCOTT.TEMP_PEN_CHRG.day_iter
+  is 'Дата итерации расчета';
+comment on column SCOTT.TEMP_PEN_CHRG.fk_stav
+  is 'fk использованной ставки';
+comment on column SCOTT.TEMP_PEN_CHRG.summa2
+  is 'Сумма задолжности, по которой расчёт пени';
+

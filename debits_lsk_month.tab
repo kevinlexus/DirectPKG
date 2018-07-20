@@ -1,0 +1,96 @@
+create table SCOTT.DEBITS_LSK_MONTH
+(
+  lsk        CHAR(8),
+  reu        CHAR(3),
+  kul        CHAR(4),
+  name       CHAR(25),
+  nd         CHAR(6),
+  kw         CHAR(7),
+  fio        CHAR(55),
+  status     NUMBER,
+  opl        NUMBER,
+  cnt_month  NUMBER,
+  dolg       NUMBER,
+  nachisl    NUMBER,
+  mg         CHAR(6),
+  penya      NUMBER,
+  payment    NUMBER,
+  dat        DATE,
+  fk_deb_org NUMBER,
+  subs_get   NUMBER,
+  cnt_month2 NUMBER,
+  dolg2      NUMBER,
+  k_lsk_id   NUMBER,
+  pay_pen    NUMBER,
+  pen_in     NUMBER,
+  pen_cur    NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 10M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on column SCOTT.DEBITS_LSK_MONTH.lsk
+  is 'Л.с.';
+comment on column SCOTT.DEBITS_LSK_MONTH.cnt_month
+  is 'Кол-во месяцев задолжн. с учетом тек.оплаты';
+comment on column SCOTT.DEBITS_LSK_MONTH.dolg
+  is 'Сумма долга (вх.сальдо) с учетом тек.оплаты';
+comment on column SCOTT.DEBITS_LSK_MONTH.nachisl
+  is 'Начисление';
+comment on column SCOTT.DEBITS_LSK_MONTH.mg
+  is 'Период';
+comment on column SCOTT.DEBITS_LSK_MONTH.penya
+  is 'Исх.сальдо по пене';
+comment on column SCOTT.DEBITS_LSK_MONTH.payment
+  is 'Оплата текущего месяца';
+comment on column SCOTT.DEBITS_LSK_MONTH.dat
+  is 'Дата формирования';
+comment on column SCOTT.DEBITS_LSK_MONTH.fk_deb_org
+  is 'Организация, в которой работает должник';
+comment on column SCOTT.DEBITS_LSK_MONTH.subs_get
+  is 'Получатель субсидии (0-нет, 1 -да)';
+comment on column SCOTT.DEBITS_LSK_MONTH.cnt_month2
+  is 'Кол-во месяцев задолжн. без учета тек.оплаты';
+comment on column SCOTT.DEBITS_LSK_MONTH.dolg2
+  is 'Сумма долга (вх.сальдо) без учета тек.оплаты';
+comment on column SCOTT.DEBITS_LSK_MONTH.k_lsk_id
+  is 'K_LSK_ID';
+comment on column SCOTT.DEBITS_LSK_MONTH.pay_pen
+  is 'Оплата пени';
+comment on column SCOTT.DEBITS_LSK_MONTH.pen_in
+  is 'Вх.сальдо по пене';
+comment on column SCOTT.DEBITS_LSK_MONTH.pen_cur
+  is 'Текущая, начисленная пеня';
+create index SCOTT.DEBITS_LSK_MONTH_I on SCOTT.DEBITS_LSK_MONTH (MG)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create index SCOTT.DEBITS_LSK_MONTH_I2 on SCOTT.DEBITS_LSK_MONTH (DAT)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

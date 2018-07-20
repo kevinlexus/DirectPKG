@@ -1,0 +1,23 @@
+create table SCOTT.R_REQ_WORKS
+(
+  r_req_id  NUMBER not null,
+  r_work_id NUMBER not null
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.R_REQ_WORKS
+  is 'Работы по заявке';
+comment on column SCOTT.R_REQ_WORKS.r_req_id
+  is 'ID Заявки';
+comment on column SCOTT.R_REQ_WORKS.r_work_id
+  is 'ID Работы';
+alter table SCOTT.R_REQ_WORKS
+  add constraint F_R_REQ_WORKS_R_WORK_ID foreign key (R_WORK_ID)
+  references SCOTT.SPR_WORKS (ID);
+

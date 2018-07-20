@@ -1,0 +1,27 @@
+create table SCOTT.C_BILL_DET
+(
+  id        NUMBER,
+  mg        VARCHAR2(6),
+  fk_bill   NUMBER,
+  vol       NUMBER,
+  charges   NUMBER,
+  privs     NUMBER,
+  changes0  NUMBER,
+  changes1  NUMBER,
+  changes2  NUMBER,
+  subs      NUMBER,
+  sub_el    NUMBER,
+  itog      NUMBER,
+  itog_uszn NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.C_BILL_DET
+  is 'Таблица на будущее))) Услуги по счету за период';
+

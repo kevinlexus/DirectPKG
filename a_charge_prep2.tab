@@ -1,0 +1,87 @@
+create table SCOTT.A_CHARGE_PREP2
+(
+  id         NUMBER not null,
+  lsk        CHAR(8) not null,
+  usl        CHAR(3) not null,
+  vol        NUMBER,
+  kpr        NUMBER,
+  kprz       NUMBER,
+  kpro       NUMBER,
+  sch        NUMBER,
+  tp         NUMBER not null,
+  vol_nrm    NUMBER,
+  vol_sv_nrm NUMBER,
+  kpr2       NUMBER,
+  opl        NUMBER,
+  fk_spk     NUMBER,
+  dt1        DATE,
+  dt2        DATE,
+  mgfrom     NUMBER not null,
+  mgto       NUMBER not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 24M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.A_CHARGE_PREP2
+  is 'Архив: Подготовительная информация для расчета начисления';
+comment on column SCOTT.A_CHARGE_PREP2.lsk
+  is 'Лиц. счет';
+comment on column SCOTT.A_CHARGE_PREP2.usl
+  is 'Услуга';
+comment on column SCOTT.A_CHARGE_PREP2.vol
+  is 'Объем';
+comment on column SCOTT.A_CHARGE_PREP2.kpr
+  is 'Кол-во проживающих';
+comment on column SCOTT.A_CHARGE_PREP2.kprz
+  is 'Кол-во временно зарег';
+comment on column SCOTT.A_CHARGE_PREP2.kpro
+  is 'Кол-во временно отсут';
+comment on column SCOTT.A_CHARGE_PREP2.sch
+  is 'наличие счетчика (1-есть, null(0) - нет)';
+comment on column SCOTT.A_CHARGE_PREP2.tp
+  is 'Тип записи (0-предварительный подсчет,
+1 - сгруппированный до ключевых структур, .
+2 - кол-во прож.для опред.соцнормы,
+3 - итог объёма, проживающих,
+4 - корректировки ОДН,
+5 - детально, но без корректировок ОДН,
+6 - итог объёма, проживающих без коррект. ОДН)
+7 - просто, наличие счетчика
+ 8-детализация льготы, 9 - наличие льготы (используется совместно с dt1,dt2)';
+comment on column SCOTT.A_CHARGE_PREP2.vol_nrm
+  is 'Объем по соцнорме';
+comment on column SCOTT.A_CHARGE_PREP2.vol_sv_nrm
+  is 'Объем свыше соцнормы';
+comment on column SCOTT.A_CHARGE_PREP2.kpr2
+  is 'Кол-во проживающих в т.ч. все, В.О. В.З. В.П.';
+comment on column SCOTT.A_CHARGE_PREP2.opl
+  is 'Площадь, которую надо всё равно учитывать (например когда отопление гКал, где в VOL сидят - гКал)';
+comment on column SCOTT.A_CHARGE_PREP2.fk_spk
+  is 'FK на справочник льгот';
+comment on column SCOTT.A_CHARGE_PREP2.dt1
+  is 'Дата начала периода';
+comment on column SCOTT.A_CHARGE_PREP2.dt2
+  is 'Дата конца периода';
+alter table SCOTT.A_CHARGE_PREP2
+  add constraint A_CHARGE_PREP2_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 6M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

@@ -1,0 +1,8 @@
+create global temporary table SCOTT.TEMP_LSK
+(
+  lsk CHAR(8)
+)
+on commit delete rows;
+comment on table SCOTT.TEMP_LSK
+  is 'временная  таблица, для расчета счета по одному лицевому';
+

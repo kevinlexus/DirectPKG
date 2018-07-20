@@ -1,0 +1,35 @@
+create table SCOTT.A_PRICES
+(
+  usl    CHAR(3),
+  summa  NUMBER,
+  mg     CHAR(6),
+  summa2 NUMBER,
+  summa3 NUMBER,
+  fk_org NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+create index SCOTT.A_PRICES_I on SCOTT.A_PRICES (USL)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+

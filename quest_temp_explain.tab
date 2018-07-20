@@ -1,0 +1,32 @@
+create global temporary table SCOTT.QUEST_TEMP_EXPLAIN
+(
+  statement_id    VARCHAR2(30),
+  timestamp       DATE,
+  remarks         VARCHAR2(80),
+  operation       VARCHAR2(30),
+  options         VARCHAR2(30),
+  object_node     VARCHAR2(128),
+  object_owner    VARCHAR2(30),
+  object_name     VARCHAR2(30),
+  object_instance INTEGER,
+  object_type     VARCHAR2(30),
+  optimizer       VARCHAR2(255),
+  search_columns  INTEGER,
+  id              INTEGER,
+  parent_id       INTEGER,
+  position        INTEGER,
+  cost            INTEGER,
+  cardinality     INTEGER,
+  bytes           INTEGER,
+  other_tag       VARCHAR2(255),
+  partition_start VARCHAR2(255),
+  partition_stop  VARCHAR2(255),
+  partition_id    INTEGER,
+  other           LONG,
+  distribution    VARCHAR2(30),
+  cpu_cost        INTEGER,
+  io_cost         INTEGER,
+  temp_space      INTEGER
+)
+on commit preserve rows;
+

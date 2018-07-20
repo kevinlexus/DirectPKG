@@ -1,0 +1,45 @@
+create table SCOTT.VAR_ORG
+(
+  kod  NUMBER(3),
+  kod1 NUMBER(3),
+  proc NUMBER(6,4),
+  dat  CHAR(6),
+  dat1 CHAR(6)
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+  );
+comment on table SCOTT.VAR_ORG
+  is 'Варианты расчетов по организациям';
+create index SCOTT.VAR_ORG_I_DAT_DAT1_KOD on SCOTT.VAR_ORG (DAT, DAT1, KOD)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+  )
+  nologging;
+create index SCOTT.VAR_ORG_I_KOD_DAT_DAT1 on SCOTT.VAR_ORG (KOD, DAT, DAT1)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+  )
+  nologging;
+alter table SCOTT.VAR_ORG
+  add constraint VAR_ORG_FK_ORG foreign key (KOD)
+  references SCOTT.T_ORG (ID);
+alter table SCOTT.VAR_ORG
+  add constraint VAR_ORG_FK_ORG1 foreign key (KOD1)
+  references SCOTT.T_ORG (ID);
+

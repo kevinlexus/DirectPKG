@@ -1,0 +1,26 @@
+create table SCOTT.PREP_STREET
+(
+  kul       CHAR(4),
+  ext_nylic VARCHAR2(124)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.PREP_STREET
+  is 'Таблица соответствий кодов Справочника улиц - Списку улиц из ФИАС';
+comment on column SCOTT.PREP_STREET.kul
+  is 'FK на ID из справочника SPUL';
+comment on column SCOTT.PREP_STREET.ext_nylic
+  is 'Наименование улицы в реестре от УСЗН';
+alter table SCOTT.PREP_STREET
+  add constraint PREP_STREET_F foreign key (KUL)
+  references SCOTT.SPUL (ID);
+

@@ -1,0 +1,63 @@
+create table SCOTT.C_BILL
+(
+  id          NUMBER not null,
+  mg1         VARCHAR2(6),
+  mg          VARCHAR2(6),
+  k_lsk_id    NUMBER,
+  lsk         VARCHAR2(8),
+  fio         VARCHAR2(50),
+  status      NUMBER,
+  psch        NUMBER,
+  phw         NUMBER,
+  pgw         NUMBER,
+  pel         NUMBER,
+  kul         VARCHAR2(4),
+  opl         NUMBER,
+  pldop       NUMBER,
+  kpr         NUMBER,
+  kpr_ot      NUMBER,
+  kpr_wr      NUMBER,
+  fk_org      NUMBER,
+  ki          NUMBER,
+  subs_inf    NUMBER,
+  lg_mains    NUMBER,
+  itg_pen     NUMBER,
+  itg_pay     NUMBER,
+  tarif       NUMBER,
+  pl_svnorm   NUMBER,
+  lg_id       NUMBER,
+  prev_chrg   NUMBER,
+  prev_pay    NUMBER,
+  payment     NUMBER,
+  penya       NUMBER,
+  monthpenya  NUMBER,
+  monthpenya2 NUMBER,
+  dolg        NUMBER,
+  old_dolg    NUMBER,
+  itog_dolg   NUMBER,
+  ovrpaymnt   NUMBER,
+  sal_in      NUMBER,
+  dolg2       NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.C_BILL
+  is 'Таблица на будущее))) Счета рассчитанные, за период';
+alter table SCOTT.C_BILL
+  add constraint C_BILL_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+

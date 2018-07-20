@@ -1,0 +1,24 @@
+create table SCOTT.LOAD_COR
+(
+  stls    CHAR(25),
+  lchet   CHAR(8),
+  famil   CHAR(20),
+  nylic   CHAR(36),
+  ndom    CHAR(7),
+  nkorp   CHAR(3),
+  nkw     CHAR(15),
+  sum_sub NUMBER(8,2),
+  sum_sv  NUMBER(8,2),
+  sv_ob   NUMBER(8,2),
+  lsk     CHAR(8)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  )
+nologging;
+

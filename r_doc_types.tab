@@ -1,0 +1,31 @@
+create table SCOTT.R_DOC_TYPES
+(
+  id   NUMBER not null,
+  name VARCHAR2(100)
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.R_DOC_TYPES
+  is 'Типы документов';
+comment on column SCOTT.R_DOC_TYPES.id
+  is 'ID Типа документа';
+comment on column SCOTT.R_DOC_TYPES.name
+  is 'Наименование';
+alter table SCOTT.R_DOC_TYPES
+  add constraint P_R_DOC_TYPES_ID primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+

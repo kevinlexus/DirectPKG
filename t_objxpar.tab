@@ -1,0 +1,115 @@
+create table SCOTT.T_OBJXPAR
+(
+  id       NUMBER not null,
+  fk_lsk   CHAR(8),
+  fk_k_lsk NUMBER,
+  fk_list  NUMBER not null,
+  s1       VARCHAR2(255),
+  d1       DATE,
+  n1       NUMBER,
+  c1       CLOB,
+  pass     RAW(50),
+  fk_user  NUMBER,
+  fk_usl   CHAR(3),
+  tp       NUMBER,
+  ts       DATE default sysdate,
+  mg       VARCHAR2(6),
+  fk_val   NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 14M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.T_OBJXPAR
+  is 'Параметры по лицевому счету или по k_lsk';
+comment on column SCOTT.T_OBJXPAR.id
+  is 'ID';
+comment on column SCOTT.T_OBJXPAR.fk_lsk
+  is 'FK на л/с';
+comment on column SCOTT.T_OBJXPAR.fk_k_lsk
+  is 'FK на k_lsk';
+comment on column SCOTT.T_OBJXPAR.fk_list
+  is 'FK на параметр';
+comment on column SCOTT.T_OBJXPAR.s1
+  is 'значение параметра типа Varchar(255)';
+comment on column SCOTT.T_OBJXPAR.d1
+  is 'значение параметра типа Дата';
+comment on column SCOTT.T_OBJXPAR.n1
+  is 'значение параметра типа Number';
+comment on column SCOTT.T_OBJXPAR.c1
+  is 'значение параметра типа CLOB';
+comment on column SCOTT.T_OBJXPAR.pass
+  is 'значение параметра типа RAW(50)';
+comment on column SCOTT.T_OBJXPAR.fk_user
+  is 'FK на пользователя, добавившего запись (Счетчики)';
+comment on column SCOTT.T_OBJXPAR.fk_usl
+  is 'FK на услугу (Счетчики)';
+comment on column SCOTT.T_OBJXPAR.tp
+  is 'Тип ввода (0-ручной, 1-автоначисление, 2 -Отмена автонач., 3-Очистка перехода, 4-Коррекция расхода неисправного ПУ) (Счетчики)';
+comment on column SCOTT.T_OBJXPAR.ts
+  is 'Timestamp (Счетчики)';
+comment on column SCOTT.T_OBJXPAR.mg
+  is 'Расчетный период (Счетчики)';
+comment on column SCOTT.T_OBJXPAR.fk_val
+  is 'FK на значение параметра типа "ID"';
+create index SCOTT.T_OBJXPAR_I on SCOTT.T_OBJXPAR (FK_K_LSK, FK_LIST)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 9M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create index SCOTT.T_OBJXPAR_I2 on SCOTT.T_OBJXPAR (FK_LSK, FK_LIST)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 7M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.T_OBJXPAR
+  add constraint T_OBJXPAR_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 4M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.T_OBJXPAR
+  add constraint T_OBJXPAR_F_K_LSK foreign key (FK_K_LSK)
+  references SCOTT.K_LSK (ID) on delete cascade;
+alter table SCOTT.T_OBJXPAR
+  add constraint T_OBJXPAR_F_LIST foreign key (FK_LIST)
+  references SCOTT.U_LIST (ID) on delete cascade;
+alter table SCOTT.T_OBJXPAR
+  add constraint T_OBJXPAR_F_LSK foreign key (FK_LSK)
+  references SCOTT.KART (LSK) on delete cascade;
+alter table SCOTT.T_OBJXPAR
+  add constraint T_OBJXPAR_F_USER foreign key (FK_USER)
+  references SCOTT.T_USER (ID) on delete cascade;
+alter table SCOTT.T_OBJXPAR
+  add constraint T_OBJXPAR_F_VAL foreign key (FK_VAL)
+  references SCOTT.U_LIST (ID) on delete cascade;
+

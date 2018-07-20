@@ -1,0 +1,134 @@
+create table SCOTT.LOAD_PRIVS
+(
+  org1     VARCHAR2(30),
+  datn     DATE,
+  posel    VARCHAR2(30),
+  nasp     VARCHAR2(90),
+  nylic    VARCHAR2(90),
+  ndom     VARCHAR2(7),
+  nkorp    VARCHAR2(3),
+  nkw      VARCHAR2(15),
+  nkomn    VARCHAR2(15),
+  lchet    VARCHAR2(24),
+  famil    VARCHAR2(50),
+  imja     VARCHAR2(50),
+  otch     VARCHAR2(50),
+  drog     DATE,
+  id_pku   NUMBER(11),
+  pku      VARCHAR2(11),
+  gku1     VARCHAR2(100),
+  lchet1   VARCHAR2(24),
+  ed_izm1  VARCHAR2(10),
+  fakt1    NUMBER(15,8),
+  sum_f1   NUMBER(8,2),
+  prz1     NUMBER(1),
+  gku2     VARCHAR2(100),
+  lchet2   VARCHAR2(24),
+  ed_izm2  VARCHAR2(10),
+  fakt2    NUMBER(15,8),
+  sum_f2   NUMBER(8,2),
+  norm2    NUMBER(11,6),
+  fakt21   NUMBER(10,5),
+  sum_f21  NUMBER(8,2),
+  o_pl2    NUMBER(7,2),
+  prz2     NUMBER(1),
+  gku3     VARCHAR2(100),
+  lchet3   VARCHAR2(24),
+  ed_izm3  VARCHAR2(10),
+  fakt3    NUMBER(15,8),
+  sum_f3   NUMBER(8,2),
+  norm3    NUMBER(11,6),
+  pr3_1    VARCHAR2(2),
+  pr3_2    VARCHAR2(2),
+  pr3_3    VARCHAR2(2),
+  o_pl3    NUMBER(7,2),
+  prz3     NUMBER(1),
+  gku4     VARCHAR2(100),
+  lchet4   VARCHAR2(24),
+  ed_izm4  VARCHAR2(10),
+  fakt4    NUMBER(15,8),
+  sum_f4   NUMBER(8,2),
+  norm4    NUMBER(11,6),
+  prz4     NUMBER(1),
+  gku5     VARCHAR2(100),
+  lchet5   VARCHAR2(24),
+  ed_izm5  VARCHAR2(10),
+  fakt5    NUMBER(15,8),
+  sum_f5   NUMBER(8,2),
+  norm5    NUMBER(11,6),
+  fakt51   NUMBER(10,5),
+  sum_f51  NUMBER(8,2),
+  o_pl5    NUMBER(7,2),
+  prz5     NUMBER(1),
+  gku6     VARCHAR2(100),
+  lchet6   VARCHAR2(24),
+  ed_izm6  VARCHAR2(10),
+  fakt6    NUMBER(15,8),
+  sum_f6   NUMBER(8,2),
+  norm6    NUMBER(11,6),
+  prz6     NUMBER(1),
+  gku7     VARCHAR2(100),
+  lchet7   VARCHAR2(24),
+  ed_izm7  VARCHAR2(10),
+  fakt7    NUMBER(15,8),
+  sum_f7   NUMBER(8,2),
+  norm7    NUMBER(11,6),
+  fakt71   NUMBER(10,5),
+  sum_f71  NUMBER(8,2),
+  o_pl7    NUMBER(7,2),
+  prz7     NUMBER(1),
+  gku8     VARCHAR2(100),
+  lchet8   VARCHAR2(24),
+  ed_izm8  VARCHAR2(10),
+  fakt8    NUMBER(15,8),
+  sum_f8   NUMBER(8,2),
+  norm8    NUMBER(11,6),
+  prz8     NUMBER(1),
+  gku9     VARCHAR2(100),
+  lchet9   VARCHAR2(24),
+  ed_izm9  VARCHAR2(10),
+  fakt9    NUMBER(15,8),
+  sum_f9   NUMBER(8,2),
+  norm9    NUMBER(11,6),
+  fakt91   NUMBER(10,5),
+  tf_n     NUMBER(11,6),
+  tf_sv    NUMBER(11,6),
+  o_pl9    NUMBER(7,2),
+  prz9     NUMBER(1),
+  gku10    VARCHAR2(100),
+  lchet10  VARCHAR2(24),
+  ed_izm10 VARCHAR2(10),
+  fakt10   NUMBER(15,8),
+  sum_f10  NUMBER(8,2),
+  prz10    NUMBER(1),
+  fk_lsk   VARCHAR2(8),
+  fk_file  NUMBER,
+  tp       NUMBER,
+  id       NUMBER,
+  fk_src   NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 3M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on column SCOTT.LOAD_PRIVS.fk_lsk
+  is 'fk на л.с.';
+comment on column SCOTT.LOAD_PRIVS.fk_file
+  is 'fk на файл';
+comment on column SCOTT.LOAD_PRIVS.tp
+  is 'Тип 0-входящий файл, 1- исходящий)))';
+comment on column SCOTT.LOAD_PRIVS.id
+  is 'ID';
+comment on column SCOTT.LOAD_PRIVS.fk_src
+  is 'С какого ID получена запись';
+alter table SCOTT.LOAD_PRIVS
+  add constraint LOAD_PRIVS_F_FILE foreign key (FK_FILE)
+  references SCOTT.PREP_FILE (ID);
+

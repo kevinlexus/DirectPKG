@@ -1,0 +1,47 @@
+create table SCOTT.USL_BILLS
+(
+  id            CHAR(3),
+  usl_id        CHAR(3),
+  mg1           CHAR(6),
+  mg2           CHAR(6),
+  is_vol        NUMBER,
+  fk_tp         NUMBER,
+  fk_bill_var   NUMBER,
+  frc_get_price NUMBER,
+  bill_agg      NUMBER
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 128K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.USL_BILLS
+  is 'Справочник услуг для счетов';
+comment on column SCOTT.USL_BILLS.id
+  is 'ID Услуги для счёта';
+comment on column SCOTT.USL_BILLS.usl_id
+  is 'ID Услуги';
+comment on column SCOTT.USL_BILLS.mg1
+  is 'Начальный период';
+comment on column SCOTT.USL_BILLS.mg2
+  is 'Конечный период';
+comment on column SCOTT.USL_BILLS.is_vol
+  is 'Принимать услугу в расчёт объема';
+comment on column SCOTT.USL_BILLS.fk_tp
+  is 'Тип обработки (null, 0 -для объединения услуг в счетах, 1 - для скрытия экономии по услуге(ОДН))';
+comment on column SCOTT.USL_BILLS.fk_bill_var
+  is 'Вариант компоновки счета';
+comment on column SCOTT.USL_BILLS.frc_get_price
+  is 'Форсированно взять расценку? не используется в новых счетах!';
+comment on column SCOTT.USL_BILLS.bill_agg
+  is 'По одной услуге USLM и разным норм и свыше, ставить одинаковые, любые цифры, например 1,1 чтобы они не суммировались потом, и наоборот, чтобы разделить услуги в расценках - установить разные цифры ';
+alter table SCOTT.USL_BILLS
+  add constraint USL_BILLS_F foreign key (USL_ID)
+  references SCOTT.USL (USL);
+

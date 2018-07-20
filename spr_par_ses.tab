@@ -1,0 +1,40 @@
+create global temporary table SCOTT.SPR_PAR_SES
+(
+  id        NUMBER not null,
+  cd        VARCHAR2(32) not null,
+  parvc1    VARCHAR2(1000),
+  parn1     NUMBER,
+  name      VARCHAR2(64),
+  cdtp      NUMBER,
+  pardt1    DATE,
+  parent_id NUMBER,
+  par_show  VARCHAR2(250),
+  npp       NUMBER,
+  fk_ses    NUMBER
+)
+on commit preserve rows;
+comment on table SCOTT.SPR_PAR_SES
+  is 'Справочник параметров сессии';
+comment on column SCOTT.SPR_PAR_SES.id
+  is 'ID';
+comment on column SCOTT.SPR_PAR_SES.cd
+  is 'CD';
+comment on column SCOTT.SPR_PAR_SES.parvc1
+  is 'Параметр varchar2(1000)';
+comment on column SCOTT.SPR_PAR_SES.parn1
+  is 'Параметр number';
+comment on column SCOTT.SPR_PAR_SES.name
+  is 'Наименование параметра';
+comment on column SCOTT.SPR_PAR_SES.cdtp
+  is '(0 - числовой, 1- Символьный параметр, 2-Дата, 3-Логическое значение,4 - список )';
+comment on column SCOTT.SPR_PAR_SES.pardt1
+  is 'Параметр Date';
+comment on column SCOTT.SPR_PAR_SES.parent_id
+  is 'FK на вышестоящий параметр (заголовок)';
+comment on column SCOTT.SPR_PAR_SES.par_show
+  is 'Текст значения, только для отображения';
+comment on column SCOTT.SPR_PAR_SES.npp
+  is '№ порядк';
+comment on column SCOTT.SPR_PAR_SES.fk_ses
+  is 'ID Сессии';
+

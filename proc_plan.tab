@@ -1,0 +1,45 @@
+create table SCOTT.PROC_PLAN
+(
+  reu     CHAR(3) not null,
+  sumplan NUMBER,
+  mg      CHAR(6) not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 128K
+  );
+comment on table SCOTT.PROC_PLAN
+  is 'Проценты выполнения плана по РЭУ';
+comment on column SCOTT.PROC_PLAN.reu
+  is 'РЭУ';
+comment on column SCOTT.PROC_PLAN.sumplan
+  is 'Сумма плана (тыс.)';
+comment on column SCOTT.PROC_PLAN.mg
+  is 'Период';
+create index SCOTT.PROC_PLAN_I_MG on SCOTT.PROC_PLAN (MG)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  )
+  nologging;
+alter table SCOTT.PROC_PLAN
+  add constraint PROC_PLAN_U_REU_MG unique (REU, MG)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+alter index SCOTT.PROC_PLAN_U_REU_MG nologging;
+

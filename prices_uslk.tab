@@ -1,0 +1,39 @@
+create table SCOTT.PRICES_USLK
+(
+  uslm  CHAR(3) not null,
+  uslk  CHAR(3) not null,
+  summa NUMBER,
+  mg    CHAR(6)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+  );
+comment on table SCOTT.PRICES_USLK
+  is 'Справочник расценок Составляющих услуг';
+comment on column SCOTT.PRICES_USLK.uslm
+  is 'Код родительской (Главной) услуги';
+comment on column SCOTT.PRICES_USLK.uslk
+  is 'Код составляющей услуги';
+comment on column SCOTT.PRICES_USLK.summa
+  is 'Сумма';
+comment on column SCOTT.PRICES_USLK.mg
+  is 'Период';
+create index SCOTT.PRICES_USLK_I_MG on SCOTT.PRICES_USLK (MG)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  )
+  nologging;
+alter table SCOTT.PRICES_USLK
+  add constraint PRICES_USLK_F_USLK foreign key (USLK)
+  references SCOTT.USLK (USLK);
+

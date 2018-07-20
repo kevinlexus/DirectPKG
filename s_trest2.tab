@@ -1,0 +1,25 @@
+create table SCOTT.S_TREST2
+(
+  trest CHAR(2) not null,
+  name  CHAR(35)
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+alter table SCOTT.S_TREST2
+  add constraint S_TREST2_TREST primary key (TREST)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+

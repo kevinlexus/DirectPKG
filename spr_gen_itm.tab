@@ -1,0 +1,64 @@
+create table SCOTT.SPR_GEN_ITM
+(
+  id    NUMBER not null,
+  cd    VARCHAR2(256) not null,
+  name  VARCHAR2(256) not null,
+  npp   NUMBER,
+  proc  NUMBER,
+  sel   NUMBER,
+  state VARCHAR2(1000),
+  err   NUMBER,
+  npp2  NUMBER,
+  dt1   DATE,
+  dt2   DATE
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.SPR_GEN_ITM
+  is 'Таблица настройки параметров формирования';
+comment on column SCOTT.SPR_GEN_ITM.id
+  is 'ID';
+comment on column SCOTT.SPR_GEN_ITM.cd
+  is 'CD';
+comment on column SCOTT.SPR_GEN_ITM.name
+  is 'Наименование';
+comment on column SCOTT.SPR_GEN_ITM.npp
+  is '№ порядк формирования';
+comment on column SCOTT.SPR_GEN_ITM.proc
+  is '% выполнения';
+comment on column SCOTT.SPR_GEN_ITM.sel
+  is 'Выбрано на исполнение';
+comment on column SCOTT.SPR_GEN_ITM.state
+  is 'Состояние формирования, комментарий';
+comment on column SCOTT.SPR_GEN_ITM.err
+  is 'Результат последнего формирования (0-успешно, 1-ошибки)';
+comment on column SCOTT.SPR_GEN_ITM.npp2
+  is '№ порядк вывода на экран';
+comment on column SCOTT.SPR_GEN_ITM.dt1
+  is 'Дата, время начала формирования';
+comment on column SCOTT.SPR_GEN_ITM.dt2
+  is 'Дата, время окончания формирования';
+alter table SCOTT.SPR_GEN_ITM
+  add constraint SPR_GEN_ITM primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

@@ -1,0 +1,7 @@
+create sequence SCOTT.C_DEB_USL_ID
+minvalue 1
+maxvalue 999999999999999999999999999
+start with 112679321
+increment by 1
+cache 20;
+

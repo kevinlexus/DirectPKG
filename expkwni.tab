@@ -1,0 +1,60 @@
+create table SCOTT.EXPKWNI
+(
+  house_id NUMBER,
+  kul      CHAR(4),
+  name     CHAR(25),
+  nd       CHAR(6),
+  opl      NUMBER,
+  itr      NUMBER(8,2),
+  itri     NUMBER(8,2),
+  ider     NUMBER(8,2),
+  ideri    NUMBER(8,2),
+  iot      NUMBER(8,2),
+  iotip    NUMBER(8,2),
+  iwod     NUMBER(8,2),
+  iwodiz   NUMBER(8,2),
+  ikan     NUMBER(8,2),
+  ikaniz   NUMBER(8,2),
+  igw      NUMBER(8,2),
+  igwiz    NUMBER(8,2),
+  io       NUMBER(8,2),
+  ios      NUMBER(8,2),
+  ics      NUMBER(8,2),
+  imusor   NUMBER(8,2),
+  ig       NUMBER(8,2),
+  idza     NUMBER(8,2),
+  idzai    NUMBER(8,2),
+  ikap     NUMBER(8,2),
+  ikapi    NUMBER(8,2),
+  itog     NUMBER,
+  var      NUMBER,
+  mg       CHAR(6),
+  reu      CHAR(3),
+  irc      NUMBER(8,2),
+  iugd     NUMBER(8,2),
+  irc2     NUMBER(8,2),
+  iugdi    NUMBER(8,2),
+  ihwfgws  NUMBER(8,2),
+  ihwgws   NUMBER(8,2),
+  itepfgws NUMBER(8,2),
+  igwie    NUMBER(8,2),
+  imus2    NUMBER(8,2),
+  imusi2   NUMBER(8,2),
+  ihodn    NUMBER(8,2),
+  igodn    NUMBER(8,2),
+  ieodn    NUMBER(8,2),
+  ikodn    NUMBER(8,2),
+  ig3      NUMBER(8,2),
+  ig2      NUMBER(8,2),
+  iel7     NUMBER(8,2)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  )
+nologging;
+

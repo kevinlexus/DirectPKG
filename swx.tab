@@ -1,0 +1,26 @@
+create table SCOTT.SWX
+(
+  lsk  CHAR(8),
+  kodm NUMBER(3),
+  kod  NUMBER(3),
+  uslm CHAR(3),
+  usl  CHAR(3),
+  swx  NUMBER(16,2),
+  sisx NUMBER(16,2),
+  sn   NUMBER(16,2),
+  si   NUMBER(16,2),
+  ssu  NUMBER(16,2),
+  so   NUMBER(16,2),
+  pn   NUMBER(16,2)
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 8M
+  );
+comment on table SCOTT.SWX
+  is 'Промежуточный файл, для загрузки сальдо (+констрэнты на проверки услуг и т.п.)';
+

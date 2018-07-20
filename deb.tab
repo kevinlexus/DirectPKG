@@ -1,0 +1,91 @@
+create table SCOTT.DEB
+(
+  id        NUMBER not null,
+  lsk       CHAR(8) not null,
+  usl       CHAR(3) not null,
+  org       NUMBER not null,
+  debin     NUMBER,
+  debrolled NUMBER,
+  chrg      NUMBER,
+  chng      NUMBER,
+  debpay    NUMBER,
+  paycorr   NUMBER,
+  debout    NUMBER,
+  mg        NUMBER,
+  mgfrom    NUMBER not null,
+  mgto      NUMBER not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 15M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.DEB
+  is 'Задолжность по периодам, услугам, организациям';
+comment on column SCOTT.DEB.id
+  is 'ID записи';
+comment on column SCOTT.DEB.lsk
+  is 'Лицевой счет';
+comment on column SCOTT.DEB.usl
+  is 'Код услуги';
+comment on column SCOTT.DEB.org
+  is 'ID организации';
+comment on column SCOTT.DEB.debin
+  is 'Входящее сальдо по задолженности';
+comment on column SCOTT.DEB.debrolled
+  is 'Свернутый долг';
+comment on column SCOTT.DEB.chrg
+  is 'Начисление';
+comment on column SCOTT.DEB.chng
+  is 'Перерасчеты';
+comment on column SCOTT.DEB.debpay
+  is 'Оплата задолженности';
+comment on column SCOTT.DEB.paycorr
+  is 'Корректировки оплаты';
+comment on column SCOTT.DEB.debout
+  is 'Исходящее сальдо по задолженности';
+comment on column SCOTT.DEB.mg
+  is 'Период задолженности';
+comment on column SCOTT.DEB.mgfrom
+  is 'Бухгалтерский период - начало';
+comment on column SCOTT.DEB.mgto
+  is 'Бухгалтерский период  - окончание';
+create unique index SCOTT.DEB_U_I on SCOTT.DEB (LSK, USL, ORG, MGFROM, MGTO, MG)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.DEB
+  add constraint DEB_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.DEB
+  add constraint DEB_F_ORG foreign key (ORG)
+  references SCOTT.T_ORG (ID);
+alter table SCOTT.DEB
+  add constraint DEB_F_USL foreign key (USL)
+  references SCOTT.USL (USL);
+

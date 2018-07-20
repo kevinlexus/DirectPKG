@@ -1,0 +1,13 @@
+create global temporary table SCOTT.LIST_CHOICES_USL
+(
+  uslm CHAR(3),
+  sel  NUMBER(1)
+)
+on commit delete rows;
+comment on table SCOTT.LIST_CHOICES_USL
+  is 'Таблица для выбора услуг пользователем';
+comment on column SCOTT.LIST_CHOICES_USL.uslm
+  is 'Услуга';
+comment on column SCOTT.LIST_CHOICES_USL.sel
+  is 'Отмечено';
+

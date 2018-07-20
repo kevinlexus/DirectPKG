@@ -1,0 +1,22 @@
+create global temporary table SCOTT.TEMP_FOR_PEN
+(
+  summa     NUMBER,
+  summa_deb NUMBER,
+  mg        CHAR(6),
+  dtek      DATE,
+  tp        NUMBER
+)
+on commit delete rows;
+comment on table SCOTT.TEMP_FOR_PEN
+  is 'Временная таблица для расчета пени';
+comment on column SCOTT.TEMP_FOR_PEN.summa
+  is 'Сумма для расчета пени';
+comment on column SCOTT.TEMP_FOR_PEN.summa_deb
+  is 'Сумма для информации по долгу';
+comment on column SCOTT.TEMP_FOR_PEN.mg
+  is 'Универсальный период';
+comment on column SCOTT.TEMP_FOR_PEN.dtek
+  is 'Универсальная дата';
+comment on column SCOTT.TEMP_FOR_PEN.tp
+  is 'Тип (0-тек.период, 1-долги прошл.период, 2-начисление,3-оплата,4-оплата долг, 5-перерасч,6-коррект.)';
+

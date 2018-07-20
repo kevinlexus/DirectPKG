@@ -1,0 +1,46 @@
+create table SCOTT.A_KWTP_DAY
+(
+  kwtp_id   NUMBER,
+  summa     NUMBER(12,2),
+  lsk       CHAR(8) not null,
+  oper      CHAR(2) not null,
+  dopl      CHAR(6) not null,
+  nkom      CHAR(3) not null,
+  nink      NUMBER,
+  dat_ink   DATE,
+  priznak   NUMBER(1) not null,
+  usl       CHAR(3) not null,
+  org       NUMBER not null,
+  fk_distr  NUMBER,
+  sum_distr NUMBER,
+  id        NUMBER not null,
+  mg        CHAR(6),
+  dtek      DATE
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 9M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on table SCOTT.A_KWTP_DAY
+  is 'Архив таблицы kwtp_day';
+comment on column SCOTT.A_KWTP_DAY.priznak
+  is '1-оплата, 0 - пеня';
+comment on column SCOTT.A_KWTP_DAY.fk_distr
+  is 'Вариант распределения оплаты (смотри описание в пакете)';
+comment on column SCOTT.A_KWTP_DAY.sum_distr
+  is 'Сумма по которой произошло распределение';
+comment on column SCOTT.A_KWTP_DAY.id
+  is 'ID';
+comment on column SCOTT.A_KWTP_DAY.mg
+  is 'Период';
+comment on column SCOTT.A_KWTP_DAY.dtek
+  is 'Дата принятия платежа';
+

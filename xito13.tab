@@ -1,0 +1,26 @@
+create table SCOTT.XITO13
+(
+  usl   CHAR(3) not null,
+  uslm  CHAR(3) not null,
+  reu   CHAR(3) not null,
+  kul   CHAR(4),
+  nd    CHAR(6),
+  trest CHAR(2) not null,
+  summa NUMBER,
+  mg    CHAR(6) not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 4M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on table SCOTT.XITO13
+  is 'Начисление по услугам/трестам/рэу';
+

@@ -1,0 +1,64 @@
+create table SCOTT.TEMP_STAT
+(
+  lsk        CHAR(8),
+  usl        CHAR(3) not null,
+  kpr        NUMBER,
+  kpr_ot     NUMBER,
+  kpr_wr     NUMBER,
+  klsk       NUMBER,
+  cnt        NUMBER,
+  status     NUMBER(1),
+  psch       NUMBER(1),
+  sch        NUMBER,
+  org        NUMBER,
+  val_group  VARCHAR2(20),
+  uch        NUMBER,
+  val_group2 VARCHAR2(20),
+  cena       NUMBER,
+  limit      NUMBER,
+  is_empt    NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 9M
+  )
+nologging;
+comment on column SCOTT.TEMP_STAT.lsk
+  is 'л/с.';
+comment on column SCOTT.TEMP_STAT.usl
+  is 'USL, услуга';
+comment on column SCOTT.TEMP_STAT.kpr
+  is 'кол-во прожив (там где usl_iter=1 - коэфф прожив)';
+comment on column SCOTT.TEMP_STAT.kpr_ot
+  is 'кол-во временно отсут.';
+comment on column SCOTT.TEMP_STAT.kpr_wr
+  is 'кол-во временно зарег';
+comment on column SCOTT.TEMP_STAT.cnt
+  is 'Объем';
+comment on column SCOTT.TEMP_STAT.status
+  is 'Статус';
+comment on column SCOTT.TEMP_STAT.psch
+  is 'Признак сч';
+comment on column SCOTT.TEMP_STAT.org
+  is 'Организация';
+comment on column SCOTT.TEMP_STAT.cena
+  is 'Цена';
+comment on column SCOTT.TEMP_STAT.limit
+  is 'Лимит объема по услуге (Используется при начислении по ОДН)';
+comment on column SCOTT.TEMP_STAT.is_empt
+  is 'Пустая ли квартира (0-нет, 1 - да)';
+create index SCOTT.TEMP_STAT_LSK on SCOTT.TEMP_STAT (LSK, USL)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 10M
+  )
+  nologging;
+

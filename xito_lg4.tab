@@ -1,0 +1,45 @@
+create table SCOTT.XITO_LG4
+(
+  lsk      CHAR(8),
+  reu      CHAR(3),
+  kul      CHAR(4),
+  nd       CHAR(6),
+  kw       CHAR(7),
+  trest    CHAR(2),
+  usl      CHAR(3),
+  lg_id    NUMBER,
+  org      NUMBER,
+  nomer    NUMBER,
+  cnt_main NUMBER,
+  cnt      NUMBER,
+  summa    NUMBER,
+  mg       CHAR(6)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 22M
+  )
+nologging;
+create index SCOTT.XITO_LG4_I1 on SCOTT.XITO_LG4 (LSK, REU)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 20M
+  );
+create index SCOTT.XITO_LG4_I2 on SCOTT.XITO_LG4 (ORG)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 10M
+  );
+

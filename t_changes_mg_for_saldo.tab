@@ -1,0 +1,19 @@
+create table SCOTT.T_CHANGES_MG_FOR_SALDO
+(
+  lsk   VARCHAR2(8) not null,
+  usl   VARCHAR2(3),
+  org   NUMBER not null,
+  mg    VARCHAR2(6),
+  summa NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.T_CHANGES_MG_FOR_SALDO
+  is 'Временная таблица';
+

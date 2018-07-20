@@ -1,0 +1,233 @@
+create table SCOTT.T_ORG
+(
+  id             NUMBER not null,
+  cd             VARCHAR2(32),
+  fk_orgtp       NUMBER not null,
+  name           VARCHAR2(64) not null,
+  npp            NUMBER,
+  v              NUMBER,
+  parent_id      NUMBER,
+  reu            CHAR(3),
+  trest          CHAR(2),
+  uch            NUMBER,
+  adr            VARCHAR2(100),
+  inn            VARCHAR2(12),
+  manager        VARCHAR2(50),
+  buh            VARCHAR2(50),
+  raschet_schet  VARCHAR2(20),
+  k_schet        VARCHAR2(20),
+  kod_okonh      VARCHAR2(20),
+  kod_ogrn       VARCHAR2(20),
+  bik            VARCHAR2(20),
+  phone          VARCHAR2(15),
+  kpp            VARCHAR2(12),
+  bank           VARCHAR2(100),
+  id_exp         NUMBER,
+  adr_recip      VARCHAR2(100),
+  authorized_dir VARCHAR2(50),
+  authorized_buh VARCHAR2(50),
+  auth_dir_doc   VARCHAR2(50),
+  auth_buh_doc   VARCHAR2(50),
+  okpo           VARCHAR2(8),
+  ver_cd         CHAR(1),
+  full_name      VARCHAR2(64),
+  phone2         VARCHAR2(15),
+  parent_id2     NUMBER,
+  fk_org2        NUMBER,
+  bank_cd        VARCHAR2(32),
+  adr_www        VARCHAR2(256),
+  email          VARCHAR2(256),
+  head_name      VARCHAR2(50),
+  raschet_schet2 VARCHAR2(20),
+  post_indx      VARCHAR2(10),
+  r_sch_addit    VARCHAR2(20),
+  fk_bill_var    NUMBER,
+  aoguid         VARCHAR2(36),
+  oktmo          VARCHAR2(11),
+  code_deb       VARCHAR2(10),
+  dolg_name      VARCHAR2(64),
+  bank_fname     VARCHAR2(100),
+  grp            NUMBER,
+  r_sch_gis      VARCHAR2(20)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.T_ORG
+  is 'ОРГАНИЗАЦИЯ';
+comment on column SCOTT.T_ORG.id
+  is 'ОРГАНИЗАЦИЯ';
+comment on column SCOTT.T_ORG.cd
+  is 'Код - независящий от ID';
+comment on column SCOTT.T_ORG.fk_orgtp
+  is 'ссылка на тип организации';
+comment on column SCOTT.T_ORG.name
+  is 'наименование полное';
+comment on column SCOTT.T_ORG.npp
+  is 'номер по порядку - для сортировки пользователя';
+comment on column SCOTT.T_ORG.v
+  is 'вкл/выкл.  включено, если = 1';
+comment on column SCOTT.T_ORG.parent_id
+  is 'ссылка на вышестоящую организацию в организационной структуре';
+comment on column SCOTT.T_ORG.reu
+  is 'CD РЭУ';
+comment on column SCOTT.T_ORG.trest
+  is 'CD Треста';
+comment on column SCOTT.T_ORG.uch
+  is 'Участок';
+comment on column SCOTT.T_ORG.adr
+  is 'Адрес орг.';
+comment on column SCOTT.T_ORG.inn
+  is 'Инн';
+comment on column SCOTT.T_ORG.manager
+  is 'Директор';
+comment on column SCOTT.T_ORG.buh
+  is 'Бухгалтер';
+comment on column SCOTT.T_ORG.raschet_schet
+  is 'Р/C';
+comment on column SCOTT.T_ORG.k_schet
+  is 'Корр.сч.';
+comment on column SCOTT.T_ORG.kod_okonh
+  is 'ОКОНХ';
+comment on column SCOTT.T_ORG.kod_ogrn
+  is 'ОГРН';
+comment on column SCOTT.T_ORG.bik
+  is 'БИК';
+comment on column SCOTT.T_ORG.phone
+  is 'Телефон';
+comment on column SCOTT.T_ORG.kpp
+  is 'КПП';
+comment on column SCOTT.T_ORG.bank
+  is 'Реквизиты банка';
+comment on column SCOTT.T_ORG.id_exp
+  is 'Идентификатор для выгрузки';
+comment on column SCOTT.T_ORG.adr_recip
+  is 'Адрес получателя';
+comment on column SCOTT.T_ORG.authorized_dir
+  is 'Уполномоченный приказом, за директора';
+comment on column SCOTT.T_ORG.authorized_buh
+  is 'Уполномоченный приказом, за гл.буха.';
+comment on column SCOTT.T_ORG.auth_dir_doc
+  is 'Документ - Уполномоченный приказом, за директора';
+comment on column SCOTT.T_ORG.auth_buh_doc
+  is 'Документ - Уполномоченный приказом, за гл.буха.';
+comment on column SCOTT.T_ORG.okpo
+  is 'ОКПО';
+comment on column SCOTT.T_ORG.ver_cd
+  is 'Код, необходимый для поиска орг. в версии (уникален для всех баз)';
+comment on column SCOTT.T_ORG.full_name
+  is 'Полное наименование организации';
+comment on column SCOTT.T_ORG.phone2
+  is 'Телефон-2';
+comment on column SCOTT.T_ORG.parent_id2
+  is 'Ссылка на вышестоящую орг в иерархии расценок по орг.';
+comment on column SCOTT.T_ORG.fk_org2
+  is 'Организация, полученная по ссылке иерархии в parent_id2';
+comment on column SCOTT.T_ORG.bank_cd
+  is 'Код, для выгрузки в банк. системы';
+comment on column SCOTT.T_ORG.adr_www
+  is 'Адрес сайта';
+comment on column SCOTT.T_ORG.email
+  is 'E-MAIL';
+comment on column SCOTT.T_ORG.head_name
+  is 'Должность руководителя';
+comment on column SCOTT.T_ORG.raschet_schet2
+  is 'Р/C-2';
+comment on column SCOTT.T_ORG.post_indx
+  is 'Почтовый индекс';
+comment on column SCOTT.T_ORG.r_sch_addit
+  is 'Р/C-для дополнительных счетов';
+comment on column SCOTT.T_ORG.fk_bill_var
+  is 'Вариант компоновки счета для УК (работает совместно с usl_bills';
+comment on column SCOTT.T_ORG.aoguid
+  is 'GUID города из справочника FIAS';
+comment on column SCOTT.T_ORG.oktmo
+  is 'ОКТМО (города)';
+comment on column SCOTT.T_ORG.code_deb
+  is 'Код для выгрузки из служебных списков например для Сбербанка (если не заполнено, возьмётся ''Квартплата'')';
+comment on column SCOTT.T_ORG.dolg_name
+  is 'Наименование для выгрузки долгов';
+comment on column SCOTT.T_ORG.bank_fname
+  is 'Имя файла для выгрузки в Сбербанк';
+comment on column SCOTT.T_ORG.grp
+  is 'Группа организации (для отнесения в оборотке)';
+comment on column SCOTT.T_ORG.r_sch_gis
+  is 'Р/C-для дополнительных счетов';
+create unique index SCOTT.T_ORG_U on SCOTT.T_ORG (CD)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.T_ORG
+  add constraint T_ORG_PK primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.T_ORG
+  add constraint T_ORG_P_REU unique (REU)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.T_ORG
+  add constraint T_ORG_P_TREST unique (TREST)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.T_ORG
+  add constraint T_ORG_FKS_PARID foreign key (PARENT_ID)
+  references SCOTT.T_ORG (ID);
+alter table SCOTT.T_ORG
+  add constraint T_ORG_FKS_PARID2 foreign key (PARENT_ID2)
+  references SCOTT.T_ORG (ID);
+alter table SCOTT.T_ORG
+  add constraint T_ORG_FK_ORG2 foreign key (FK_ORG2)
+  references SCOTT.T_ORG (ID);
+alter table SCOTT.T_ORG
+  add constraint T_ORG_FK_ORGTP foreign key (FK_ORGTP)
+  references SCOTT.T_ORG_TP (ID);
+alter table SCOTT.T_ORG
+  add constraint T_ORG_F_TREST foreign key (TREST)
+  references SCOTT.T_ORG (TREST);
+

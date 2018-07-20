@@ -1,0 +1,79 @@
+create table SCOTT.C_REG_SCH
+(
+  id       NUMBER not null,
+  dt1      DATE not null,
+  fk_tp    NUMBER not null,
+  fk_state NUMBER not null,
+  text     VARCHAR2(1000),
+  fk_usl   CHAR(3),
+  lsk      CHAR(8) not null,
+  fk_meter NUMBER,
+  dtf      DATE,
+  fk_user  NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.C_REG_SCH
+  is 'Регистрационные действия над счетчиками';
+comment on column SCOTT.C_REG_SCH.id
+  is 'ID';
+comment on column SCOTT.C_REG_SCH.dt1
+  is 'Дата поверки';
+comment on column SCOTT.C_REG_SCH.fk_tp
+  is 'Тип действия (поверка, установка, снятие)';
+comment on column SCOTT.C_REG_SCH.fk_state
+  is 'Результат действия';
+comment on column SCOTT.C_REG_SCH.text
+  is 'Комментарий';
+comment on column SCOTT.C_REG_SCH.fk_usl
+  is 'Услуга по счетчику (может быть и не нужно, если на счетчике есть fk_usl)';
+comment on column SCOTT.C_REG_SCH.lsk
+  is 'Л/C';
+comment on column SCOTT.C_REG_SCH.fk_meter
+  is 'FK на счетчик';
+comment on column SCOTT.C_REG_SCH.dtf
+  is 'Дата внесения';
+comment on column SCOTT.C_REG_SCH.fk_user
+  is 'Пользователь';
+alter table SCOTT.C_REG_SCH
+  add constraint C_REG_SCH_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.C_REG_SCH
+  add constraint C_REG_SCH_F_LSK foreign key (LSK)
+  references SCOTT.KART (LSK);
+alter table SCOTT.C_REG_SCH
+  add constraint C_REG_SCH_F_METER foreign key (FK_METER)
+  references SCOTT.METER (ID) on delete cascade;
+alter table SCOTT.C_REG_SCH
+  add constraint C_REG_SCH_F_STATE foreign key (FK_STATE)
+  references SCOTT.U_LIST (ID);
+alter table SCOTT.C_REG_SCH
+  add constraint C_REG_SCH_F_TP foreign key (FK_TP)
+  references SCOTT.U_LIST (ID);
+alter table SCOTT.C_REG_SCH
+  add constraint C_REG_SCH_F_USER foreign key (FK_USER)
+  references SCOTT.T_USER (ID);
+alter table SCOTT.C_REG_SCH
+  add constraint C_REG_SCH_F_USL foreign key (FK_USL)
+  references SCOTT.USL (USL);
+

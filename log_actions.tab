@@ -1,0 +1,48 @@
+create table SCOTT.LOG_ACTIONS
+(
+  id          NUMBER,
+  text        VARCHAR2(1000),
+  ts          TIMESTAMP(6),
+  fk_user_id  NUMBER,
+  lsk         CHAR(8) not null,
+  fk_type_act NUMBER,
+  mg          VARCHAR2(6)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 37M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.LOG_ACTIONS
+  is 'Аудит пользовательских действий';
+comment on column SCOTT.LOG_ACTIONS.text
+  is 'Примечание';
+comment on column SCOTT.LOG_ACTIONS.ts
+  is 'timestamp';
+comment on column SCOTT.LOG_ACTIONS.fk_user_id
+  is 'ID пользователя';
+comment on column SCOTT.LOG_ACTIONS.lsk
+  is 'Л/С при наличии';
+comment on column SCOTT.LOG_ACTIONS.fk_type_act
+  is 'Тип операции (0-select, 1-insert, 2-update, 3-delete)';
+comment on column SCOTT.LOG_ACTIONS.mg
+  is 'Период';
+create index SCOTT.LOG_ACTIONS_I on SCOTT.LOG_ACTIONS (LSK)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 10M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

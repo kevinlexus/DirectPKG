@@ -1,0 +1,11 @@
+create table SCOTT.LONG_TABLE
+(
+  mg CHAR(6) not null,
+  constraint LONG_TABLE_P primary key (MG)
+)
+organization index;
+comment on table SCOTT.LONG_TABLE
+  is 'длинна€ таблица дл€ использовани€ в запросах, содержит мес€цы';
+comment on column SCOTT.LONG_TABLE.mg
+  is 'ћес€ц-год ';
+

@@ -1,0 +1,25 @@
+create global temporary table SCOTT.C_KWTP_TEMP_DOLG
+(
+  mg      VARCHAR2(6),
+  charge  NUMBER,
+  payment NUMBER,
+  dolg    NUMBER,
+  summa   NUMBER(12,2),
+  sal     NUMBER,
+  penya   NUMBER(12,2),
+  itog    NUMBER(12,2)
+)
+on commit delete rows;
+comment on table SCOTT.C_KWTP_TEMP_DOLG
+  is 'Временная таблица для ввода оплаты по периодам';
+comment on column SCOTT.C_KWTP_TEMP_DOLG.mg
+  is 'Период долга';
+comment on column SCOTT.C_KWTP_TEMP_DOLG.summa
+  is 'Сумма оплаты';
+comment on column SCOTT.C_KWTP_TEMP_DOLG.sal
+  is 'Сальдо исх текущего мес';
+comment on column SCOTT.C_KWTP_TEMP_DOLG.penya
+  is 'Пеня';
+comment on column SCOTT.C_KWTP_TEMP_DOLG.itog
+  is 'Итого';
+

@@ -1,0 +1,17 @@
+create table SCOTT.IMP_HOUSE_NOT
+(
+  str1 VARCHAR2(256),
+  str2 VARCHAR2(256),
+  str3 VARCHAR2(256),
+  kul  VARCHAR2(4),
+  reu  CHAR(3)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+

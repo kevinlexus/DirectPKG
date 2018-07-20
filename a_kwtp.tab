@@ -1,0 +1,51 @@
+create table SCOTT.A_KWTP
+(
+  lsk       CHAR(8),
+  summa     NUMBER(12,2),
+  penya     NUMBER(12,2),
+  oper      CHAR(2),
+  dopl      CHAR(6),
+  nink      NUMBER,
+  nkom      CHAR(3),
+  dtek      DATE,
+  nkvit     NUMBER,
+  dat_ink   DATE,
+  ts        DATE,
+  id        NUMBER,
+  mg        CHAR(6) not null,
+  iscorrect NUMBER,
+  num_doc   VARCHAR2(25),
+  dat_doc   DATE,
+  fk_doc    NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 3M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on column SCOTT.A_KWTP.num_doc
+  is 'є платежного документа (из банка)';
+comment on column SCOTT.A_KWTP.dat_doc
+  is 'ƒата платежного документа (из банка)';
+comment on column SCOTT.A_KWTP.fk_doc
+  is 'Fk на документ (дл€ вс€ких перебросок)';
+create index SCOTT.A_KWTP_I on SCOTT.A_KWTP (LSK)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

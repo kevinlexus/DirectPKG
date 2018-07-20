@@ -1,0 +1,76 @@
+create table SCOTT.C_PEN_USL_CORR
+(
+  id       NUMBER not null,
+  lsk      CHAR(8) not null,
+  penya    NUMBER(12,2),
+  mgchange VARCHAR2(6) not null,
+  dtek     DATE not null,
+  ts       DATE not null,
+  fk_user  NUMBER not null,
+  fk_doc   NUMBER,
+  usl      CHAR(3) not null,
+  org      NUMBER not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.C_PEN_USL_CORR
+  is 'Корректировки по пене (корректировать сальдо по пене) по услугам';
+comment on column SCOTT.C_PEN_USL_CORR.id
+  is 'ID';
+comment on column SCOTT.C_PEN_USL_CORR.lsk
+  is 'Fk на лиц.счет';
+comment on column SCOTT.C_PEN_USL_CORR.penya
+  is 'Сумма корректировки пени';
+comment on column SCOTT.C_PEN_USL_CORR.mgchange
+  is 'За период';
+comment on column SCOTT.C_PEN_USL_CORR.dtek
+  is 'Дата исполнения';
+comment on column SCOTT.C_PEN_USL_CORR.ts
+  is 'Timestamp';
+comment on column SCOTT.C_PEN_USL_CORR.fk_user
+  is 'Кем исполнено';
+comment on column SCOTT.C_PEN_USL_CORR.fk_doc
+  is 'Fk на документ';
+comment on column SCOTT.C_PEN_USL_CORR.usl
+  is 'Услуга';
+comment on column SCOTT.C_PEN_USL_CORR.org
+  is 'Организация';
+alter table SCOTT.C_PEN_USL_CORR
+  add constraint C_PEN_USL_CORR_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.C_PEN_USL_CORR
+  add constraint C_PEN_USL_CORR_F_CHANGE_DOCS foreign key (FK_DOC)
+  references SCOTT.C_CHANGE_DOCS (ID) on delete cascade;
+alter table SCOTT.C_PEN_USL_CORR
+  add constraint C_PEN_USL_CORR_F_LSK foreign key (LSK)
+  references SCOTT.KART (LSK) on delete cascade;
+alter table SCOTT.C_PEN_USL_CORR
+  add constraint C_PEN_USL_CORR_F_ORG foreign key (ORG)
+  references SCOTT.T_ORG (ID) on delete cascade;
+alter table SCOTT.C_PEN_USL_CORR
+  add constraint C_PEN_USL_CORR_F_USER foreign key (FK_USER)
+  references SCOTT.T_USER (ID) on delete cascade;
+alter table SCOTT.C_PEN_USL_CORR
+  add constraint C_PEN_USL_CORR_F_USL foreign key (USL)
+  references SCOTT.USL (USL) on delete cascade;
+

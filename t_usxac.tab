@@ -1,0 +1,63 @@
+create table SCOTT.T_USXAC
+(
+  id        NUMBER default 0 not null,
+  cd        VARCHAR2(32) default '32' not null,
+  fk_user   NUMBER default 0 not null,
+  fk_obj    NUMBER default 0 not null,
+  fk_act    NUMBER default 0 not null,
+  v         NUMBER default 1 not null,
+  grantable NUMBER default 0 not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.T_USXAC
+  is 'ѕ–»¬»Ћ≈√»я ѕќЋ№«ќ¬ј“≈Ћя на ќЅЏ≈ “';
+comment on column SCOTT.T_USXAC.id
+  is 'ѕ–»¬»Ћ≈√»я ѕќЋ№«ќ¬ј“≈Ћя на ќЅЏ≈ “';
+comment on column SCOTT.T_USXAC.cd
+  is ' од - независ€щий от ID';
+comment on column SCOTT.T_USXAC.fk_user
+  is 'ссылка на ѕќЋ№«ќ¬ј“≈Ћя';
+comment on column SCOTT.T_USXAC.fk_obj
+  is 'сылка на ќЅЏ≈ “';
+comment on column SCOTT.T_USXAC.fk_act
+  is 'ссылка на ƒ≈…—“¬»≈ (метод объекта)';
+comment on column SCOTT.T_USXAC.v
+  is 'вкл/выкл.  включено, если = 1';
+comment on column SCOTT.T_USXAC.grantable
+  is 'GRANTABLE  (with admin option)  если = 1';
+alter table SCOTT.T_USXAC
+  add constraint T_USXAC_PK primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+alter table SCOTT.T_USXAC
+  add constraint T_USXAC_UK_CD unique (CD)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+alter table SCOTT.T_USXAC
+  add constraint T_USXAC_FK_ACT foreign key (FK_ACT)
+  references SCOTT.T_ACT (ID) on delete cascade;
+alter table SCOTT.T_USXAC
+  add constraint T_USXAC_FK_USER foreign key (FK_USER)
+  references SCOTT.T_USER (ID) on delete cascade;
+

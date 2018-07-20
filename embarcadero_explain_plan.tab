@@ -1,0 +1,39 @@
+create table SCOTT.EMBARCADERO_EXPLAIN_PLAN
+(
+  statement_id    VARCHAR2(30),
+  timestamp       DATE,
+  remarks         VARCHAR2(80),
+  operation       VARCHAR2(30),
+  options         VARCHAR2(30),
+  object_node     VARCHAR2(128),
+  object_owner    VARCHAR2(30),
+  object_name     VARCHAR2(30),
+  object_instance NUMBER,
+  object_type     VARCHAR2(30),
+  optimizer       VARCHAR2(255),
+  search_columns  NUMBER,
+  id              NUMBER,
+  parent_id       NUMBER,
+  position        NUMBER,
+  cost            NUMBER,
+  cardinality     NUMBER,
+  bytes           NUMBER,
+  other_tag       VARCHAR2(255),
+  partition_start VARCHAR2(255),
+  partition_stop  VARCHAR2(255),
+  partition_id    NUMBER,
+  other           LONG,
+  distribution    VARCHAR2(30),
+  cpu_cost        INTEGER,
+  io_cost         INTEGER,
+  temp_space      INTEGER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+  );
+

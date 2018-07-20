@@ -1,0 +1,80 @@
+create table SCOTT.TREE_OBJECTS
+(
+  id        NUMBER not null,
+  obj_level NUMBER,
+  trest     CHAR(2),
+  reu       CHAR(3),
+  kul       CHAR(4),
+  nd        CHAR(6),
+  main_id   NUMBER,
+  fk_user   NUMBER,
+  sel       NUMBER,
+  fk_house  NUMBER,
+  mg1       VARCHAR2(6),
+  mg2       VARCHAR2(6),
+  psch      NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 16M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on column SCOTT.TREE_OBJECTS.id
+  is 'ID';
+comment on column SCOTT.TREE_OBJECTS.obj_level
+  is 'Уровень объекта';
+comment on column SCOTT.TREE_OBJECTS.trest
+  is 'Код TREST';
+comment on column SCOTT.TREE_OBJECTS.reu
+  is 'Код REU';
+comment on column SCOTT.TREE_OBJECTS.kul
+  is 'Код KUL';
+comment on column SCOTT.TREE_OBJECTS.nd
+  is 'Код ND';
+comment on column SCOTT.TREE_OBJECTS.main_id
+  is 'FK на родительск.запись';
+comment on column SCOTT.TREE_OBJECTS.fk_user
+  is 'FK сессии';
+comment on column SCOTT.TREE_OBJECTS.sel
+  is 'Выбрано (0-да, 1 -нет)';
+comment on column SCOTT.TREE_OBJECTS.fk_house
+  is 'FK на id дома';
+comment on column SCOTT.TREE_OBJECTS.mg1
+  is 'Начало существования объекта в данном УК';
+comment on column SCOTT.TREE_OBJECTS.mg2
+  is 'Окончание существования объекта в данном УК';
+comment on column SCOTT.TREE_OBJECTS.psch
+  is 'Признак работающего дома (на текущую дату) (1-закрыт, 0- открыт)';
+create unique index SCOTT.TREE_OBJECTS_I on SCOTT.TREE_OBJECTS (FK_USER, ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 10M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  compress 1;
+create index SCOTT.TREE_OBJECTS_I2 on SCOTT.TREE_OBJECTS (FK_USER, OBJ_LEVEL, REU, TREST)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 10M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  compress;
+

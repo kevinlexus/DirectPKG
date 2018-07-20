@@ -1,0 +1,28 @@
+create table SCOTT.VARIANT_XXITO10
+(
+  id    NUMBER not null,
+  name  VARCHAR2(25),
+  name1 VARCHAR2(100)
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+  );
+comment on table SCOTT.VARIANT_XXITO10
+  is 'Варианты отчетов для xxito10';
+alter table SCOTT.VARIANT_XXITO10
+  add constraint VARIANT_XXITO10_KEY1 primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+

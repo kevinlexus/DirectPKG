@@ -1,0 +1,51 @@
+create table SCOTT.A_KWTP_MG
+(
+  lsk       CHAR(8) not null,
+  summa     NUMBER(12,2),
+  penya     NUMBER(12,2),
+  oper      CHAR(2) not null,
+  dopl      CHAR(6) not null,
+  nink      NUMBER,
+  nkom      CHAR(3) not null,
+  dtek      DATE not null,
+  nkvit     NUMBER,
+  dat_ink   DATE,
+  ts        DATE,
+  c_kwtp_id NUMBER not null,
+  rasp_id   NUMBER,
+  mg        CHAR(6) not null,
+  cnt_sch   NUMBER,
+  cnt_sch0  NUMBER,
+  id        NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 3M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on column SCOTT.A_KWTP_MG.cnt_sch
+  is 'показания после счетчиков, после для 13, 14 опер';
+comment on column SCOTT.A_KWTP_MG.cnt_sch0
+  is 'показания счетчиков, до для 13, 14 опер';
+comment on column SCOTT.A_KWTP_MG.id
+  is 'ID';
+create index SCOTT.A_KWTP_MG_I on SCOTT.A_KWTP_MG (LSK)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

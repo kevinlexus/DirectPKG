@@ -1,0 +1,112 @@
+create table SCOTT.NABOR
+(
+  lsk            CHAR(8) not null,
+  usl            CHAR(3) not null,
+  org            NUMBER(3) not null,
+  koeff          NUMBER,
+  norm           NUMBER,
+  fk_tarif       NUMBER,
+  fk_vvod        NUMBER,
+  vol            NUMBER,
+  vol_add        NUMBER,
+  kf_kpr         NUMBER,
+  sch_auto       NUMBER,
+  nrm_kpr        NUMBER,
+  kf_kpr_sch     NUMBER,
+  kf_kpr_wrz     NUMBER,
+  kf_kpr_wro     NUMBER,
+  kf_kpr_wrz_sch NUMBER,
+  kf_kpr_wro_sch NUMBER,
+  limit          NUMBER,
+  nrm_kpr2       NUMBER
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 36M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on table SCOTT.NABOR
+  is 'Справочник наборов услуг по предприятиям (по домам)';
+comment on column SCOTT.NABOR.usl
+  is 'ID услуги';
+comment on column SCOTT.NABOR.org
+  is 'ID предприятия';
+comment on column SCOTT.NABOR.koeff
+  is 'Коэфф. по тарифу';
+comment on column SCOTT.NABOR.norm
+  is 'Норматив по тарифу';
+comment on column SCOTT.NABOR.fk_tarif
+  is 'ID Тариф (Антенн)';
+comment on column SCOTT.NABOR.fk_vvod
+  is 'ID ввода по услуге';
+comment on column SCOTT.NABOR.vol
+  is 'Расход по услуге';
+comment on column SCOTT.NABOR.vol_add
+  is 'добавочный расход по услуге (например доначисление по 307 постановлению)';
+comment on column SCOTT.NABOR.kf_kpr
+  is 'Коэфф прожив для долевого расчета  по услуге (по нормативу)';
+comment on column SCOTT.NABOR.sch_auto
+  is 'Автоначисление? (0-нет, 1-да)';
+comment on column SCOTT.NABOR.nrm_kpr
+  is 'Кол-во проживающих для расчета норматива';
+comment on column SCOTT.NABOR.kf_kpr_sch
+  is 'Коэфф прожив для долевого расчета  по услуге (по счетчику)';
+comment on column SCOTT.NABOR.kf_kpr_wrz
+  is 'Коэфф временно зарег.(по нормативу)';
+comment on column SCOTT.NABOR.kf_kpr_wro
+  is 'Коэфф временно отсут.(по нормативу)';
+comment on column SCOTT.NABOR.kf_kpr_wrz_sch
+  is 'Коэфф временно зарег.(по счетчику)';
+comment on column SCOTT.NABOR.kf_kpr_wro_sch
+  is 'Коэфф временно отсут.(по счетчику)';
+comment on column SCOTT.NABOR.limit
+  is 'Лимит объема по услуге (Используется при начислении по ОДН)';
+comment on column SCOTT.NABOR.nrm_kpr2
+  is 'Кол-во проживающих для расценки';
+create unique index SCOTT.NABOR_I on SCOTT.NABOR (LSK, USL, ORG)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 20M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create unique index SCOTT.NABOR_I2 on SCOTT.NABOR (LSK, USL)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 20M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.NABOR
+  add constraint NABOR_FK_C_VVOD foreign key (FK_VVOD)
+  references SCOTT.C_VVOD (ID);
+alter table SCOTT.NABOR
+  add constraint NABOR_FK_ORG foreign key (ORG)
+  references SCOTT.T_ORG (ID);
+alter table SCOTT.NABOR
+  add constraint NABOR_FK_TARIF foreign key (FK_TARIF)
+  references SCOTT.SPR_TARIF (ID);
+alter table SCOTT.NABOR
+  add constraint NABOR_LSK foreign key (LSK)
+  references SCOTT.KART (LSK) on delete cascade;
+alter table SCOTT.NABOR
+  add constraint NABOR_USL foreign key (USL)
+  references SCOTT.USL (USL);
+

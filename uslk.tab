@@ -1,0 +1,29 @@
+create table SCOTT.USLK
+(
+  uslk CHAR(3) not null,
+  name CHAR(22)
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 128K
+  );
+comment on column SCOTT.USLK.uslk
+  is 'Код составляющей услуги';
+comment on column SCOTT.USLK.name
+  is 'Наименование составляющей услуги';
+alter table SCOTT.USLK
+  add constraint USLK_P_USLK primary key (USLK)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+

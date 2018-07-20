@@ -1,0 +1,199 @@
+create table SCOTT.USL
+(
+  uslm           CHAR(3),
+  usl            CHAR(3) not null,
+  kartw          CHAR(15),
+  kwni           CHAR(15),
+  lpw            CHAR(15),
+  ed_izm         CHAR(15),
+  nm             CHAR(35),
+  nm1            CHAR(35),
+  usl_p          CHAR(3),
+  sptarn         NUMBER,
+  usl_type       NUMBER,
+  usl_plr        NUMBER,
+  usl_norm       NUMBER,
+  typ_usl        NUMBER(1),
+  usl_order      NUMBER,
+  usl_type2      NUMBER,
+  usl_subs       NUMBER,
+  nm2            CHAR(15),
+  nm3            CHAR(15),
+  cd             VARCHAR2(32),
+  npp            NUMBER,
+  fk_calc_tp     NUMBER,
+  uslg           CHAR(3),
+  counter        CHAR(15),
+  have_vvod      NUMBER,
+  n_progs        NUMBER,
+  fk_usl_pen     CHAR(3),
+  can_vv         NUMBER,
+  is_iter        NUMBER,
+  max_vol        NUMBER,
+  fk_usl_chld    CHAR(3),
+  frc_get_price  NUMBER,
+  usl_empt       CHAR(3),
+  parent_usl     CHAR(3),
+  chrg_round     NUMBER,
+  bill_brake     NUMBER,
+  is_swp_pen_org NUMBER,
+  for_arch       NUMBER,
+  linked_usl     NUMBER,
+  ids            VARCHAR2(3),
+  tp_pen_dt      NUMBER,
+  tp_pen_ref     NUMBER
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.USL
+  is 'Справочник услуг';
+comment on column SCOTT.USL.ed_izm
+  is 'Единица измерения по услуге';
+comment on column SCOTT.USL.usl_p
+  is 'Код usl, для услуги свыше соц нормы';
+comment on column SCOTT.USL.sptarn
+  is '0 - коэфф. в справочнике тарифов, 1 - норматив в справочнике тарифов, 2 - koeff-коэфф и norm-норматив, 3-koeff и norm-оба коэфф';
+comment on column SCOTT.USL.usl_type
+  is 'Тип услуги (1-жилищные, 0- остальные)';
+comment on column SCOTT.USL.usl_plr
+  is 'Услуги, на которые распространяется дополнительная площадь (1-распр., 0- нет)';
+comment on column SCOTT.USL.usl_norm
+  is '0 - соц норма, 1 - св. соц.нормы.';
+comment on column SCOTT.USL.typ_usl
+  is '0-усл. участвует в раз.изм, 1 - не участвует';
+comment on column SCOTT.USL.usl_order
+  is 'Порядок расчета услуг';
+comment on column SCOTT.USL.usl_type2
+  is 'Тип услуги (1-жилищные, 0- остальные) - для расчета временно отсут., временно зарег.';
+comment on column SCOTT.USL.usl_subs
+  is 'Услуги на которые распространяется суб  -1, не распр. - 0';
+comment on column SCOTT.USL.nm2
+  is 'Укороченное название услуг (главных)';
+comment on column SCOTT.USL.nm3
+  is 'Укороченное название услуг (детализир.)';
+comment on column SCOTT.USL.cd
+  is 'CD';
+comment on column SCOTT.USL.npp
+  is '№ порядк';
+comment on column SCOTT.USL.fk_calc_tp
+  is 'Вариант расчёта ( 0 - м2, 1 - м2(по статусу), далее смотри по c_charge)';
+comment on column SCOTT.USL.uslg
+  is 'Глобальная услуга';
+comment on column SCOTT.USL.counter
+  is 'счетчик по данной услуге';
+comment on column SCOTT.USL.have_vvod
+  is 'Имеется ли ввод по услуге (0, null -нет, 1 -да)';
+comment on column SCOTT.USL.n_progs
+  is 'Использовать пакеты программ по услуге  (0, null -нет, 1 -да)';
+comment on column SCOTT.USL.fk_usl_pen
+  is 'FK на услугу, на которую перераспределится начисление пени';
+comment on column SCOTT.USL.can_vv
+  is 'Разрешено вводить по услуге Объем в поле VVOD_ADD (Расход)(0-нет, 1-да)';
+comment on column SCOTT.USL.is_iter
+  is 'Применять ли принцип долевого подсчета кол-во прожив по услуге';
+comment on column SCOTT.USL.max_vol
+  is 'Максимально допустимый расход, для ввода по услуге за 1 раз';
+comment on column SCOTT.USL.fk_usl_chld
+  is 'Дочерняя услуга (связанная) например х.в.--> х.в.МОП.';
+comment on column SCOTT.USL.frc_get_price
+  is 'Принудительно брать расценку по услуге в счет (в основном для тек содерж) (1-брать) ДЛЯ ОБОРОТКИ!!!';
+comment on column SCOTT.USL.usl_empt
+  is 'Ссылка на услугу где 0 проживающих';
+comment on column SCOTT.USL.parent_usl
+  is 'Родительская услуга (ну как надо уже пора сделать)))';
+comment on column SCOTT.USL.chrg_round
+  is 'Округлить до N знаков (исп. в C_KART если NULL то берется по умолчанию в C_KART)';
+comment on column SCOTT.USL.bill_brake
+  is 'Отделить в счете? (null,0-нет, 1-да) (Используется в Полыс с 01.2017)';
+comment on column SCOTT.USL.is_swp_pen_org
+  is 'Перераспределять ли пеню по услуге на УК, которая обслуживает фонд? (0-нет, 1-да) (0 - пеня останется на той же орг, по которой будет принята, только сменит услугу, если так установлено)';
+comment on column SCOTT.USL.for_arch
+  is 'Брать услугу развернуто, (null, 0-нет, 1-да) Для архивной справки (например развернуть услугу ОДН)';
+comment on column SCOTT.USL.linked_usl
+  is 'Связанная услуга, например для начисления повыш коэфф.одн';
+comment on column SCOTT.USL.tp_pen_dt
+  is 'Для справочника дат начала обязательств по долгу -  PEN_DT Тип услуги (0-прочие услуги, 1-капремонт)';
+comment on column SCOTT.USL.tp_pen_ref
+  is 'Для справочника ставок рефинансирования - PEN_REF Тип услуги (0-прочие услуги, 1-капремонт)';
+create index SCOTT.USL_I2 on SCOTT.USL (FK_CALC_TP)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create index SCOTT.USL_I_NM1 on SCOTT.USL (NM1, USL)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+create unique index SCOTT.USL_I_NPP on SCOTT.USL (NPP)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.USL
+  add constraint USL_KEY1 primary key (USL)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.USL
+  add constraint USL_FPARENT foreign key (PARENT_USL)
+  references SCOTT.USL (USL);
+alter table SCOTT.USL
+  add constraint USL_F_USLM foreign key (USLM)
+  references SCOTT.USLM (USLM);
+alter table SCOTT.USL
+  add constraint USL_F_USL_E foreign key (USL_EMPT)
+  references SCOTT.USL (USL);
+alter table SCOTT.USL
+  add constraint USL_F_USL_MAIN foreign key (FK_USL_CHLD)
+  references SCOTT.USL (USL);
+alter table SCOTT.USL
+  add constraint USL_F_USL_P foreign key (USL_P)
+  references SCOTT.USL (USL);
+alter table SCOTT.USL
+  add constraint USL_F_USL_PEN foreign key (FK_USL_PEN)
+  references SCOTT.USL (USL);
+alter table SCOTT.USL
+  add constraint USL_G_USLG foreign key (USLG)
+  references SCOTT.USLG (USLG);
+

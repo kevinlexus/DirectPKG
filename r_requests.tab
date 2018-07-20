@@ -1,0 +1,55 @@
+create table SCOTT.R_REQUESTS
+(
+  id             NUMBER not null,
+  dat            DATE,
+  ts             DATE default sysdate,
+  k_lsk_id       NUMBER,
+  memo1          CLOB,
+  r_num          NUMBER not null,
+  r_fio          VARCHAR2(75),
+  r_doc_types_id NUMBER,
+  user_id        NUMBER,
+  memo2          VARCHAR2(400)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.R_REQUESTS
+  is 'Диспетчерские заявки';
+comment on column SCOTT.R_REQUESTS.id
+  is 'ID Заявки';
+comment on column SCOTT.R_REQUESTS.dat
+  is 'Дата текущая';
+comment on column SCOTT.R_REQUESTS.ts
+  is 'Дата регистрации системой';
+comment on column SCOTT.R_REQUESTS.k_lsk_id
+  is 'ID адреса';
+comment on column SCOTT.R_REQUESTS.memo1
+  is 'Текст заявки';
+comment on column SCOTT.R_REQUESTS.r_num
+  is 'Номер порядковый';
+comment on column SCOTT.R_REQUESTS.r_fio
+  is 'ФИО, заявителя';
+comment on column SCOTT.R_REQUESTS.r_doc_types_id
+  is 'ID типа документа';
+comment on column SCOTT.R_REQUESTS.user_id
+  is 'ID пользователя';
+comment on column SCOTT.R_REQUESTS.memo2
+  is 'Примечание по заявке';
+alter table SCOTT.R_REQUESTS
+  add constraint P_REQUEST_ID primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+

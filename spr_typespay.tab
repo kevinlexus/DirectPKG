@@ -1,0 +1,41 @@
+create table SCOTT.SPR_TYPESPAY
+(
+  id   NUMBER not null,
+  cd   VARCHAR2(32),
+  name VARCHAR2(32),
+  npp  NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.SPR_TYPESPAY
+  is 'Справочник видов оплаты';
+comment on column SCOTT.SPR_TYPESPAY.id
+  is 'ID';
+comment on column SCOTT.SPR_TYPESPAY.cd
+  is 'CD';
+comment on column SCOTT.SPR_TYPESPAY.name
+  is 'NAME';
+alter table SCOTT.SPR_TYPESPAY
+  add constraint SPR_TYPESPAY_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

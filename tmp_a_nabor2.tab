@@ -1,0 +1,28 @@
+create global temporary table SCOTT.TMP_A_NABOR2
+(
+  lsk            CHAR(8) not null,
+  usl            CHAR(3) not null,
+  org            NUMBER(3) not null,
+  koeff          NUMBER,
+  norm           NUMBER,
+  fk_tarif       NUMBER,
+  fk_vvod        NUMBER,
+  vol            NUMBER,
+  fk_dvb         NUMBER,
+  vol_add        NUMBER,
+  kf_kpr         NUMBER,
+  sch_auto       NUMBER,
+  nrm_kpr        NUMBER,
+  kf_kpr_sch     NUMBER,
+  kf_kpr_wrz     NUMBER,
+  kf_kpr_wro     NUMBER,
+  kf_kpr_wrz_sch NUMBER,
+  kf_kpr_wro_sch NUMBER,
+  limit          NUMBER,
+  nrm_kpr2       NUMBER,
+  id             NUMBER not null,
+  mgfrom         NUMBER not null,
+  mgto           NUMBER not null
+)
+on commit preserve rows;
+

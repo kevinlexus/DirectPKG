@@ -1,0 +1,58 @@
+create table SCOTT.C_SPK_USL
+(
+  spk_id      NUMBER not null,
+  usl_id      CHAR(3) not null,
+  koef        NUMBER not null,
+  dop_pl      NUMBER,
+  prioritet   NUMBER,
+  charge_part NUMBER,
+  limit_part  NUMBER
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on table SCOTT.C_SPK_USL
+  is 'Категории льгот по услугам';
+comment on column SCOTT.C_SPK_USL.spk_id
+  is 'ID льготы';
+comment on column SCOTT.C_SPK_USL.usl_id
+  is 'ID услуги';
+comment on column SCOTT.C_SPK_USL.koef
+  is 'коэфф по льготе-услуге';
+comment on column SCOTT.C_SPK_USL.dop_pl
+  is 'дополнительная площадь по льготе-услуге';
+comment on column SCOTT.C_SPK_USL.prioritet
+  is 'Приоритет льготы';
+comment on column SCOTT.C_SPK_USL.charge_part
+  is 'Использовать расчет в долях по льготе, (1-да,0 -нет)';
+comment on column SCOTT.C_SPK_USL.limit_part
+  is 'Ограничивать расчет в долях соц.нормой, (1-да, 0 -нет)';
+create index SCOTT.SPK_USL_MG_I on SCOTT.C_SPK_USL (SPK_ID, USL_ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  compress;
+alter table SCOTT.C_SPK_USL
+  add constraint C_SPK_SPK_ID_F foreign key (SPK_ID)
+  references SCOTT.SPK (ID) on delete cascade;
+alter table SCOTT.C_SPK_USL
+  add constraint C_SPK_USL_F foreign key (USL_ID)
+  references SCOTT.USL (USL);
+

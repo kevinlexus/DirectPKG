@@ -1,0 +1,24 @@
+create table SCOTT.SPT
+(
+  gtr    CHAR(4),
+  usl_id CHAR(3) not null,
+  koeff  NUMBER,
+  mg     CHAR(6)
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 640K
+  );
+comment on table SCOTT.SPT
+  is 'Справочник тарифов нормализованный';
+comment on column SCOTT.SPT.usl_id
+  is 'ID Услуги';
+comment on column SCOTT.SPT.koeff
+  is 'Коээффициэнт';
+comment on column SCOTT.SPT.mg
+  is 'период';
+

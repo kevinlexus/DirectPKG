@@ -1,0 +1,84 @@
+create table SCOTT.XITO5_
+(
+  ska      NUMBER(14,5),
+  pn       NUMBER(14,5),
+  trest    CHAR(2),
+  reu      CHAR(3),
+  other    CHAR(1),
+  nal      CHAR(1),
+  ink      CHAR(1),
+  oper     CHAR(2),
+  dat      DATE,
+  mg       CHAR(6),
+  from_reu CHAR(2)
+)
+tablespace USERS
+  pctfree 5
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.XITO5_
+  is 'Платежи по операциям (для оборотки)';
+comment on column SCOTT.XITO5_.reu
+  is 'За какой РЭУ сбор платежа';
+comment on column SCOTT.XITO5_.from_reu
+  is 'От какого РЭУ сбор платежа';
+create index SCOTT.XITO5__IDX1 on SCOTT.XITO5_ (MG, REU, TREST, OPER, OTHER, INK, NAL)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+create index SCOTT.XITO5__IDX2 on SCOTT.XITO5_ (DAT, REU, TREST, OPER, OTHER, INK, NAL)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+create index SCOTT.XITO5__IDX7 on SCOTT.XITO5_ (MG)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+create index SCOTT.XITO5__IDX8 on SCOTT.XITO5_ (DAT)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+

@@ -1,0 +1,33 @@
+create table SCOTT.ARCH_PRIVS
+(
+  lsk      CHAR(8),
+  summa    NUMBER,
+  usl_id   CHAR(3),
+  mg       VARCHAR2(6),
+  lg_id    NUMBER,
+  cnt_main NUMBER,
+  cnt      NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 9M
+  )
+nologging;
+comment on column SCOTT.ARCH_PRIVS.cnt_main
+  is 'кол-во носителей по услуге';
+comment on column SCOTT.ARCH_PRIVS.cnt
+  is 'кол-во пользующ по услуге';
+create index SCOTT.ARCH_PRIVS_LSK_USL_ID on SCOTT.ARCH_PRIVS (LSK, USL_ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 10M
+  );
+

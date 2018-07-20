@@ -1,0 +1,59 @@
+create table SCOTT.IMP_PASP_KART
+(
+  lsk           VARCHAR2(256),
+  town          VARCHAR2(256),
+  street        VARCHAR2(256),
+  kw            VARCHAR2(256),
+  nd            VARCHAR2(256),
+  objadress     VARCHAR2(256),
+  fio           VARCHAR2(256),
+  imya          VARCHAR2(256),
+  otchestvo     VARCHAR2(256),
+  datarozd      DATE,
+  document      VARCHAR2(256),
+  huout         VARCHAR2(256),
+  dvid          DATE,
+  propiska      VARCHAR2(256),
+  kolvoproz     NUMBER,
+  whereinput    VARCHAR2(256),
+  privatizacia  VARCHAR2(256),
+  dataprivatiz  DATE,
+  ndogovora     VARCHAR2(256),
+  zilplochad    VARCHAR2(256),
+  allplochad    VARCHAR2(256),
+  order1        VARCHAR2(256),
+  dataorder     DATE,
+  kolvo_komnat  VARCHAR2(256),
+  n_dog_naym    VARCHAR2(256),
+  data_dog_naym VARCHAR2(256),
+  k_lsk         VARCHAR2(8),
+  k_opl         NUMBER,
+  k_komn        NUMBER,
+  k_reu         VARCHAR2(2),
+  k_c_lsk_id    NUMBER,
+  k_k_lsk_id    NUMBER,
+  law_doc       VARCHAR2(50),
+  law_doc_dt    DATE,
+  prvt_doc      VARCHAR2(50),
+  prvt_doc_dt   DATE,
+  k_kul         VARCHAR2(4),
+  k_nd          VARCHAR2(6),
+  k_kw          VARCHAR2(7)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 2M
+  );
+comment on column SCOTT.IMP_PASP_KART.law_doc
+  is 'Правоустанавливающий документ';
+comment on column SCOTT.IMP_PASP_KART.law_doc_dt
+  is 'Дата правоустанавливающего документа';
+comment on column SCOTT.IMP_PASP_KART.prvt_doc
+  is 'Документ приватизации';
+comment on column SCOTT.IMP_PASP_KART.prvt_doc_dt
+  is 'Дата приватизации';
+

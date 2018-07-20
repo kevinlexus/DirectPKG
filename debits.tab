@@ -1,0 +1,29 @@
+create table SCOTT.DEBITS
+(
+  lsk    CHAR(8) not null,
+  mg     CHAR(8) not null,
+  summa  NUMBER,
+  summap NUMBER
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+  )
+nologging;
+comment on table SCOTT.DEBITS
+  is 'Долги клиентов';
+create index SCOTT.DEBITS_LSK on SCOTT.DEBITS (LSK)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  )
+  nologging;
+

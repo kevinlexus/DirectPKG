@@ -1,0 +1,136 @@
+create table SCOTT.C_KWTP
+(
+  lsk       CHAR(8) not null,
+  summa     NUMBER(12,2),
+  penya     NUMBER(12,2),
+  oper      CHAR(2),
+  dopl      CHAR(6),
+  nink      NUMBER,
+  nkom      CHAR(3) not null,
+  dtek      DATE not null,
+  nkvit     NUMBER,
+  dat_ink   DATE,
+  ts        DATE,
+  id        NUMBER not null,
+  iscorrect NUMBER,
+  num_doc   VARCHAR2(25),
+  dat_doc   DATE,
+  fk_doc    NUMBER
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 896K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.C_KWTP
+  is 'Оплата';
+comment on column SCOTT.C_KWTP.lsk
+  is 'Л/С';
+comment on column SCOTT.C_KWTP.summa
+  is 'Сумма';
+comment on column SCOTT.C_KWTP.penya
+  is 'Сумма пени';
+comment on column SCOTT.C_KWTP.oper
+  is 'Код операции (может не использоваться, например при вводе наличкой)';
+comment on column SCOTT.C_KWTP.dopl
+  is 'Период оплаты';
+comment on column SCOTT.C_KWTP.nink
+  is '№ инкассации';
+comment on column SCOTT.C_KWTP.nkom
+  is '№ компа';
+comment on column SCOTT.C_KWTP.dtek
+  is 'Дата - время квитанции';
+comment on column SCOTT.C_KWTP.nkvit
+  is '№ квитанции';
+comment on column SCOTT.C_KWTP.dat_ink
+  is 'Дата - время инкассации';
+comment on column SCOTT.C_KWTP.ts
+  is 'timestamp';
+comment on column SCOTT.C_KWTP.id
+  is 'ID Платежа';
+comment on column SCOTT.C_KWTP.iscorrect
+  is '0-обычный платёж, 1 - корректировка платежа, 2 -распр.оплаты, 3- наличка';
+comment on column SCOTT.C_KWTP.num_doc
+  is '№ платежного документа (из банка)';
+comment on column SCOTT.C_KWTP.dat_doc
+  is 'Дата платежного документа (из банка)';
+comment on column SCOTT.C_KWTP.fk_doc
+  is 'Fk на документ (для всяких перебросок)';
+create index SCOTT.C_KWTP_F_DOC_I on SCOTT.C_KWTP (FK_DOC)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create index SCOTT.C_KWTP_I_NKOM on SCOTT.C_KWTP (NKOM, OPER, NINK)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create index SCOTT.C_KWTP_LSK_DAT_INK on SCOTT.C_KWTP (LSK, DAT_INK, DOPL)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create index SCOTT.C_KWTP_LSK_DTEK on SCOTT.C_KWTP (LSK, DTEK)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.C_KWTP
+  add constraint C_KWTP_P_ID primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.C_KWTP
+  add constraint C_KWTP_F_DOC foreign key (FK_DOC)
+  references SCOTT.C_CHANGE_DOCS (ID);
+alter table SCOTT.C_KWTP
+  add constraint C_KWTP_F_KART foreign key (LSK)
+  references SCOTT.KART (LSK);
+alter table SCOTT.C_KWTP
+  add constraint C_KWTP_F_OPER foreign key (OPER)
+  references SCOTT.OPER (OPER);
+

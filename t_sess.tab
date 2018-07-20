@@ -1,0 +1,40 @@
+create table SCOTT.T_SESS
+(
+  id         NUMBER not null,
+  fk_ses     NUMBER not null,
+  dat_create DATE not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.T_SESS
+  is 'Сессии пользователя';
+comment on column SCOTT.T_SESS.id
+  is 'ID';
+comment on column SCOTT.T_SESS.fk_ses
+  is 'FK сессии';
+comment on column SCOTT.T_SESS.dat_create
+  is 'Дата создания';
+alter table SCOTT.T_SESS
+  add constraint T_SESS_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

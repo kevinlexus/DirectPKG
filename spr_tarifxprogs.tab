@@ -1,0 +1,26 @@
+create table SCOTT.SPR_TARIFXPROGS
+(
+  fk_tarif NUMBER not null,
+  fk_prog  NUMBER not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.SPR_TARIFXPROGS
+  is 'Пакеты x программы (Как программы входят в пакеты)';
+comment on column SCOTT.SPR_TARIFXPROGS.fk_tarif
+  is 'Пакет';
+comment on column SCOTT.SPR_TARIFXPROGS.fk_prog
+  is 'Программа, входящая';
+alter table SCOTT.SPR_TARIFXPROGS
+  add constraint SPR_TARIFXPROGS_F_PROG foreign key (FK_PROG)
+  references SCOTT.SPR_TARIF (ID);
+alter table SCOTT.SPR_TARIFXPROGS
+  add constraint SPR_TARIFXPROGS_F_TARIF foreign key (FK_TARIF)
+  references SCOTT.SPR_TARIF (ID);
+

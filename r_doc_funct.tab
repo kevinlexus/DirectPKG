@@ -1,0 +1,37 @@
+create table SCOTT.R_DOC_FUNCT
+(
+  id             NUMBER not null,
+  name           VARCHAR2(100),
+  r_doc_types_id NUMBER not null
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.R_DOC_FUNCT
+  is 'Функции, возможные по документам';
+comment on column SCOTT.R_DOC_FUNCT.id
+  is 'ID Функции';
+comment on column SCOTT.R_DOC_FUNCT.name
+  is 'Наименование';
+comment on column SCOTT.R_DOC_FUNCT.r_doc_types_id
+  is 'ID Тип документа';
+alter table SCOTT.R_DOC_FUNCT
+  add constraint P_R_DOC_FUNCT_ID primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+alter table SCOTT.R_DOC_FUNCT
+  add constraint F_R_DOC_FUNCT_R_DOC_TYPES_ID foreign key (R_DOC_TYPES_ID)
+  references SCOTT.R_DOC_TYPES (ID);
+

@@ -1,0 +1,56 @@
+create table SCOTT.A_PEN_CORR
+(
+  id      NUMBER not null,
+  lsk     CHAR(8) not null,
+  penya   NUMBER(12,2) not null,
+  dopl    VARCHAR2(6) not null,
+  dtek    DATE not null,
+  ts      DATE not null,
+  fk_user NUMBER not null,
+  mg      CHAR(6),
+  fk_doc  NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.A_PEN_CORR
+  is 'Корректировки по пене (корректировать сальдо по пене)';
+comment on column SCOTT.A_PEN_CORR.id
+  is 'ID';
+comment on column SCOTT.A_PEN_CORR.lsk
+  is 'Fk на лиц.счет';
+comment on column SCOTT.A_PEN_CORR.penya
+  is 'Сумма корректировки пени';
+comment on column SCOTT.A_PEN_CORR.dopl
+  is 'За период';
+comment on column SCOTT.A_PEN_CORR.dtek
+  is 'Дата исполнения';
+comment on column SCOTT.A_PEN_CORR.ts
+  is 'Timestamp';
+comment on column SCOTT.A_PEN_CORR.fk_user
+  is 'Кем исполнено';
+comment on column SCOTT.A_PEN_CORR.mg
+  is 'Архивный период';
+comment on column SCOTT.A_PEN_CORR.fk_doc
+  is 'Fk на документ';
+create index SCOTT.A_PEN_CORR_I on SCOTT.A_PEN_CORR (MG, LSK)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

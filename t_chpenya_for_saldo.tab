@@ -1,0 +1,23 @@
+create table SCOTT.T_CHPENYA_FOR_SALDO
+(
+  lsk   CHAR(8) not null,
+  summa NUMBER,
+  org   NUMBER not null,
+  usl   CHAR(3)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 896K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.T_CHPENYA_FOR_SALDO
+  is 'Временная таблица для оборотки: Начисление пени за текущий период по услугам';
+comment on column SCOTT.T_CHPENYA_FOR_SALDO.usl
+  is 'для второго этапа сальдо';
+

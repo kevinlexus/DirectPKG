@@ -1,0 +1,18 @@
+create table SCOTT.LOGGING_BAK
+(
+  id        NUMBER,
+  timestamp DATE,
+  action_id NUMBER,
+  lsk       VARCHAR2(300),
+  comments  VARCHAR2(1000)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 128K
+  )
+nologging;
+

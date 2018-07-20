@@ -1,0 +1,31 @@
+create table SCOTT.REP_LEVELS
+(
+  fk_rep_id NUMBER not null,
+  level_id  NUMBER,
+  xmltext   CLOB,
+  id        NUMBER,
+  name      VARCHAR2(30)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on column SCOTT.REP_LEVELS.level_id
+  is 'Уровень отчёта';
+comment on column SCOTT.REP_LEVELS.xmltext
+  is 'XML PivotMap';
+comment on column SCOTT.REP_LEVELS.id
+  is 'ID';
+comment on column SCOTT.REP_LEVELS.name
+  is 'Наименование уровня';
+alter table SCOTT.REP_LEVELS
+  add constraint REP_LEVELS_F_ID foreign key (FK_REP_ID)
+  references SCOTT.REPORTS (ID);
+

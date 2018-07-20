@@ -1,0 +1,110 @@
+create table SCOTT.REPORTS
+(
+  id            NUMBER not null,
+  name          VARCHAR2(100),
+  maxlevel      NUMBER,
+  fk_type       NUMBER,
+  expand_row    NUMBER,
+  expand_col    NUMBER,
+  can_detail    NUMBER,
+  show_sel_org  NUMBER,
+  show_sel_oper NUMBER,
+  cd            VARCHAR2(32),
+  sel_many      NUMBER,
+  have_date     NUMBER,
+  fname         VARCHAR2(32),
+  iscnt         NUMBER,
+  issum         NUMBER,
+  fldsum        VARCHAR2(32),
+  ishead        NUMBER,
+  show_paychk   NUMBER,
+  show_deb      NUMBER,
+  frx_fname     VARCHAR2(64),
+  isoem         NUMBER,
+  frm_name      VARCHAR2(64)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on table SCOTT.REPORTS
+  is 'Справочник видов отчетов';
+comment on column SCOTT.REPORTS.id
+  is 'ID отчета';
+comment on column SCOTT.REPORTS.name
+  is 'Наименование отчета';
+comment on column SCOTT.REPORTS.maxlevel
+  is 'максимальный уровень детализации';
+comment on column SCOTT.REPORTS.fk_type
+  is 'Тип отчета (0 - OLAP, 1- Fastreport, 2-DBF,3-TXT, 4 -форма, 5 - реестр, 6 - единичная справка)';
+comment on column SCOTT.REPORTS.expand_row
+  is 'Раскрывать ли строки в PivotGrid';
+comment on column SCOTT.REPORTS.expand_col
+  is 'Раскрывать ли колонки в PivotGrid';
+comment on column SCOTT.REPORTS.can_detail
+  is 'Может быть детализирован';
+comment on column SCOTT.REPORTS.show_sel_org
+  is 'Показывать ли выбор организации (0-нет, 1 - да)';
+comment on column SCOTT.REPORTS.show_sel_oper
+  is 'Показывать ли выбор операции (0-нет, 1 - да)';
+comment on column SCOTT.REPORTS.cd
+  is 'СD отчета (1- оборотка, 2 -оплата по предпр., 3 - опл.по по пункт., 4-опл.по опер., 5-опл по опер (оборотка), 6 - сальдо по домам, предпр., усл., 7 -оплата по предпр. Ф.2.3, 8 -возм.по льготникам, 9 -периоды для xito10,10 - периоды для ф.8.1.)';
+comment on column SCOTT.REPORTS.sel_many
+  is 'Возможность выбора нескольких объектов (0-нет, 1 - да)';
+comment on column SCOTT.REPORTS.have_date
+  is 'Дополнительное поле выбора даты (например даты рождения) (устаревшее)';
+comment on column SCOTT.REPORTS.fname
+  is 'Имя файла, для выгрузки';
+comment on column SCOTT.REPORTS.iscnt
+  is 'Записывать итог кол-во строк в конце файла (0-нет, 1 - да)';
+comment on column SCOTT.REPORTS.issum
+  is 'Записывать итог суммы по полю  FLDSUM в конце файла (для  TXT) (0-нет, 1 - да)';
+comment on column SCOTT.REPORTS.fldsum
+  is 'Поле для подсчета суммы';
+comment on column SCOTT.REPORTS.ishead
+  is 'Записывать заголовок полей таблицы (для  TXT)  (0-нет, 1 - да)';
+comment on column SCOTT.REPORTS.show_paychk
+  is 'Показывать ли checkbox учета оплаты в долгах (0-нет, 1 - да)';
+comment on column SCOTT.REPORTS.show_deb
+  is 'Показывать ли выбор условий по задолжникам';
+comment on column SCOTT.REPORTS.frx_fname
+  is 'Имя файла, для загрузки FRX-отчета';
+comment on column SCOTT.REPORTS.isoem
+  is 'Выгружать TXT файл в кодировке DOS  (0-нет, 1 - да)';
+comment on column SCOTT.REPORTS.frm_name
+  is 'Наименование формы, для вызова';
+create unique index SCOTT.REPORTS_I on SCOTT.REPORTS (CD)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.REPORTS
+  add constraint REPORTS_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

@@ -1,0 +1,13 @@
+create table SCOTT.TXT
+(
+  memo CLOB
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+

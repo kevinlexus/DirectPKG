@@ -1,0 +1,7 @@
+create sequence SCOTT.PLSQL_PROFILER_RUNNUMBER
+minvalue 1
+maxvalue 999999999999999999999999999
+start with 276
+increment by 1
+nocache;
+

@@ -1,0 +1,44 @@
+create table SCOTT.PERMISSIONS
+(
+  username       VARCHAR2(20),
+  reu            CHAR(3),
+  trest          CHAR(2),
+  type           NUMBER default 0 not null,
+  menu_id        NUMBER,
+  user_id        NUMBER,
+  role_id        NUMBER,
+  r_doc_funct_id NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.PERMISSIONS
+  is 'Разрешения на доступ к отчетам';
+comment on column SCOTT.PERMISSIONS.username
+  is 'Имя пользователя Oracle';
+comment on column SCOTT.PERMISSIONS.reu
+  is 'Номер доступного РЭУ';
+comment on column SCOTT.PERMISSIONS.trest
+  is 'Номер доступного Треста';
+comment on column SCOTT.PERMISSIONS.type
+  is 'Тип доступа РЭУ -0, Трест -1, Варианты меню 2 и 3, Возможность выгрузки: -4, 5 - документооборот';
+comment on column SCOTT.PERMISSIONS.menu_id
+  is 'Порядок следования пункт меню + Идентификатор пункта меню';
+comment on column SCOTT.PERMISSIONS.user_id
+  is 'ID пользователя';
+comment on column SCOTT.PERMISSIONS.role_id
+  is 'ID Роли (для type=5)';
+comment on column SCOTT.PERMISSIONS.r_doc_funct_id
+  is 'ID Доступной функции (для type=5)';
+alter table SCOTT.PERMISSIONS
+  add constraint PERMISSIONS_F_MENU_ID foreign key (MENU_ID)
+  references SCOTT.MENU (ID);
+

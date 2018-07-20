@@ -1,0 +1,64 @@
+create table SCOTT.XXITO14
+(
+  trest     CHAR(2) not null,
+  reu       CHAR(3) not null,
+  kul       CHAR(4),
+  nd        CHAR(6),
+  summa     NUMBER(10,2) not null,
+  usl       CHAR(3) not null,
+  org       NUMBER(3) not null,
+  dat       DATE,
+  mg        CHAR(6),
+  var       NUMBER not null,
+  forreu    CHAR(3) not null,
+  status    NUMBER not null,
+  dopl      CHAR(6) not null,
+  oper      CHAR(2),
+  fk_distr  NUMBER,
+  sum_distr NUMBER,
+  cd_tp     NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 5M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.XXITO14
+  is 'Оплата по предпр., трестам, услугам / статусу жилья/ коду операции';
+comment on column SCOTT.XXITO14.fk_distr
+  is 'Вариант распределения оплаты (смотри описание в пакете)';
+comment on column SCOTT.XXITO14.sum_distr
+  is 'Сумма по которой произошло распределение';
+comment on column SCOTT.XXITO14.cd_tp
+  is 'Тип (1-оплата, 0 - пеня)';
+create index SCOTT.XXITO14_I_REU on SCOTT.XXITO14 (REU)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create index SCOTT.XXITO14_I_TREST on SCOTT.XXITO14 (TREST)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

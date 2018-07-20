@@ -1,0 +1,46 @@
+create table SCOTT.STATISTICS_LG_LSK
+(
+  reu    CHAR(3) not null,
+  kul    CHAR(4) not null,
+  nd     CHAR(6) not null,
+  kw     CHAR(7) not null,
+  spk_id NUMBER not null,
+  usl    CHAR(3) not null,
+  org    NUMBER not null,
+  main   NUMBER not null,
+  cnt    NUMBER not null,
+  dat    DATE,
+  mg     CHAR(6)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 72M
+  )
+nologging;
+comment on table SCOTT.STATISTICS_LG_LSK
+  is 'Статистика по льготникам, по лицевым';
+create index SCOTT.STAT_LG_LSK_DAT on SCOTT.STATISTICS_LG_LSK (DAT, REU, USL, ORG, SPK_ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 20M
+  )
+  nologging;
+create index SCOTT.STAT_LG_LSK_MG on SCOTT.STATISTICS_LG_LSK (MG, REU, USL, ORG, SPK_ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 20M
+  )
+  nologging;
+

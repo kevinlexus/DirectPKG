@@ -1,0 +1,28 @@
+create table SCOTT.DEBITS_TREST
+(
+  reu       CHAR(3),
+  summa     NUMBER,
+  mg        VARCHAR2(8),
+  dat       DATE,
+  kol_month NUMBER
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 128K
+  )
+nologging;
+create index SCOTT.DEB_TREST_REU on SCOTT.DEBITS_TREST (REU, DAT)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  )
+  nologging;
+

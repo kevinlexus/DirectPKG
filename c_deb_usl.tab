@@ -1,0 +1,64 @@
+create table SCOTT.C_DEB_USL
+(
+  id     NUMBER not null,
+  lsk    VARCHAR2(8),
+  usl    VARCHAR2(3),
+  org    NUMBER,
+  summa  NUMBER,
+  mg     VARCHAR2(6),
+  period VARCHAR2(6)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 15M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.C_DEB_USL
+  is 'задолжности по услугам (для распр оплаты)';
+comment on column SCOTT.C_DEB_USL.id
+  is 'ID записи';
+comment on column SCOTT.C_DEB_USL.lsk
+  is 'Л/C';
+comment on column SCOTT.C_DEB_USL.usl
+  is 'ID услуги';
+comment on column SCOTT.C_DEB_USL.org
+  is 'ID организации';
+comment on column SCOTT.C_DEB_USL.summa
+  is 'Сумма задолжности';
+comment on column SCOTT.C_DEB_USL.mg
+  is 'Период задолжности';
+comment on column SCOTT.C_DEB_USL.period
+  is 'Отчетный период';
+create unique index SCOTT.C_DEB_USL_I on SCOTT.C_DEB_USL (PERIOD, LSK, USL, ORG, MG)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.C_DEB_USL
+  add constraint C_DEB_USL_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

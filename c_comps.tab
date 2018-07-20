@@ -1,0 +1,58 @@
+create table SCOTT.C_COMPS
+(
+  nkom    CHAR(3) not null,
+  nink    NUMBER not null,
+  nkvit   NUMBER not null,
+  cd      VARCHAR2(100),
+  fk_oper CHAR(2),
+  fk_org  NUMBER,
+  period  VARCHAR2(6)
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.C_COMPS
+  is 'Компьютеры системы';
+comment on column SCOTT.C_COMPS.nkom
+  is '№ компьютера';
+comment on column SCOTT.C_COMPS.nink
+  is '№ текущей инкассации';
+comment on column SCOTT.C_COMPS.nkvit
+  is '№ текущей квитанции';
+comment on column SCOTT.C_COMPS.cd
+  is 'CD';
+comment on column SCOTT.C_COMPS.fk_oper
+  is 'Экслюзивный код операции для данного компьютера (Почта, сбер, МП Уезжку)';
+comment on column SCOTT.C_COMPS.fk_org
+  is 'Принадежность компьютера';
+comment on column SCOTT.C_COMPS.period
+  is 'Текущий период работы';
+alter table SCOTT.C_COMPS
+  add constraint C_COMPS_P primary key (NKOM)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.C_COMPS
+  add constraint C_COMPS_FK_OPER foreign key (FK_OPER)
+  references SCOTT.OPER (OPER);
+alter table SCOTT.C_COMPS
+  add constraint C_COMPS_FK_ORG foreign key (FK_ORG)
+  references SCOTT.T_ORG (ID);
+

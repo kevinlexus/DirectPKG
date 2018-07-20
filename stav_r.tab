@@ -1,0 +1,76 @@
+create table SCOTT.STAV_R
+(
+  proc      NUMBER,
+  dat1      DATE,
+  dat2      DATE,
+  month_pen NUMBER,
+  days1     NUMBER,
+  days2     NUMBER,
+  fk_lsk_tp NUMBER,
+  rate      NUMBER,
+  partrate  VARCHAR2(100),
+  id        NUMBER not null
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 128K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.STAV_R
+  is 'Справочник ставок рефинансирования';
+comment on column SCOTT.STAV_R.proc
+  is 'Доля  от ставки рефинансирования';
+comment on column SCOTT.STAV_R.dat1
+  is 'Пероиод действия С';
+comment on column SCOTT.STAV_R.dat2
+  is 'Пероиод действия По';
+comment on column SCOTT.STAV_R.month_pen
+  is 'С какого месяца считается пеня от текущего (+2 например) --поле не работает';
+comment on column SCOTT.STAV_R.days1
+  is 'На какое кол-во дней просрочки распространяется С';
+comment on column SCOTT.STAV_R.days2
+  is 'На какое кол-во дней просрочки распространяется По';
+comment on column SCOTT.STAV_R.fk_lsk_tp
+  is 'Тип лиц счета, по которому определяется пеня';
+comment on column SCOTT.STAV_R.rate
+  is 'Ставка рефинансирования (информационно, для отчёта)';
+comment on column SCOTT.STAV_R.partrate
+  is 'Доля от ставки, записанная строкой, например "1/300" (информационно, для отчёта)';
+comment on column SCOTT.STAV_R.id
+  is 'ID первичный ключ';
+create unique index SCOTT.STAV_R_U_I on SCOTT.STAV_R (DAT1, DAT2, DAYS1, DAYS2, FK_LSK_TP)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.STAV_R
+  add constraint STAV_R_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.STAV_R
+  add constraint STAV_R_F_LSK_TP foreign key (FK_LSK_TP)
+  references SCOTT.U_LIST (ID);
+

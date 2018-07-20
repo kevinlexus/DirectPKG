@@ -1,0 +1,31 @@
+create table SCOTT.EXP_C_HOUSES
+(
+  id       NUMBER,
+  reu      CHAR(3),
+  kul      VARCHAR2(4 CHAR),
+  nd       VARCHAR2(6 CHAR),
+  k_lsk_id NUMBER,
+  cd_org   VARCHAR2(32 CHAR),
+  psch     NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on column SCOTT.EXP_C_HOUSES.id
+  is 'ID дома';
+comment on column SCOTT.EXP_C_HOUSES.reu
+  is 'Код РЭУ';
+comment on column SCOTT.EXP_C_HOUSES.kul
+  is 'Код улицы';
+comment on column SCOTT.EXP_C_HOUSES.nd
+  is '№ дома';
+comment on column SCOTT.EXP_C_HOUSES.k_lsk_id
+  is 'k_lsk_id';
+comment on column SCOTT.EXP_C_HOUSES.cd_org
+  is 'CD организации';
+

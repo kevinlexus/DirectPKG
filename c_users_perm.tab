@@ -1,0 +1,44 @@
+create table SCOTT.C_USERS_PERM
+(
+  user_id     NUMBER not null,
+  fk_reu      CHAR(3),
+  fk_pasp_org NUMBER,
+  fk_perm_tp  NUMBER,
+  fk_comp     CHAR(3)
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.C_USERS_PERM
+  is 'Разграничение прав пользователей системы';
+comment on column SCOTT.C_USERS_PERM.user_id
+  is 'ID';
+comment on column SCOTT.C_USERS_PERM.fk_reu
+  is 'ID допустимого для правки карточек или льгот л/с УК';
+comment on column SCOTT.C_USERS_PERM.fk_pasp_org
+  is 'ID допустимого для правки паспортного стола';
+comment on column SCOTT.C_USERS_PERM.fk_perm_tp
+  is 'ID Типа разрешения';
+comment on column SCOTT.C_USERS_PERM.fk_comp
+  is 'ID Доступного компьютера';
+alter table SCOTT.C_USERS_PERM
+  add constraint C_USERS_F_FK_PERM_TP foreign key (FK_PERM_TP)
+  references SCOTT.U_LIST (ID);
+alter table SCOTT.C_USERS_PERM
+  add constraint C_USERS_PERM_F foreign key (USER_ID)
+  references SCOTT.T_USER (ID);
+alter table SCOTT.C_USERS_PERM
+  add constraint C_USERS_PERM_F_COMP foreign key (FK_COMP)
+  references SCOTT.C_COMPS (NKOM);
+alter table SCOTT.C_USERS_PERM
+  add constraint C_USERS_PERM_F_FK_PASP_ORG foreign key (FK_PASP_ORG)
+  references SCOTT.T_ORG (ID);
+

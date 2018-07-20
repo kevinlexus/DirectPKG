@@ -1,0 +1,14 @@
+create global temporary table SCOTT.LIST_CHOICES_REU
+(
+  reu CHAR(3),
+  sel NUMBER(1)
+)
+on commit preserve rows;
+comment on table SCOTT.LIST_CHOICES_REU
+  is 'Таблица для выбора ЖЭО пользователем';
+comment on column SCOTT.LIST_CHOICES_REU.reu
+  is '№ РЭУ';
+comment on column SCOTT.LIST_CHOICES_REU.sel
+  is 'Отмечено';
+create index SCOTT.LIST_CHOICES_REU_I on SCOTT.LIST_CHOICES_REU (REU);
+

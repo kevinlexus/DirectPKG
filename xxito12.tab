@@ -1,0 +1,83 @@
+create table SCOTT.XXITO12
+(
+  usl    CHAR(3) not null,
+  org    NUMBER(3) not null,
+  trest  CHAR(2) not null,
+  reu    CHAR(3) not null,
+  summa  NUMBER(10,2) not null,
+  dat    DATE,
+  mg     CHAR(6),
+  var    NUMBER not null,
+  forreu CHAR(3) not null,
+  status NUMBER not null,
+  dopl   CHAR(6) not null,
+  kul    CHAR(4),
+  nd     CHAR(6)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 5M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on table SCOTT.XXITO12
+  is 'Оплата по предпр., трестам, услугам / статусу жилья';
+create index SCOTT.XXITO12_DAT on SCOTT.XXITO12 (DAT)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+create index SCOTT.XXITO12_I on SCOTT.XXITO12 (MG, REU, FORREU, TREST, ORG, USL, STATUS, VAR)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 10M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+create index SCOTT.XXITO12_I2 on SCOTT.XXITO12 (DAT, REU, FORREU, TREST, ORG, USL, STATUS, VAR)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+create index SCOTT.XXITO12_MG on SCOTT.XXITO12 (MG)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+

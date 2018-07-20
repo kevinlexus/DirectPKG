@@ -1,0 +1,28 @@
+create table SCOTT.TEMP_KWTP_ROUND
+(
+  lsk    CHAR(8),
+  usl    CHAR(3),
+  usl_b  CHAR(3),
+  org    NUMBER,
+  org_b  NUMBER,
+  reu    CHAR(3),
+  trest  CHAR(2),
+  var    NUMBER,
+  forreu CHAR(3),
+  oper   CHAR(2),
+  oborot NUMBER,
+  dat    DATE,
+  summa  NUMBER(20,8),
+  summar NUMBER(15,2),
+  dopl   CHAR(6)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 128K
+  )
+nologging;
+

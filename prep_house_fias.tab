@@ -1,0 +1,44 @@
+create table SCOTT.PREP_HOUSE_FIAS
+(
+  kul       CHAR(4),
+  fk_house  NUMBER,
+  houseguid VARCHAR2(36)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.PREP_HOUSE_FIAS
+  is 'Таблица соответствий кодов Справочника идентификаторов(!!) домов - Списку домов из ФИАС';
+comment on column SCOTT.PREP_HOUSE_FIAS.kul
+  is 'FK на ID из справочника SPUL';
+comment on column SCOTT.PREP_HOUSE_FIAS.fk_house
+  is 'FK на House';
+comment on column SCOTT.PREP_HOUSE_FIAS.houseguid
+  is 'GUID из справочника ФИАС';
+create unique index SCOTT.PREP_HOUSE_FIAS_IU on SCOTT.PREP_HOUSE_FIAS (FK_HOUSE)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.PREP_HOUSE_FIAS
+  add constraint PREP_HOUSE_FIAS_F_HOUSE foreign key (FK_HOUSE)
+  references SCOTT.C_HOUSES (ID) on delete cascade;
+alter table SCOTT.PREP_HOUSE_FIAS
+  add constraint PREP_HOUSE_FIAS_F_SPUL foreign key (KUL)
+  references SCOTT.SPUL (ID) on delete cascade;
+

@@ -1,0 +1,24 @@
+create table SCOTT.KMP_C_DEBPEN_USL
+(
+  id        NUMBER not null,
+  lsk       CHAR(8),
+  usl       CHAR(3),
+  org       NUMBER,
+  debout    NUMBER,
+  penyaout  NUMBER,
+  mg        NUMBER,
+  period    NUMBER,
+  penyachrg NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

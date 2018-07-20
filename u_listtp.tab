@@ -1,0 +1,46 @@
+create table SCOTT.U_LISTTP
+(
+  id   NUMBER not null,
+  cd   VARCHAR2(32),
+  name VARCHAR2(32)
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.U_LISTTP
+  is 'Справочник типов списков';
+create unique index SCOTT.U_LISTTP_CD_I_U on SCOTT.U_LISTTP (CD)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.U_LISTTP
+  add constraint U_LISTTP_PK primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

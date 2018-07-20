@@ -1,0 +1,50 @@
+create table SCOTT.XXITO3
+(
+  trest CHAR(2) not null,
+  reu   CHAR(3) not null,
+  usl   CHAR(3) not null,
+  dopl  CHAR(6) not null,
+  summa NUMBER(14,5),
+  dat   DATE,
+  mg    CHAR(6)
+)
+tablespace USERS
+  pctfree 5
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.XXITO3
+  is 'Оплата по периодам оплаты';
+create index SCOTT.XXITO3_I2 on SCOTT.XXITO3 (MG, REU, TREST, USL, DOPL)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+create index SCOTT.XXITO3_MG on SCOTT.XXITO3 (MG)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+

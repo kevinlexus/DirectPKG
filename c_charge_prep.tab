@@ -1,0 +1,88 @@
+create table SCOTT.C_CHARGE_PREP
+(
+  lsk        CHAR(8) not null,
+  usl        CHAR(3) not null,
+  vol        NUMBER,
+  kpr        NUMBER,
+  kprz       NUMBER,
+  kpro       NUMBER,
+  sch        NUMBER,
+  tp         NUMBER not null,
+  vol_nrm    NUMBER,
+  vol_sv_nrm NUMBER,
+  kpr2       NUMBER,
+  opl        NUMBER,
+  dt1        DATE,
+  dt2        DATE,
+  fk_spk     NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 3M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.C_CHARGE_PREP
+  is 'Подготовительная информация для расчета начисления';
+comment on column SCOTT.C_CHARGE_PREP.lsk
+  is 'Лиц. счет';
+comment on column SCOTT.C_CHARGE_PREP.usl
+  is 'Услуга';
+comment on column SCOTT.C_CHARGE_PREP.vol
+  is 'Объем';
+comment on column SCOTT.C_CHARGE_PREP.kpr
+  is 'Кол-во проживающих';
+comment on column SCOTT.C_CHARGE_PREP.kprz
+  is 'Кол-во временно зарег';
+comment on column SCOTT.C_CHARGE_PREP.kpro
+  is 'Кол-во временно отсут';
+comment on column SCOTT.C_CHARGE_PREP.sch
+  is 'наличие счетчика (1-есть, null(0) - нет)';
+comment on column SCOTT.C_CHARGE_PREP.tp
+  is 'Тип записи (0-предварительный подсчет,
+1 - сгруппированный до ключевых структур, .
+2 - кол-во прож.для опред.соцнормы,
+3 - итог объёма, проживающих,
+4 - корректировки ОДН,
+5 - детально, но без корректировок ОДН,
+6 - итог объёма, проживающих без коррект. ОДН)
+7 - просто, наличие счетчика
+ 8-детализация льготы, 9 - наличие льготы (используется совместно с dt1,dt2)';
+comment on column SCOTT.C_CHARGE_PREP.vol_nrm
+  is 'Объем по соцнорме';
+comment on column SCOTT.C_CHARGE_PREP.vol_sv_nrm
+  is 'Объем свыше соцнормы';
+comment on column SCOTT.C_CHARGE_PREP.kpr2
+  is 'Кол-во проживающих в т.ч. все, В.О. В.З. В.П.';
+comment on column SCOTT.C_CHARGE_PREP.opl
+  is 'Площадь, которую надо всё равно учитывать (например когда отопление гКал, где в VOL сидят - гКал)';
+comment on column SCOTT.C_CHARGE_PREP.dt1
+  is 'Дата начала периода';
+comment on column SCOTT.C_CHARGE_PREP.dt2
+  is 'Дата конца периода';
+comment on column SCOTT.C_CHARGE_PREP.fk_spk
+  is 'FK на справочник льгот';
+create index SCOTT.C_CHARGE_PREP_I on SCOTT.C_CHARGE_PREP (LSK, TP)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 3M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.C_CHARGE_PREP
+  add constraint C_CHARGE_PREP_F_KART foreign key (LSK)
+  references SCOTT.KART (LSK) on delete cascade;
+alter table SCOTT.C_CHARGE_PREP
+  add constraint C_CHARGE_PREP_F_USL foreign key (USL)
+  references SCOTT.USL (USL) on delete cascade;
+

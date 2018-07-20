@@ -1,0 +1,11 @@
+create global temporary table SCOTT.TEMP_CHARGE
+(
+  lsk      CHAR(8),
+  summa    NUMBER(12,2),
+  usl      CHAR(3),
+  org      NUMBER,
+  type     NUMBER,
+  mgchange CHAR(6)
+)
+on commit delete rows;
+

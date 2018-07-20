@@ -1,0 +1,35 @@
+create table SCOTT.LOAD_DOLG
+(
+  dtek DATE,
+  fio  CHAR(25),
+  lsk  CHAR(8),
+  kul  CHAR(4),
+  nd   CHAR(6),
+  kw   CHAR(7),
+  dopl CHAR(6),
+  ska  NUMBER(13,2),
+  pn   NUMBER(13,2),
+  n1_  NUMBER(9,2),
+  n2_  NUMBER(9,2),
+  n3_  NUMBER(9,2),
+  n4_  NUMBER(9,2),
+  n5_  NUMBER(9,2),
+  n6_  NUMBER(9,2),
+  n7_  NUMBER(9,2),
+  n8_  NUMBER(9,2),
+  n9_  NUMBER(9,2),
+  n10_ NUMBER(9,2),
+  phw  NUMBER(8,2),
+  pgw  NUMBER(8,2),
+  pel  NUMBER(10,3)
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+  )
+nologging;
+

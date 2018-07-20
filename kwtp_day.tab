@@ -1,0 +1,70 @@
+create table SCOTT.KWTP_DAY
+(
+  kwtp_id   NUMBER,
+  summa     NUMBER(12,2),
+  lsk       CHAR(8) not null,
+  oper      CHAR(2) not null,
+  dopl      CHAR(6) not null,
+  nkom      CHAR(3) not null,
+  nink      NUMBER,
+  dat_ink   DATE,
+  priznak   NUMBER(1) not null,
+  usl       CHAR(3) not null,
+  org       NUMBER not null,
+  fk_distr  NUMBER,
+  sum_distr NUMBER,
+  id        NUMBER not null,
+  dtek      DATE not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 9M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on column SCOTT.KWTP_DAY.priznak
+  is '1-оплата, 0 - пеня';
+comment on column SCOTT.KWTP_DAY.fk_distr
+  is 'Вариант распределения оплаты (смотри описание в пакете)';
+comment on column SCOTT.KWTP_DAY.sum_distr
+  is 'Сумма по которой произошло распределение';
+comment on column SCOTT.KWTP_DAY.id
+  is 'ID';
+comment on column SCOTT.KWTP_DAY.dtek
+  is 'Дата принятия платежа';
+create index SCOTT.KWTP_DAY_I on SCOTT.KWTP_DAY (DTEK)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.KWTP_DAY
+  add constraint KWTP_DAY_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 192K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.KWTP_DAY
+  add constraint KWTP_DAY_F_C_KWTP_MG foreign key (KWTP_ID)
+  references SCOTT.C_KWTP_MG (ID) on delete cascade;
+

@@ -1,0 +1,17 @@
+create table SCOTT.T_SALDO_REU_KUL_ND_ST
+(
+  reu       CHAR(3) not null,
+  kul       CHAR(4) not null,
+  nd        CHAR(6) not null,
+  status    NUMBER not null,
+  org       NUMBER not null,
+  usl       CHAR(3) not null,
+  fk_lsk_tp NUMBER not null,
+  constraint T_SALDO_REU_KUL_ND_ST_P primary key (REU, KUL, ND, ORG, USL, STATUS, FK_LSK_TP)
+)
+organization index;
+comment on table SCOTT.T_SALDO_REU_KUL_ND_ST
+  is 'Временная таблица';
+comment on column SCOTT.T_SALDO_REU_KUL_ND_ST.fk_lsk_tp
+  is 'Тип лиц.сч';
+

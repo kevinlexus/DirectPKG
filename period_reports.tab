@@ -1,0 +1,58 @@
+create table SCOTT.PERIOD_REPORTS
+(
+  id     NUMBER not null,
+  mg     CHAR(6),
+  dat    DATE,
+  signed NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.PERIOD_REPORTS
+  is 'Справочник доступных периодов (для всех отчетов)';
+comment on column SCOTT.PERIOD_REPORTS.id
+  is 'Fk на report';
+comment on column SCOTT.PERIOD_REPORTS.mg
+  is 'период (ммгггг)';
+comment on column SCOTT.PERIOD_REPORTS.dat
+  is 'период (дата) (для дневных)';
+comment on column SCOTT.PERIOD_REPORTS.signed
+  is 'подписан?';
+create index SCOTT.DAT on SCOTT.PERIOD_REPORTS (DAT)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+create index SCOTT.MG on SCOTT.PERIOD_REPORTS (MG)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+alter table SCOTT.PERIOD_REPORTS
+  add constraint PERIOD_REP_F_ foreign key (ID)
+  references SCOTT.REPORTS (ID);
+

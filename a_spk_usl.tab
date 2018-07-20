@@ -1,0 +1,35 @@
+create table SCOTT.A_SPK_USL
+(
+  spk_id      NUMBER not null,
+  usl_id      CHAR(3) not null,
+  koef        NUMBER not null,
+  mg          CHAR(6),
+  dop_pl      NUMBER,
+  prioritet   NUMBER,
+  charge_part NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 384K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+create index SCOTT.A_SPK_USL_I on SCOTT.A_SPK_USL (SPK_ID, USL_ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

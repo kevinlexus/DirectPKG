@@ -1,0 +1,15 @@
+create table SCOTT.LOG_ERR
+(
+  lsk CHAR(8)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 512K
+  );
+comment on table SCOTT.LOG_ERR
+  is 'Лог ошибок при выполнении каких-либо операций';
+

@@ -1,0 +1,29 @@
+create table SCOTT.PREP_HOUSE
+(
+  nd        VARCHAR2(6),
+  ext_ndom  VARCHAR2(10),
+  ext_nkorp VARCHAR2(10),
+  ext_nylic VARCHAR2(124)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 192K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.PREP_HOUSE
+  is 'Таблица соответствий кодов Справочника идентификаторов(!!) домов - Списку домов из УСЗН';
+comment on column SCOTT.PREP_HOUSE.nd
+  is 'код дома из справочника c_houses';
+comment on column SCOTT.PREP_HOUSE.ext_ndom
+  is 'код дома из справочника УСЗН';
+comment on column SCOTT.PREP_HOUSE.ext_nkorp
+  is 'буква дома из справочника УСЗН';
+comment on column SCOTT.PREP_HOUSE.ext_nylic
+  is 'Наименование улицы в реестре от УСЗН';
+

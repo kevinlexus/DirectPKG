@@ -1,0 +1,8 @@
+create sequence SCOTT.C_DEBPEN_USL_ID
+minvalue 1
+maxvalue 999999999999999999999999999
+start with 1071686
+increment by 10
+cache 20
+order;
+

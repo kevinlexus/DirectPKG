@@ -1,0 +1,29 @@
+create table SCOTT.SPR_TARIF_PRICES
+(
+  fk_tarif NUMBER not null,
+  cena     NUMBER,
+  mg1      CHAR(6) default '000000',
+  mg2      CHAR(6) default '999999'
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.SPR_TARIF_PRICES
+  is 'Тарифы';
+comment on column SCOTT.SPR_TARIF_PRICES.fk_tarif
+  is 'ID';
+comment on column SCOTT.SPR_TARIF_PRICES.cena
+  is 'Расценка по тарифу';
+comment on column SCOTT.SPR_TARIF_PRICES.mg1
+  is 'Начало действия тарифа';
+comment on column SCOTT.SPR_TARIF_PRICES.mg2
+  is 'Конец  действия тарифа';
+alter table SCOTT.SPR_TARIF_PRICES
+  add constraint FK_TARIF_ID foreign key (FK_TARIF)
+  references SCOTT.SPR_TARIF (ID) on delete cascade;
+

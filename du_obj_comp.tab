@@ -1,0 +1,58 @@
+create table SCOTT.DU_OBJ_COMP
+(
+  id        NUMBER not null,
+  fk_du_obj NUMBER,
+  comp      NUMBER,
+  is_get    NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.DU_OBJ_COMP
+  is 'Отметки о получении обновления объекта';
+comment on column SCOTT.DU_OBJ_COMP.id
+  is 'ID';
+comment on column SCOTT.DU_OBJ_COMP.fk_du_obj
+  is 'FK на объект';
+comment on column SCOTT.DU_OBJ_COMP.comp
+  is 'Уникальный идентификатор компьютера (пишется в licenses.ini)';
+comment on column SCOTT.DU_OBJ_COMP.is_get
+  is 'Получено? (0, null-нет, 1-да)';
+create unique index SCOTT.DU_OBJ_COMP_I on SCOTT.DU_OBJ_COMP (FK_DU_OBJ, COMP)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.DU_OBJ_COMP
+  add constraint DU_OBJ_COMP_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.DU_OBJ_COMP
+  add constraint DU_OBJ_COMP_F foreign key (FK_DU_OBJ)
+  references SCOTT.DU_OBJ (ID) on delete cascade;
+

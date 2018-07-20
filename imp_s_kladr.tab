@@ -1,0 +1,27 @@
+create table SCOTT.IMP_S_KLADR
+(
+  code VARCHAR2(256) not null,
+  name VARCHAR2(256)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 128K
+  );
+comment on table SCOTT.IMP_S_KLADR
+  is 'Справочник улиц по КЛАДР-у';
+alter table SCOTT.IMP_S_KLADR
+  add constraint IMP_S_KLADR_P primary key (CODE)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+

@@ -1,0 +1,62 @@
+create table SCOTT.A_HOUSES
+(
+  id           NUMBER not null,
+  reu          CHAR(3),
+  kul          CHAR(4) not null,
+  nd           CHAR(6) not null,
+  uch          NUMBER,
+  mg           CHAR(6),
+  house_type   NUMBER,
+  fk_pasp_org  NUMBER,
+  psch         NUMBER,
+  fk_other_org NUMBER,
+  fk_typespay  NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 256K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on column SCOTT.A_HOUSES.fk_pasp_org
+  is 'ID Паспортного стола';
+comment on column SCOTT.A_HOUSES.psch
+  is 'Признак открытого дома (0-открыт, 1 -закрыт)';
+comment on column SCOTT.A_HOUSES.fk_other_org
+  is 'FK на прочую орг. (например на котельную)';
+comment on column SCOTT.A_HOUSES.fk_typespay
+  is 'FK на тип платежа';
+create index SCOTT.A_HOUSES_I on SCOTT.A_HOUSES (REU, KUL, ND)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create index SCOTT.A_HOUSES_I2 on SCOTT.A_HOUSES (ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.A_HOUSES
+  add constraint A_HOUSES_F_A_HOUSES_F_TYPESPAY foreign key (FK_TYPESPAY)
+  references SCOTT.SPR_TYPESPAY (ID);
+

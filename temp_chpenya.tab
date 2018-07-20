@@ -1,0 +1,19 @@
+create table SCOTT.TEMP_CHPENYA
+(
+  lsk   CHAR(8) not null,
+  summa NUMBER,
+  org   NUMBER not null,
+  usl   CHAR(3)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 2M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

@@ -1,0 +1,23 @@
+create table SCOTT.LOAD_TMP_POST2
+(
+  dtek     DATE,
+  lsk      VARCHAR2(8),
+  dopl     VARCHAR2(6),
+  ska      NUMBER(13,2),
+  pn       NUMBER(13,2),
+  nomz     NUMBER,
+  fio      VARCHAR2(25),
+  oper     VARCHAR2(2),
+  nkom     VARCHAR2(3),
+  nink     NUMBER(3),
+  n_veksel NUMBER(4)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 256K
+  );
+

@@ -1,0 +1,26 @@
+create table SCOTT.SPR_KOEFF_USL
+(
+  fk_spr_koeff NUMBER not null,
+  usl          CHAR(3)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+  );
+comment on table SCOTT.SPR_KOEFF_USL
+  is 'Справочник услуг, использ. коэфф жилья';
+comment on column SCOTT.SPR_KOEFF_USL.fk_spr_koeff
+  is 'ID';
+comment on column SCOTT.SPR_KOEFF_USL.usl
+  is 'Услуга';
+alter table SCOTT.SPR_KOEFF_USL
+  add constraint SPK_KOEFF_USL_FK_USL foreign key (USL)
+  references SCOTT.USL (USL);
+alter table SCOTT.SPR_KOEFF_USL
+  add constraint SPR_KOEFF_USL_FK foreign key (FK_SPR_KOEFF)
+  references SCOTT.SPR_KOEFF (ID);
+

@@ -1,0 +1,42 @@
+create table SCOTT.DEBITS_KW
+(
+  reu       CHAR(3),
+  kul       CHAR(4),
+  nd        CHAR(6),
+  kw        CHAR(7),
+  summa     NUMBER,
+  mg        VARCHAR2(8),
+  dat       DATE,
+  lsk       CHAR(8),
+  kol_month NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 128K
+  )
+nologging;
+create index SCOTT.DEB_KW_REU_KUL_ND on SCOTT.DEBITS_KW (DAT, REU, KUL, ND)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  )
+  nologging;
+create index SCOTT.TEST on SCOTT.DEBITS_KW (LSK)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  )
+  nologging;
+

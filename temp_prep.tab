@@ -1,0 +1,22 @@
+create global temporary table SCOTT.TEMP_PREP
+(
+  usl   VARCHAR2(3),
+  org   NUMBER,
+  summa NUMBER,
+  tp_cd NUMBER,
+  mg    VARCHAR2(32)
+)
+on commit delete rows;
+comment on table SCOTT.TEMP_PREP
+  is 'Временная таблица для пакета C_PREP';
+comment on column SCOTT.TEMP_PREP.usl
+  is 'Услуга';
+comment on column SCOTT.TEMP_PREP.org
+  is 'Организация';
+comment on column SCOTT.TEMP_PREP.summa
+  is 'Сумма';
+comment on column SCOTT.TEMP_PREP.tp_cd
+  is 'Тип (0-Вх.значения, 1-Исх.значения, 2-Корректировка, 3 -Корректировка округленная, 4 -корректировка дополнителная)';
+comment on column SCOTT.TEMP_PREP.mg
+  is 'Дополнительный идентификатор';
+

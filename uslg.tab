@@ -1,0 +1,37 @@
+create table SCOTT.USLG
+(
+  uslg CHAR(3) not null,
+  nm   CHAR(35)
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 128K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.USLG
+  is 'Объединение услуг по определённым признакам (жилищные, проч)';
+comment on column SCOTT.USLG.uslg
+  is 'ID Услуги (главной)';
+comment on column SCOTT.USLG.nm
+  is 'Наименование глобальной услуги';
+alter table SCOTT.USLG
+  add constraint USLG_P primary key (USLG)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

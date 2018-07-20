@@ -1,0 +1,44 @@
+create table SCOTT.LOAD_TMP_E
+(
+  lsk_ext  VARCHAR2(25),
+  fio      VARCHAR2(255),
+  adr      VARCHAR2(255),
+  usl_cd   VARCHAR2(255),
+  usl_name VARCHAR2(255),
+  fk_org   NUMBER,
+  period   VARCHAR2(6),
+  mel      NUMBER,
+  sal      NUMBER(8,2)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.LOAD_TMP_E
+  is 'Таблица для обработки файлов формата Кузбассэнерго';
+comment on column SCOTT.LOAD_TMP_E.lsk_ext
+  is 'Лицевой счет в системе Кузб.Энерг.';
+comment on column SCOTT.LOAD_TMP_E.fio
+  is 'ФИО';
+comment on column SCOTT.LOAD_TMP_E.adr
+  is 'Adr';
+comment on column SCOTT.LOAD_TMP_E.usl_cd
+  is 'Код услуги';
+comment on column SCOTT.LOAD_TMP_E.usl_name
+  is 'Наименование услуги';
+comment on column SCOTT.LOAD_TMP_E.fk_org
+  is 'fk на организацию отправившую долги';
+comment on column SCOTT.LOAD_TMP_E.period
+  is 'Период';
+comment on column SCOTT.LOAD_TMP_E.mel
+  is 'Показание сч.';
+comment on column SCOTT.LOAD_TMP_E.sal
+  is 'Сальдо в копейках';
+alter table SCOTT.LOAD_TMP_E
+  add constraint LOAD_TMP_E_F foreign key (FK_ORG)
+  references SCOTT.T_ORG (ID);
+

@@ -1,0 +1,41 @@
+create table SCOTT.DEB_USL_MG
+(
+  lsk    VARCHAR2(8),
+  usl    VARCHAR2(3),
+  org    NUMBER,
+  summa  NUMBER,
+  mg     VARCHAR2(6),
+  period VARCHAR2(6)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 19M
+  );
+comment on table SCOTT.DEB_USL_MG
+  is 'Задолженность по периодам/орг/усл, должно быть = saldo_usl';
+comment on column SCOTT.DEB_USL_MG.lsk
+  is 'Л/C';
+comment on column SCOTT.DEB_USL_MG.usl
+  is 'Услуга';
+comment on column SCOTT.DEB_USL_MG.org
+  is 'Организация';
+comment on column SCOTT.DEB_USL_MG.summa
+  is 'Задолжность/переплата периода';
+comment on column SCOTT.DEB_USL_MG.mg
+  is 'Период задолжн.';
+comment on column SCOTT.DEB_USL_MG.period
+  is 'Период хранения';
+create index SCOTT.DEB_USL_MG_I on SCOTT.DEB_USL_MG (PERIOD)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 10M
+  );
+

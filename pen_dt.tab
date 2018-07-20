@@ -1,0 +1,61 @@
+create table SCOTT.PEN_DT
+(
+  id         NUMBER not null,
+  mg         NUMBER not null,
+  dt         DATE not null,
+  usl_tp_pen NUMBER not null,
+  reufrom    CHAR(3) not null,
+  reuto      CHAR(3) not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.PEN_DT
+  is 'Справочник дат начала обязательства оплаты задолжности';
+comment on column SCOTT.PEN_DT.id
+  is 'ID';
+comment on column SCOTT.PEN_DT.mg
+  is 'Период задолженности';
+comment on column SCOTT.PEN_DT.dt
+  is 'Дата начала обязательства';
+comment on column SCOTT.PEN_DT.usl_tp_pen
+  is 'Тип услуги -> USL.TP_PEN (0-обычная услуга, 1- капремонт)';
+comment on column SCOTT.PEN_DT.reufrom
+  is 'Начальный код УК';
+comment on column SCOTT.PEN_DT.reuto
+  is 'Конечный код УК';
+create unique index SCOTT.PEN_DT_U_I on SCOTT.PEN_DT (MG, DT, USL_TP_PEN, REUFROM, REUTO)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.PEN_DT
+  add constraint PEN_DT_ID primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

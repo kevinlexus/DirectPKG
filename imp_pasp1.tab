@@ -1,0 +1,60 @@
+create table SCOTT.IMP_PASP1
+(
+  str1     VARCHAR2(256),
+  kul      VARCHAR2(4),
+  nd       VARCHAR2(6),
+  kw       VARCHAR2(7),
+  k_fam    VARCHAR2(30),
+  k_im     VARCHAR2(30),
+  k_ot     VARCHAR2(30),
+  dat_rog  DATE,
+  dat_prop DATE,
+  dat_ub   DATE,
+  relat_id NUMBER,
+  dok      CHAR(15),
+  dok_c    CHAR(8),
+  dok_n    CHAR(7),
+  dok_d    DATE,
+  dok_v    CHAR(65),
+  b_place  VARCHAR2(60),
+  frm_town VARCHAR2(30),
+  to_town  VARCHAR2(30),
+  frm_dat  DATE,
+  pol      NUMBER,
+  fk_nac   NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 1M
+  );
+comment on column SCOTT.IMP_PASP1.dat_prop
+  is 'Дата прописки';
+comment on column SCOTT.IMP_PASP1.dat_ub
+  is 'Дата выписки';
+comment on column SCOTT.IMP_PASP1.dok
+  is 'Документ';
+comment on column SCOTT.IMP_PASP1.dok_c
+  is 'Док.серия';
+comment on column SCOTT.IMP_PASP1.dok_n
+  is 'Док.номер';
+comment on column SCOTT.IMP_PASP1.dok_d
+  is 'Док.дата выд.';
+comment on column SCOTT.IMP_PASP1.dok_v
+  is 'Док.кем выдан';
+comment on column SCOTT.IMP_PASP1.b_place
+  is 'Место рождения';
+comment on column SCOTT.IMP_PASP1.frm_town
+  is 'Откуда: Нас.пункт';
+comment on column SCOTT.IMP_PASP1.to_town
+  is 'Куда: Нас.пункт';
+comment on column SCOTT.IMP_PASP1.frm_dat
+  is 'Откуда: Дата прибытия';
+comment on column SCOTT.IMP_PASP1.pol
+  is 'Пол';
+comment on column SCOTT.IMP_PASP1.fk_nac
+  is 'Национальность';
+

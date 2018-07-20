@@ -1,0 +1,37 @@
+create table SCOTT.PREP_FILE
+(
+  id   NUMBER not null,
+  name VARCHAR2(64)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.PREP_FILE
+  is 'Список файлов по загрузке';
+comment on column SCOTT.PREP_FILE.id
+  is 'ID';
+comment on column SCOTT.PREP_FILE.name
+  is 'Наименование файла в OS';
+alter table SCOTT.PREP_FILE
+  add constraint PREP_FILE_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

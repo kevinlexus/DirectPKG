@@ -1,0 +1,11 @@
+create table SCOTT.T_SALDO_LSK
+(
+  lsk    CHAR(8) not null,
+  org    NUMBER not null,
+  usl    CHAR(3) not null,
+  uslm   CHAR(3),
+  status NUMBER,
+  constraint T_SALDO_LSK_P primary key (LSK, ORG, USL)
+)
+organization index;
+

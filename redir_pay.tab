@@ -1,0 +1,65 @@
+create table SCOTT.REDIR_PAY
+(
+  reu        CHAR(3),
+  fk_usl_src CHAR(3),
+  fk_usl_dst CHAR(3),
+  fk_org_src NUMBER,
+  fk_org_dst NUMBER,
+  tp         NUMBER not null,
+  mg1        VARCHAR2(6),
+  mg2        VARCHAR2(6),
+  id         NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.REDIR_PAY
+  is 'Перенаправление оплаты, пени на другую услугу или поставщика';
+comment on column SCOTT.REDIR_PAY.reu
+  is 'Код РЭУ';
+comment on column SCOTT.REDIR_PAY.fk_usl_src
+  is 'Услуга - источник';
+comment on column SCOTT.REDIR_PAY.fk_usl_dst
+  is 'Услуга - назначение (если не заполнено, то редирект для всех услуг)';
+comment on column SCOTT.REDIR_PAY.fk_org_src
+  is 'Организация - источник (если не заполнено, то редирект для всех организаций)';
+comment on column SCOTT.REDIR_PAY.fk_org_dst
+  is 'Организация - назначение (если не заполнено, не меняется) Использовать орг, которая обслуживает фонд (-1) (минус один)';
+comment on column SCOTT.REDIR_PAY.tp
+  is 'Тип поступления (1-Оплата, 0-Пеня, 2 -Статистика)';
+comment on column SCOTT.REDIR_PAY.mg1
+  is 'Начальный период (для 2-типа, статистика)';
+comment on column SCOTT.REDIR_PAY.mg2
+  is 'Конечный период (для 2-типа, статистика)';
+comment on column SCOTT.REDIR_PAY.id
+  is 'ID';
+create index SCOTT.REDIR_PAY_IU on SCOTT.REDIR_PAY (TP)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.REDIR_PAY
+  add constraint REDIR_PAY_F_ORG_SRC foreign key (FK_ORG_SRC)
+  references SCOTT.T_ORG (ID) on delete cascade;
+alter table SCOTT.REDIR_PAY
+  add constraint REDIR_PAY_F_USL_DST foreign key (FK_USL_DST)
+  references SCOTT.USL (USL) on delete cascade;
+alter table SCOTT.REDIR_PAY
+  add constraint REDIR_PAY_F_USL_SRC foreign key (FK_USL_SRC)
+  references SCOTT.USL (USL) on delete cascade;
+

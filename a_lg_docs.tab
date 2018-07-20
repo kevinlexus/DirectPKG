@@ -1,0 +1,38 @@
+create table SCOTT.A_LG_DOCS
+(
+  id           NUMBER not null,
+  c_kart_pr_id NUMBER,
+  doc          VARCHAR2(55),
+  dat_begin    DATE,
+  main         NUMBER,
+  mg           CHAR(6),
+  dat_end      DATE
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 6M
+  )
+nologging;
+create index SCOTT.A_LG_DOCS_ID on SCOTT.A_LG_DOCS (ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 10M
+  );
+create index SCOTT.A_LG_DOCS_I_KPR on SCOTT.A_LG_DOCS (C_KART_PR_ID, ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 10M
+  );
+

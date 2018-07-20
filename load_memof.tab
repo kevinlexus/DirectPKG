@@ -1,0 +1,63 @@
+create table SCOTT.LOAD_MEMOF
+(
+  nds      NUMBER(5,2),
+  proc     NUMBER(5,2),
+  soc_min  NUMBER(8,2),
+  min_zpl  NUMBER(8,2),
+  norma_1  NUMBER(5,2),
+  norma_2  NUMBER(5,2),
+  norma_3  NUMBER(5,2),
+  naim_ot  NUMBER(5,2),
+  naim_wod NUMBER(5,2),
+  naim_kan NUMBER(5,2),
+  dop_pl   NUMBER(5,2),
+  okrugl   NUMBER(6),
+  pr_kart  NUMBER(1),
+  pr_osw   NUMBER(1),
+  koef_b   NUMBER(4,2),
+  koef_ek  NUMBER(4,2),
+  koef_lod NUMBER(4,2),
+  koef_dr  NUMBER(4,2),
+  kach1    NUMBER(6,4),
+  kach2    NUMBER(6,4),
+  kach3    NUMBER(6,4),
+  kach4    NUMBER(6,4),
+  kach5    NUMBER(6,4),
+  kach6    NUMBER(6,4),
+  kach7    NUMBER(6,4),
+  mus_1    NUMBER(4,2),
+  mus_2    NUMBER(4,2),
+  mus_3    NUMBER(6,4),
+  osw1     NUMBER(6),
+  osw      NUMBER(6),
+  oswgaz1  NUMBER(6),
+  oswgaz   NUMBER(6),
+  pr_pech4 NUMBER(1),
+  pr_kwt   NUMBER(1),
+  pr_bal   NUMBER(1),
+  dat_raz  CHAR(6),
+  ot1      NUMBER(4,2),
+  ot2      NUMBER(4,2),
+  ot3      NUMBER(4,2),
+  ot4      NUMBER(4,2),
+  nl       NUMBER(1),
+  text_m1  CHAR(63),
+  text_m2  CHAR(63),
+  text_m3  CHAR(63),
+  adm      NUMBER(1),
+  tek_mec  NUMBER(2),
+  tek_god  NUMBER(4),
+  priz     NUMBER(1)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

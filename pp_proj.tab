@@ -1,0 +1,55 @@
+create table SCOTT.PP_PROJ
+(
+  id        NUMBER not null,
+  outer_id  NUMBER,
+  short_txt CLOB,
+  tp        NUMBER,
+  dt1       DATE default sysdate,
+  page      NUMBER,
+  strdt1    VARCHAR2(25),
+  chk       NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 640K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.PP_PROJ
+  is 'Таблица из проекта парсинга web-страниц';
+comment on column SCOTT.PP_PROJ.id
+  is 'ID';
+comment on column SCOTT.PP_PROJ.outer_id
+  is 'внешний ID проекта';
+comment on column SCOTT.PP_PROJ.short_txt
+  is 'Краткое описание проекта';
+comment on column SCOTT.PP_PROJ.tp
+  is 'Тип внешней системы (0-fl.ru)';
+comment on column SCOTT.PP_PROJ.dt1
+  is 'Дата-время добавления записи';
+comment on column SCOTT.PP_PROJ.page
+  is 'Взято со страницы №';
+comment on column SCOTT.PP_PROJ.strdt1
+  is 'Дата добавления проекта';
+comment on column SCOTT.PP_PROJ.chk
+  is 'Просмотрено (0,null-нет, 1 -да, скрыть)';
+alter table SCOTT.PP_PROJ
+  add constraint PP_PROJ_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 128K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

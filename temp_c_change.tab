@@ -1,0 +1,42 @@
+create global temporary table SCOTT.TEMP_C_CHANGE
+(
+  lsk       VARCHAR2(8),
+  psch      NUMBER,
+  usl_id    CHAR(3),
+  org1_id   NUMBER,
+  proc1     NUMBER,
+  org2_id   NUMBER,
+  proc2     NUMBER,
+  abs_set   NUMBER,
+  mg        CHAR(6),
+  type      NUMBER,
+  for_usl   CHAR(3),
+  cnt_days  NUMBER,
+  cnt_days2 NUMBER
+)
+on commit delete rows;
+comment on table SCOTT.TEMP_C_CHANGE
+  is 'Таблица для проведения перерасчетов';
+comment on column SCOTT.TEMP_C_CHANGE.usl_id
+  is 'Услуга';
+comment on column SCOTT.TEMP_C_CHANGE.org1_id
+  is 'Организация 1';
+comment on column SCOTT.TEMP_C_CHANGE.proc1
+  is 'Процент по 1 орг';
+comment on column SCOTT.TEMP_C_CHANGE.org2_id
+  is 'Организация 2';
+comment on column SCOTT.TEMP_C_CHANGE.proc2
+  is 'Процент по 2 орг';
+comment on column SCOTT.TEMP_C_CHANGE.abs_set
+  is 'Абсолютное значение по перерасчету';
+comment on column SCOTT.TEMP_C_CHANGE.mg
+  is 'Период';
+comment on column SCOTT.TEMP_C_CHANGE.type
+  is 'Добавочные операции (хол.вода + канализ) - 1 else - null,0';
+comment on column SCOTT.TEMP_C_CHANGE.for_usl
+  is 'Выполняется для услуги (например для снятия г.воды и канализ)';
+comment on column SCOTT.TEMP_C_CHANGE.cnt_days
+  is 'Кол-во дней перерасчета (1-ый процент)';
+comment on column SCOTT.TEMP_C_CHANGE.cnt_days2
+  is 'Кол-во дней перерасчета (1-ой процент)';
+

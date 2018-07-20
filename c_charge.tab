@@ -1,0 +1,103 @@
+create table SCOTT.C_CHARGE
+(
+  npp           NUMBER,
+  lsk           CHAR(8) not null,
+  usl           CHAR(3) not null,
+  summa         NUMBER,
+  kart_pr_id    NUMBER,
+  spk_id        NUMBER,
+  type          NUMBER,
+  test_opl      NUMBER,
+  test_cena     NUMBER,
+  test_tarkoef  NUMBER,
+  test_spk_koef NUMBER,
+  main          NUMBER,
+  var           NUMBER,
+  lg_doc_id     NUMBER,
+  summaf        NUMBER,
+  id            NUMBER,
+  sch           NUMBER,
+  kpr           NUMBER,
+  kprz          NUMBER,
+  kpro          NUMBER,
+  kpr2          NUMBER,
+  opl           NUMBER
+)
+tablespace USERS
+  pctfree 30
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 26M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.C_CHARGE
+  is 'Начисление';
+comment on column SCOTT.C_CHARGE.npp
+  is '№ п.п.';
+comment on column SCOTT.C_CHARGE.lsk
+  is 'Л/С';
+comment on column SCOTT.C_CHARGE.usl
+  is 'Id Услуги';
+comment on column SCOTT.C_CHARGE.summa
+  is 'Сумма';
+comment on column SCOTT.C_CHARGE.kart_pr_id
+  is 'ID Проживающего';
+comment on column SCOTT.C_CHARGE.spk_id
+  is 'ID льготы';
+comment on column SCOTT.C_CHARGE.type
+  is '0 - начисл со льгот.(без уч. изменений)  1 - начисл без льгот(по тарифу). 2- субсидия (с уч. изменений) 3 - сами льготы 4 - льготы (с уч. изменений) 5-инф.ОДН';
+comment on column SCOTT.C_CHARGE.test_opl
+  is 'Расход по итерации';
+comment on column SCOTT.C_CHARGE.main
+  is '1 - носитель льготы, 0 - пользующийся';
+comment on column SCOTT.C_CHARGE.var
+  is '1 - дополнительные источники информации (загр. из файла)';
+comment on column SCOTT.C_CHARGE.lg_doc_id
+  is 'ID льготного документа';
+comment on column SCOTT.C_CHARGE.summaf
+  is 'Поле для механизма округления';
+comment on column SCOTT.C_CHARGE.id
+  is 'ID';
+comment on column SCOTT.C_CHARGE.sch
+  is 'Код счетчика по итерации';
+comment on column SCOTT.C_CHARGE.kpr
+  is 'Кол-во проживающих';
+comment on column SCOTT.C_CHARGE.kprz
+  is 'Кол-во временно зарег';
+comment on column SCOTT.C_CHARGE.kpro
+  is 'Кол-во временно отсут';
+comment on column SCOTT.C_CHARGE.kpr2
+  is 'Кол-во проживающих в т.ч. все, В.О. В.З. В.П.';
+comment on column SCOTT.C_CHARGE.opl
+  is 'Площадь, которую надо всё равно учитывать (например когда отопление гКал, где в VOL сидят - гКал)';
+create index SCOTT.C_CHARGE_I_LSK on SCOTT.C_CHARGE (LSK, USL)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 10M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  compress;
+create index SCOTT.C_CHARGE_I_LSK2 on SCOTT.C_CHARGE (TYPE, LSK, USL)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 20M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  compress;
+

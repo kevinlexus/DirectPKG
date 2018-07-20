@@ -1,0 +1,26 @@
+create table SCOTT.XITO_LG3
+(
+  reu      CHAR(3) not null,
+  trest    CHAR(2) not null,
+  kul      CHAR(4) not null,
+  nd       CHAR(6),
+  usl_id   CHAR(3),
+  lg_id    NUMBER,
+  org_id   NUMBER,
+  summa    NUMBER(10,2),
+  cnt_main NUMBER,
+  cnt      NUMBER,
+  mg       CHAR(6)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 8M
+  )
+nologging;
+comment on table SCOTT.XITO_LG3
+  is 'Сумма возмещения, кол-во льготников, по услугам и организациям, детализированно до услуг';
+

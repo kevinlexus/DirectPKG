@@ -1,0 +1,34 @@
+create table SCOTT.SPR_WORKS
+(
+  id      NUMBER not null,
+  name    VARCHAR2(150) not null,
+  main_id NUMBER
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 192K
+  );
+comment on table SCOTT.SPR_WORKS
+  is 'Справочник работ по заявкам';
+comment on column SCOTT.SPR_WORKS.id
+  is 'ID Работы';
+comment on column SCOTT.SPR_WORKS.name
+  is 'Наименование работы';
+comment on column SCOTT.SPR_WORKS.main_id
+  is 'ID_MAIN Работа родительск.';
+alter table SCOTT.SPR_WORKS
+  add constraint P_SPR_WORKS_ID primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+

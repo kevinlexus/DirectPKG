@@ -1,0 +1,45 @@
+create table SCOTT.PREP_SAL_DET
+(
+  fk_prep_sal NUMBER,
+  lsk         VARCHAR2(8),
+  usl         VARCHAR2(3),
+  org         NUMBER,
+  mg          VARCHAR2(6),
+  summa       NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  )
+nologging;
+comment on table SCOTT.PREP_SAL_DET
+  is 'Деталь-таблица для загрузки сальдо по периодам';
+comment on column SCOTT.PREP_SAL_DET.fk_prep_sal
+  is 'FK на заголовок сальдо';
+comment on column SCOTT.PREP_SAL_DET.lsk
+  is 'Лиц.счет';
+comment on column SCOTT.PREP_SAL_DET.usl
+  is 'Услуга';
+comment on column SCOTT.PREP_SAL_DET.org
+  is 'Организация';
+comment on column SCOTT.PREP_SAL_DET.mg
+  is 'Период';
+comment on column SCOTT.PREP_SAL_DET.summa
+  is 'Сумма';
+create index SCOTT.TEMP_PREP_SALDO_I on SCOTT.PREP_SAL_DET (LSK, USL, ORG)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+alter table SCOTT.PREP_SAL_DET
+  add constraint PREP_SAL_DET_F_PREP_SAL foreign key (FK_PREP_SAL)
+  references SCOTT.PREP_SAL (ID) on delete cascade;
+

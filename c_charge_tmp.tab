@@ -1,0 +1,8 @@
+create global temporary table SCOTT.C_CHARGE_TMP
+(
+  lsk   CHAR(8) not null,
+  summa NUMBER,
+  usl   CHAR(3)
+)
+on commit delete rows;
+

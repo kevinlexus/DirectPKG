@@ -1,0 +1,85 @@
+create table SCOTT.T_USXRL
+(
+  id        NUMBER not null,
+  cd        VARCHAR2(32) default '32' not null,
+  fk_org    NUMBER,
+  fk_user   NUMBER default 0 not null,
+  fk_role   NUMBER default 0 not null,
+  v         NUMBER default 1 not null,
+  grantable NUMBER default 0 not null,
+  fk_orgt   NUMBER,
+  type      NUMBER,
+  menu_id   NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.T_USXRL
+  is 'РОЛЬ ПОЛЬЗОВАТЕЛЯ в ОРГАНИЗАЦИИ';
+comment on column SCOTT.T_USXRL.id
+  is 'РОЛЬ ПОЛЬЗОВАТЕЛЯ в ОРГАНИЗАЦИИ';
+comment on column SCOTT.T_USXRL.cd
+  is 'Код - независящий от ID';
+comment on column SCOTT.T_USXRL.fk_org
+  is 'ссылка на организации.  NULL - для связывания ролей(ORACLE) с пользователями (ORACLE)';
+comment on column SCOTT.T_USXRL.fk_user
+  is 'ссылка на пользователя';
+comment on column SCOTT.T_USXRL.fk_role
+  is 'ссылка на роль ';
+comment on column SCOTT.T_USXRL.v
+  is 'вкл/выкл.  включено, если = 1  ';
+comment on column SCOTT.T_USXRL.grantable
+  is 'GRANTABLE  (with admin option)  , если = 1 ';
+comment on column SCOTT.T_USXRL.fk_orgt
+  is 'ссылка на тип организации.  NULL - для связывания ролей(ORACLE) с пользователями (ORACLE)';
+comment on column SCOTT.T_USXRL.type
+  is 'Варианты меню 2 и 3  ';
+comment on column SCOTT.T_USXRL.menu_id
+  is 'Порядок следования пункт меню + Идентификатор пункта меню';
+alter table SCOTT.T_USXRL
+  add constraint T_USXRL_PK primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+alter table SCOTT.T_USXRL
+  add constraint T_USXRL_UK_URO unique (FK_USER, FK_ROLE, FK_ORG)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+alter table SCOTT.T_USXRL
+  add constraint T_USXRL_UK_UROT unique (FK_USER, FK_ROLE, FK_ORGT)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255;
+alter table SCOTT.T_USXRL
+  add constraint T_USXRL_FK_ORG foreign key (FK_ORG)
+  references SCOTT.T_ORG (ID) on delete cascade;
+alter table SCOTT.T_USXRL
+  add constraint T_USXRL_FK_ORGT foreign key (FK_ORGT)
+  references SCOTT.T_ORG_TP (ID) on delete cascade;
+alter table SCOTT.T_USXRL
+  add constraint T_USXRL_FK_ROLE foreign key (FK_ROLE)
+  references SCOTT.T_ROLE (ID) on delete cascade;
+alter table SCOTT.T_USXRL
+  add constraint T_USXRL_FK_USER foreign key (FK_USER)
+  references SCOTT.T_USER (ID) on delete cascade;
+

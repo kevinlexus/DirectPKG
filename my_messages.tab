@@ -1,0 +1,20 @@
+create table SCOTT.MY_MESSAGES
+(
+  constraint_name VARCHAR2(30),
+  actions         VARCHAR2(3),
+  parent_child    VARCHAR2(1),
+  error_message   VARCHAR2(2000)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 128K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+

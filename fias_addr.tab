@@ -1,0 +1,63 @@
+create table SCOTT.FIAS_ADDR
+(
+  actstatus  NUMBER(2),
+  aoguid     VARCHAR2(36),
+  aoid       VARCHAR2(36),
+  aolevel    NUMBER(2),
+  areacode   VARCHAR2(3),
+  autocode   VARCHAR2(1),
+  centstatus NUMBER(2),
+  citycode   VARCHAR2(3),
+  code       VARCHAR2(17),
+  currstatus NUMBER(2),
+  enddate    DATE,
+  formalname VARCHAR2(120),
+  ifnsfl     VARCHAR2(4),
+  ifnsul     VARCHAR2(4),
+  nextid     VARCHAR2(36),
+  offname    VARCHAR2(120),
+  okato      VARCHAR2(11),
+  oktmo      VARCHAR2(11),
+  operstatus NUMBER(2),
+  parentguid VARCHAR2(36),
+  placecode  VARCHAR2(3),
+  plaincode  VARCHAR2(15),
+  postalcode VARCHAR2(6),
+  previd     VARCHAR2(36),
+  regioncode VARCHAR2(2),
+  shortname  VARCHAR2(10),
+  startdate  DATE,
+  streetcode VARCHAR2(4),
+  terrifnsfl VARCHAR2(4),
+  terrifnsul VARCHAR2(4),
+  updatedate DATE,
+  ctarcode   VARCHAR2(3),
+  extrcode   VARCHAR2(4),
+  sextcode   VARCHAR2(3),
+  livestatus NUMBER(2),
+  normdoc    VARCHAR2(36)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 9M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create index SCOTT.FIAS_ADDR_I on SCOTT.FIAS_ADDR (AOGUID, PARENTGUID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 3M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

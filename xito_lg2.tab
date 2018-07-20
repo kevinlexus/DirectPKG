@@ -1,0 +1,52 @@
+create table SCOTT.XITO_LG2
+(
+  reu      CHAR(3) not null,
+  trest    CHAR(2) not null,
+  kul      CHAR(4) not null,
+  nd       CHAR(6) not null,
+  lg_id    NUMBER not null,
+  org_id   NUMBER not null,
+  summa    NUMBER(10,2),
+  mg       CHAR(6) not null,
+  cnt_main NUMBER,
+  cnt      NUMBER,
+  uslm_id  CHAR(3) not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 7M
+  )
+nologging;
+comment on table SCOTT.XITO_LG2
+  is 'Сумма возмещения, кол-во льготников, по услугам и организациям';
+comment on column SCOTT.XITO_LG2.summa
+  is 'Сумма к возмещению';
+comment on column SCOTT.XITO_LG2.cnt_main
+  is 'Кол-во носителей льготы';
+comment on column SCOTT.XITO_LG2.cnt
+  is 'Кол-во предоставленных льгот';
+create index SCOTT.NXITO_LG2_I_MG on SCOTT.XITO_LG2 (MG)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+  )
+  nologging;
+create index SCOTT.NXITO_LG2_MG_REU on SCOTT.XITO_LG2 (MG, REU, TREST, KUL, ND, LG_ID, USLM_ID, ORG_ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 10M
+  )
+  nologging;
+

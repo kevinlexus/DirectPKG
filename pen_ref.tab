@@ -1,0 +1,70 @@
+create table SCOTT.PEN_REF
+(
+  id         NUMBER not null,
+  proc       NUMBER not null,
+  partrate   VARCHAR2(25),
+  rate       NUMBER,
+  days1      NUMBER not null,
+  days2      NUMBER not null,
+  usl_tp_ref NUMBER not null,
+  dt1        DATE not null,
+  dt2        DATE not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.PEN_REF
+  is 'Справочник процентов по пене и ставок рефинансирования';
+comment on column SCOTT.PEN_REF.id
+  is 'ID';
+comment on column SCOTT.PEN_REF.proc
+  is '% начисления пени';
+comment on column SCOTT.PEN_REF.partrate
+  is 'Доля от ставки, записанная строкой, например "1/300" (информационно, для отчёта)';
+comment on column SCOTT.PEN_REF.rate
+  is 'Ставка рефинансирования (информационно, для отчёта)';
+comment on column SCOTT.PEN_REF.days1
+  is 'На какое кол-во дней просрочки распространяется С';
+comment on column SCOTT.PEN_REF.days2
+  is 'На какое кол-во дней просрочки распространяется По';
+comment on column SCOTT.PEN_REF.usl_tp_ref
+  is 'Тип услуги -> USL.TP_REF (0-обычная услуга, 1- капремонт)';
+comment on column SCOTT.PEN_REF.dt1
+  is 'Дата начала';
+comment on column SCOTT.PEN_REF.dt2
+  is 'Дата окончания';
+create unique index SCOTT.PEN_REF_U_I on SCOTT.PEN_REF (DAYS1, DAYS2, USL_TP_REF, DT1, DT2)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.PEN_REF
+  add constraint PEN_REF_ID primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

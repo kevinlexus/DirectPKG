@@ -1,0 +1,21 @@
+create table SCOTT.LOAD_INF
+(
+  lchet   CHAR(8),
+  famil   CHAR(20),
+  nylic   CHAR(36),
+  ndom    CHAR(7),
+  nkorp   CHAR(3),
+  nkw     CHAR(15),
+  sum_sub NUMBER(8,2),
+  imja    CHAR(15),
+  otch    CHAR(15)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 5M
+  );
+

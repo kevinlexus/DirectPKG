@@ -1,0 +1,157 @@
+create table SCOTT.C_VVOD
+(
+  house_id           NUMBER not null,
+  id                 NUMBER not null,
+  kub                NUMBER(12,3),
+  kub_man            NUMBER(12,3),
+  kpr                NUMBER,
+  kub_sch            NUMBER,
+  sch_cnt            NUMBER,
+  sch_kpr            NUMBER,
+  cnt_lsk            NUMBER,
+  user_id            NUMBER,
+  vvod_num           NUMBER,
+  flag               NUMBER,
+  usl                CHAR(3),
+  vol_add            NUMBER(12,3),
+  sch_add            NUMBER,
+  kub_fact           NUMBER(12,3),
+  vol_add_fact       NUMBER(12,3),
+  itg_fact           NUMBER(12,3),
+  opl_add            NUMBER,
+  kub_norm           NUMBER,
+  use_sch            NUMBER,
+  kub_nrm_fact       NUMBER,
+  kub_sch_fact       NUMBER,
+  dist_tp            NUMBER,
+  opl_ar             NUMBER,
+  kub_ar             NUMBER,
+  kub_ar_fact        NUMBER,
+  limit_proc         NUMBER,
+  kub_dist           NUMBER,
+  fk_k_lsk           NUMBER,
+  wo_limit           NUMBER,
+  edt_norm           NUMBER,
+  nrm                NUMBER,
+  kub_fact_upnorm    NUMBER,
+  non_heat_per       NUMBER default 1,
+  ishotpipeinsulated NUMBER,
+  istowelheatexist   NUMBER
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 256K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.C_VVOD
+  is 'Справочник вводов';
+comment on column SCOTT.C_VVOD.house_id
+  is 'ID дома';
+comment on column SCOTT.C_VVOD.id
+  is 'ID Ввода';
+comment on column SCOTT.C_VVOD.kub
+  is 'Введённый объём~ на ввод';
+comment on column SCOTT.C_VVOD.kub_man
+  is 'расход по вводу  на человека';
+comment on column SCOTT.C_VVOD.kpr
+  is 'кол-во людей по нормативу ';
+comment on column SCOTT.C_VVOD.kub_sch
+  is 'Объем~по счетчикам';
+comment on column SCOTT.C_VVOD.sch_cnt
+  is 'кол-во счетчиков (и лицевых ессно)';
+comment on column SCOTT.C_VVOD.sch_kpr
+  is 'кол-во людей по счетч.';
+comment on column SCOTT.C_VVOD.cnt_lsk
+  is 'кол-во лицевых по нормативу';
+comment on column SCOTT.C_VVOD.user_id
+  is 'ID пользователя';
+comment on column SCOTT.C_VVOD.vvod_num
+  is 'Номер ввода (для  пользователя)';
+comment on column SCOTT.C_VVOD.flag
+  is 'Служебное поле, для переноса в УК';
+comment on column SCOTT.C_VVOD.usl
+  is 'ID Услуги, если пусто - значит подъезд';
+comment on column SCOTT.C_VVOD.kub_fact
+  is 'Дораспределено факт, итого (в пределах нормы)';
+comment on column SCOTT.C_VVOD.opl_add
+  is 'Площадь по вводу';
+comment on column SCOTT.C_VVOD.kub_norm
+  is 'Объем~по нормативу';
+comment on column SCOTT.C_VVOD.use_sch
+  is 'Использовать счетчики для распределения(1-да, 0 - нет)';
+comment on column SCOTT.C_VVOD.kub_nrm_fact
+  is 'Дораспр.факт~на норматив';
+comment on column SCOTT.C_VVOD.kub_sch_fact
+  is 'Дораспр.факт~на счетчики';
+comment on column SCOTT.C_VVOD.dist_tp
+  is 'Распределение воды по дому (0, null-пропорционально расходу, 2-нет услуги, не считать вообще, 1 - проп. площади,
+4-по дому, без ОДПУ, есть возм.установки, 5-по дому, без ОДПУ, нет возм.установки,
+6-просто учитывать объем, 7 - информационно отобразить объем в Счете в ОДПУ)';
+comment on column SCOTT.C_VVOD.opl_ar
+  is 'Площадь по нежилым';
+comment on column SCOTT.C_VVOD.kub_ar
+  is 'Объем по нежилым';
+comment on column SCOTT.C_VVOD.kub_ar_fact
+  is 'Дораспределено~фактически по нежилым';
+comment on column SCOTT.C_VVOD.limit_proc
+  is '% органичения по доначислению';
+comment on column SCOTT.C_VVOD.kub_dist
+  is 'Распределенный объём';
+comment on column SCOTT.C_VVOD.fk_k_lsk
+  is 'fk на k_lsk';
+comment on column SCOTT.C_VVOD.wo_limit
+  is '(1-не ограничивать лимитом потребления ОДН, 0 и null- ограничивать) (долько для определённых dist_tp)';
+comment on column SCOTT.C_VVOD.edt_norm
+  is 'УДАЛИТЬ! Введённый норматив на м2 (Например для отопления, Полыс. там где отопление в гкал, надо начислять по нормативу, nabor.norm - не подходит для этого, оно в кис. для отопления м2)';
+comment on column SCOTT.C_VVOD.nrm
+  is 'Норматив по ОДН, для отчётов, рассчитывается либо по таблице opl_liter, либо в условии';
+comment on column SCOTT.C_VVOD.kub_fact_upnorm
+  is 'Дораспределено факт, итого  (свыше нормы)';
+comment on column SCOTT.C_VVOD.non_heat_per
+  is 'Начислять ли в неотопительный период? (0-нет, 1-да)';
+comment on column SCOTT.C_VVOD.ishotpipeinsulated
+  is 'Изолирован ли стояк горячей воды? (для статистики)';
+comment on column SCOTT.C_VVOD.istowelheatexist
+  is 'Наличие полотенцесушителя';
+create index SCOTT.C_VVOD_I_USL on SCOTT.C_VVOD (USL)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.C_VVOD
+  add constraint C_VVOD_P_ID primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.C_VVOD
+  add constraint C_VVOD_F_FK_K_LSK foreign key (FK_K_LSK)
+  references SCOTT.K_LSK (ID);
+alter table SCOTT.C_VVOD
+  add constraint C_VVOD_F_HOUSE_ID foreign key (HOUSE_ID)
+  references SCOTT.C_HOUSES (ID);
+alter table SCOTT.C_VVOD
+  add constraint C_VVOD_F_USL foreign key (USL)
+  references SCOTT.USL (USL);
+

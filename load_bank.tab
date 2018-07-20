@@ -1,0 +1,41 @@
+create table SCOTT.LOAD_BANK
+(
+  dtek  DATE,
+  lsk   CHAR(8),
+  code  CHAR(2),
+  summa NUMBER(9,2),
+  dopl  CHAR(6),
+  dn    NUMBER,
+  nkvit NUMBER,
+  nkom  CHAR(3),
+  lsk2  CHAR(8)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 192K
+  );
+comment on table SCOTT.LOAD_BANK
+  is ' ';
+comment on column SCOTT.LOAD_BANK.dtek
+  is 'Дата';
+comment on column SCOTT.LOAD_BANK.lsk
+  is 'Л.С.';
+comment on column SCOTT.LOAD_BANK.code
+  is 'Код банковской операции (01-платеж, 02-пеня)';
+comment on column SCOTT.LOAD_BANK.summa
+  is 'Сумма';
+comment on column SCOTT.LOAD_BANK.dopl
+  is 'Период опл (не использ)';
+comment on column SCOTT.LOAD_BANK.dn
+  is '???';
+comment on column SCOTT.LOAD_BANK.nkvit
+  is '№ платежа';
+comment on column SCOTT.LOAD_BANK.nkom
+  is '№ комп.';
+comment on column SCOTT.LOAD_BANK.lsk2
+  is 'Л.С., как он выглядит в банке)))';
+

@@ -1,0 +1,32 @@
+create table SCOTT.USL_BILLS_HOUSE
+(
+  fk_bill_id VARCHAR2(3),
+  fk_house   NUMBER,
+  mg1        VARCHAR2(6),
+  mg2        VARCHAR2(6),
+  isvol      NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.USL_BILLS_HOUSE
+  is 'Настроечная таблица, показывает например, выводить ли по услуге объем и как';
+comment on column SCOTT.USL_BILLS_HOUSE.fk_bill_id
+  is 'Код усл ID из USL_BILLS';
+comment on column SCOTT.USL_BILLS_HOUSE.fk_house
+  is 'FK на дом';
+comment on column SCOTT.USL_BILLS_HOUSE.mg1
+  is 'С';
+comment on column SCOTT.USL_BILLS_HOUSE.mg2
+  is 'По';
+comment on column SCOTT.USL_BILLS_HOUSE.isvol
+  is 'Брать ли объем как (0 - SUM, 1-MAX, 2-Занулить)  - по составляющим';
+alter table SCOTT.USL_BILLS_HOUSE
+  add constraint USL_BILLS_HOUSE_F foreign key (FK_HOUSE)
+  references SCOTT.C_HOUSES (ID) on delete cascade;
+

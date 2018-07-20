@@ -1,0 +1,47 @@
+create table SCOTT.MESSAGES
+(
+  id           NUMBER not null,
+  user_id      NUMBER not null,
+  text         VARCHAR2(3000) not null,
+  is_read      NUMBER default 0 not null,
+  from_id      NUMBER default UID not null,
+  dat          DATE default sysdate not null,
+  is_read_lamp NUMBER default 0
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+  )
+nologging;
+comment on table SCOTT.MESSAGES
+  is 'Сообщения пользователей';
+comment on column SCOTT.MESSAGES.id
+  is 'ID Сообщения';
+comment on column SCOTT.MESSAGES.user_id
+  is 'ID пользователя (кому)';
+comment on column SCOTT.MESSAGES.text
+  is 'Сообщение';
+comment on column SCOTT.MESSAGES.is_read
+  is 'Отметка о прочтении';
+comment on column SCOTT.MESSAGES.from_id
+  is 'ID пользователя (от кого)';
+comment on column SCOTT.MESSAGES.dat
+  is 'Дата-время отправки';
+comment on column SCOTT.MESSAGES.is_read_lamp
+  is 'Отметка о прочтении сообщения baloontooltip';
+alter table SCOTT.MESSAGES
+  add constraint MESSAGES_P_ID primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+

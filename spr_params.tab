@@ -1,0 +1,82 @@
+create table SCOTT.SPR_PARAMS
+(
+  id         NUMBER not null,
+  cd         VARCHAR2(32) not null,
+  parvc1     VARCHAR2(1000),
+  parn1      NUMBER,
+  name       VARCHAR2(64),
+  cdtp       NUMBER,
+  fk_parcdtp VARCHAR2(32),
+  pardt1     DATE,
+  parent_id  NUMBER,
+  sql_text   VARCHAR2(1000),
+  npp        NUMBER,
+  memo       VARCHAR2(1000)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.SPR_PARAMS
+  is 'Справочник параметров';
+comment on column SCOTT.SPR_PARAMS.id
+  is 'ID';
+comment on column SCOTT.SPR_PARAMS.cd
+  is 'CD';
+comment on column SCOTT.SPR_PARAMS.parvc1
+  is 'Параметр varchar2(1000)';
+comment on column SCOTT.SPR_PARAMS.parn1
+  is 'Параметр number';
+comment on column SCOTT.SPR_PARAMS.name
+  is 'Наименование параметра';
+comment on column SCOTT.SPR_PARAMS.cdtp
+  is '(0 - число, 1- Строка симв, 2-Дата, 3-Логич.,4 - список(одно знач.),5-диапазон, 6-список своих значений)';
+comment on column SCOTT.SPR_PARAMS.fk_parcdtp
+  is 'Тип параметра (например ''BASE_STATE'' - параметры состояния базы)';
+comment on column SCOTT.SPR_PARAMS.pardt1
+  is 'Параметр Date';
+comment on column SCOTT.SPR_PARAMS.parent_id
+  is 'FK на вышестоящий параметр (заголовок)';
+comment on column SCOTT.SPR_PARAMS.sql_text
+  is 'текст SQL для 4 - CDTP (Списка)';
+comment on column SCOTT.SPR_PARAMS.npp
+  is '№ порядк';
+comment on column SCOTT.SPR_PARAMS.memo
+  is 'Примечание';
+create unique index SCOTT.SPR_PARAMS_I on SCOTT.SPR_PARAMS (CD)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.SPR_PARAMS
+  add constraint SPR_PARAMS_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.SPR_PARAMS
+  add constraint SPR_PARAMS_F_PARENT_ID foreign key (PARENT_ID)
+  references SCOTT.SPR_PARAMS (ID) on delete cascade;
+

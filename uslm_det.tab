@@ -1,0 +1,26 @@
+create table SCOTT.USLM_DET
+(
+  uslm_det CHAR(3) not null,
+  nm1      CHAR(22)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 128K
+  )
+nologging;
+alter table SCOTT.USLM_DET
+  add constraint USLM_DET_P primary key (USLM_DET)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+

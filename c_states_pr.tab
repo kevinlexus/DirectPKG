@@ -1,0 +1,71 @@
+create table SCOTT.C_STATES_PR
+(
+  id         NUMBER not null,
+  fk_status  NUMBER not null,
+  fk_kart_pr NUMBER not null,
+  dt1        DATE,
+  dt2        DATE,
+  fk_tp      NUMBER not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.C_STATES_PR
+  is '»зменение статусов проживающих, периодическое';
+comment on column SCOTT.C_STATES_PR.id
+  is 'ID';
+comment on column SCOTT.C_STATES_PR.fk_status
+  is 'FK на статус ';
+comment on column SCOTT.C_STATES_PR.fk_kart_pr
+  is 'FK на проживающего';
+comment on column SCOTT.C_STATES_PR.dt1
+  is 'Ќачало периода';
+comment on column SCOTT.C_STATES_PR.dt2
+  is 'ќкончание периода (поле пустое по умолчанию)';
+comment on column SCOTT.C_STATES_PR.fk_tp
+  is '“ип статуса';
+create unique index SCOTT.C_STATES_PR_I on SCOTT.C_STATES_PR (FK_KART_PR, FK_TP, DT1, DT2)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  compress 3;
+alter table SCOTT.C_STATES_PR
+  add constraint C_STATES_PR_PK primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.C_STATES_PR
+  add constraint C_STATES_PR_F_K_PR foreign key (FK_KART_PR)
+  references SCOTT.C_KART_PR (ID) on delete cascade;
+alter table SCOTT.C_STATES_PR
+  add constraint C_STATES_PR_F_STATUS foreign key (FK_STATUS)
+  references SCOTT.C_STATUS_PR (ID);
+alter table SCOTT.C_STATES_PR
+  add constraint C_STATES_PR_F_U_LIST foreign key (FK_TP)
+  references SCOTT.U_LIST (ID);
+

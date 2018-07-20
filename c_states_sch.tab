@@ -1,0 +1,62 @@
+create table SCOTT.C_STATES_SCH
+(
+  id        NUMBER not null,
+  lsk       CHAR(8) not null,
+  fk_status NUMBER not null,
+  dt1       DATE,
+  dt2       DATE
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 2M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.C_STATES_SCH
+  is 'Изменение статусов счетчиков, периодическое';
+comment on column SCOTT.C_STATES_SCH.id
+  is 'ID';
+comment on column SCOTT.C_STATES_SCH.lsk
+  is 'FK на Л.С.';
+comment on column SCOTT.C_STATES_SCH.fk_status
+  is 'FK на статус (0-норматив, 1 - х.в.+г.в., 2-х.в., 3-г.в., 8-старый фонд, 9-закрытый фонд)';
+comment on column SCOTT.C_STATES_SCH.dt1
+  is 'Начало периода';
+comment on column SCOTT.C_STATES_SCH.dt2
+  is 'Окончание периода (поле пустое по умолчанию)';
+create unique index SCOTT.C_STATES_I on SCOTT.C_STATES_SCH (LSK, DT1, DT2)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  compress 2;
+alter table SCOTT.C_STATES_SCH
+  add constraint C_STATES_SCH_PK primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.C_STATES_SCH
+  add constraint C_STATES_SCH_F_LSK foreign key (LSK)
+  references SCOTT.KART (LSK);
+

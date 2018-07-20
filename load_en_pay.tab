@@ -1,0 +1,38 @@
+create table SCOTT.LOAD_EN_PAY
+(
+  tel_sch NUMBER(9,2),
+  kul     CHAR(4),
+  nd      CHAR(6),
+  kw      CHAR(7),
+  dtek    DATE,
+  ska     NUMBER(9,2),
+  dopl    CHAR(6),
+  nomz    NUMBER,
+  dat_ink DATE,
+  nink    NUMBER(3)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 192K
+  );
+comment on table SCOTT.LOAD_EN_PAY
+  is 'Оплата из внешних источников';
+comment on column SCOTT.LOAD_EN_PAY.tel_sch
+  is 'TEL_SCH- LSK (лицевой счет)';
+comment on column SCOTT.LOAD_EN_PAY.dtek
+  is 'Дата платежа';
+comment on column SCOTT.LOAD_EN_PAY.ska
+  is 'Оплата';
+comment on column SCOTT.LOAD_EN_PAY.dopl
+  is 'Период';
+comment on column SCOTT.LOAD_EN_PAY.nomz
+  is '№ квит';
+comment on column SCOTT.LOAD_EN_PAY.dat_ink
+  is 'Дата инк';
+comment on column SCOTT.LOAD_EN_PAY.nink
+  is '№ инк';
+

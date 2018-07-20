@@ -1,0 +1,65 @@
+create table SCOTT.EXPPRIVS
+(
+  lsk      CHAR(8),
+  id       NUMBER,
+  adr      CHAR(50),
+  fio      CHAR(55),
+  doc      CHAR(55),
+  main     NUMBER,
+  spk_id   NUMBER,
+  ltr      NUMBER(8,2),
+  ltri     NUMBER(8,2),
+  lderi    NUMBER(8,2),
+  lot      NUMBER(8,2),
+  lwod     NUMBER(8,2),
+  lwodi    NUMBER(8,2),
+  lkan     NUMBER(8,2),
+  lkani    NUMBER(8,2),
+  lgw      NUMBER(8,2),
+  lgwi     NUMBER(8,2),
+  lo       NUMBER(8,2),
+  lcs      NUMBER(8,2),
+  lmus     NUMBER(8,2),
+  lg       NUMBER(8,2),
+  ldza     NUMBER(8,2),
+  ldzai    NUMBER(8,2),
+  lkap     NUMBER(8,2),
+  lkapi    NUMBER(8,2),
+  lotip    NUMBER(8,2),
+  lder     NUMBER(8,2),
+  los      NUMBER(8,2),
+  itog     NUMBER,
+  var      NUMBER,
+  mg       CHAR(6),
+  reu      CHAR(3),
+  kul      CHAR(4),
+  nd       CHAR(6),
+  kw       CHAR(7),
+  status   NUMBER,
+  opl      NUMBER(8,2),
+  lrc      NUMBER(8,2),
+  lugd     NUMBER(8,2),
+  lugdi    NUMBER(8,2),
+  lrc2     NUMBER(8,2),
+  lhwfgws  NUMBER(8,2),
+  lhwgws   NUMBER(8,2),
+  ltepfgws NUMBER(8,2),
+  lgwei    NUMBER(8,2),
+  lhodn    NUMBER(8,2),
+  lgodn    NUMBER(8,2),
+  leodn    NUMBER(8,2),
+  lkodn    NUMBER(8,2),
+  lg3      NUMBER(8,2),
+  lg2      NUMBER(8,2),
+  lel7     NUMBER(8,2)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 28M
+  )
+nologging;
+

@@ -1,0 +1,20 @@
+create table SCOTT.EXP_NABOR
+(
+  lsk    VARCHAR2(8 CHAR),
+  cd_usl VARCHAR2(32 CHAR)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 640K
+  );
+comment on table SCOTT.EXP_NABOR
+  is 'Промежуточная таблица наличия услуги и счетчика по нему , для выгрузки в ЛК';
+comment on column SCOTT.EXP_NABOR.lsk
+  is 'Л/C';
+comment on column SCOTT.EXP_NABOR.cd_usl
+  is 'CD услуги';
+

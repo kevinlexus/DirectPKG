@@ -1,0 +1,100 @@
+create table SCOTT.XITOG3_LSK
+(
+  lsk        CHAR(8),
+  org        NUMBER not null,
+  uslm       CHAR(3),
+  usl        CHAR(3) not null,
+  status     NUMBER,
+  indebet    NUMBER,
+  inkredit   NUMBER,
+  charges    NUMBER,
+  changes    NUMBER,
+  subsid     NUMBER,
+  payment    NUMBER,
+  pn         NUMBER,
+  outdebet   NUMBER,
+  outkredit  NUMBER,
+  mg         CHAR(6) not null,
+  privs      NUMBER,
+  privs_city NUMBER,
+  ch_full    NUMBER,
+  changes2   NUMBER,
+  poutsal    NUMBER,
+  changes3   NUMBER,
+  pinsal     NUMBER,
+  pcur       NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 46M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on table SCOTT.XITOG3_LSK
+  is 'Сальдо по домам / предприятиям / услугам по USL, дет. по л.с.';
+comment on column SCOTT.XITOG3_LSK.lsk
+  is 'Л/С';
+comment on column SCOTT.XITOG3_LSK.org
+  is 'ID Орг';
+comment on column SCOTT.XITOG3_LSK.uslm
+  is 'ID Усл.главн.';
+comment on column SCOTT.XITOG3_LSK.usl
+  is 'ID Усл.';
+comment on column SCOTT.XITOG3_LSK.status
+  is 'Статус жилья';
+comment on column SCOTT.XITOG3_LSK.indebet
+  is 'Вх.Дебет';
+comment on column SCOTT.XITOG3_LSK.inkredit
+  is 'Вх.Кредит';
+comment on column SCOTT.XITOG3_LSK.charges
+  is 'Начисление, с учетом изменений';
+comment on column SCOTT.XITOG3_LSK.changes
+  is 'Изменения';
+comment on column SCOTT.XITOG3_LSK.subsid
+  is 'Субсидия';
+comment on column SCOTT.XITOG3_LSK.payment
+  is 'Оплата';
+comment on column SCOTT.XITOG3_LSK.pn
+  is 'Оплата пени';
+comment on column SCOTT.XITOG3_LSK.outdebet
+  is 'Исх.Дебет';
+comment on column SCOTT.XITOG3_LSK.outkredit
+  is 'Исх.Кредит';
+comment on column SCOTT.XITOG3_LSK.mg
+  is 'Период';
+comment on column SCOTT.XITOG3_LSK.privs
+  is 'Льготы';
+comment on column SCOTT.XITOG3_LSK.privs_city
+  is 'Льготы, бюджет города';
+comment on column SCOTT.XITOG3_LSK.ch_full
+  is 'Начисление по тарифу';
+comment on column SCOTT.XITOG3_LSK.changes2
+  is 'Изменения';
+comment on column SCOTT.XITOG3_LSK.poutsal
+  is 'Исходящее сальдо по пене';
+comment on column SCOTT.XITOG3_LSK.changes3
+  is 'Корректировки сальдо перерасчетами';
+comment on column SCOTT.XITOG3_LSK.pinsal
+  is 'Входящее сальдо по пене';
+comment on column SCOTT.XITOG3_LSK.pcur
+  is 'Текущее начисление пени';
+create index SCOTT.XITOG3_LSK_I on SCOTT.XITOG3_LSK (LSK, USL, ORG)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 20M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+

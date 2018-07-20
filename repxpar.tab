@@ -1,0 +1,46 @@
+create table SCOTT.REPXPAR
+(
+  id     NUMBER not null,
+  fk_rep NUMBER,
+  fk_par NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.REPXPAR
+  is 'Ïאנאלוענû ןמ מעקועאל';
+comment on column SCOTT.REPXPAR.id
+  is 'ID';
+comment on column SCOTT.REPXPAR.fk_rep
+  is 'FK םא מעקוע';
+comment on column SCOTT.REPXPAR.fk_par
+  is 'FK םא ןאנאלוענ';
+alter table SCOTT.REPXPAR
+  add constraint REPXPAR_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.REPXPAR
+  add constraint REPXPAR_F_PAR foreign key (FK_PAR)
+  references SCOTT.SPR_PARAMS (ID) on delete cascade;
+alter table SCOTT.REPXPAR
+  add constraint REPXPAR_F_REP foreign key (FK_REP)
+  references SCOTT.REPORTS (ID) on delete cascade;
+

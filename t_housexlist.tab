@@ -1,0 +1,58 @@
+create table SCOTT.T_HOUSEXLIST
+(
+  id       NUMBER not null,
+  fk_list  NUMBER not null,
+  fk_house NUMBER not null,
+  reu      CHAR(3) not null,
+  kul      VARCHAR2(4) not null,
+  nd       VARCHAR2(6) not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.T_HOUSEXLIST
+  is 'Реквизиты по дому';
+comment on column SCOTT.T_HOUSEXLIST.id
+  is 'ID';
+comment on column SCOTT.T_HOUSEXLIST.fk_list
+  is 'FK на параметр';
+comment on column SCOTT.T_HOUSEXLIST.fk_house
+  is 'Fk на дом';
+comment on column SCOTT.T_HOUSEXLIST.reu
+  is 'Код Реу';
+comment on column SCOTT.T_HOUSEXLIST.kul
+  is 'Код Ул';
+comment on column SCOTT.T_HOUSEXLIST.nd
+  is '№ дома';
+create unique index SCOTT.T_HOUSEXLIST_I on SCOTT.T_HOUSEXLIST (ID, FK_LIST, FK_HOUSE)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+alter table SCOTT.T_HOUSEXLIST
+  add constraint T_HOUSEXLIST_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+alter table SCOTT.T_HOUSEXLIST
+  add constraint FK_HOUSE foreign key (FK_HOUSE)
+  references SCOTT.C_HOUSES (ID) on delete cascade;
+alter table SCOTT.T_HOUSEXLIST
+  add constraint FK_LIST foreign key (FK_LIST)
+  references SCOTT.U_LIST (ID) on delete cascade;
+

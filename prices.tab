@@ -1,0 +1,37 @@
+create table SCOTT.PRICES
+(
+  usl    CHAR(3),
+  summa  NUMBER,
+  summa2 NUMBER,
+  fk_org NUMBER,
+  summa3 NUMBER
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on column SCOTT.PRICES.usl
+  is 'Код услуги';
+comment on column SCOTT.PRICES.summa
+  is 'Расценка по услуге';
+comment on column SCOTT.PRICES.summa2
+  is 'Дополнительная расценка (допустим за Гкал пот отопл.)';
+comment on column SCOTT.PRICES.fk_org
+  is 'FK на УК';
+comment on column SCOTT.PRICES.summa3
+  is 'Расценка по услуге, в случае отсутствия проживающих';
+alter table SCOTT.PRICES
+  add constraint PRICES_FK_ORG foreign key (FK_ORG)
+  references SCOTT.T_ORG (ID);
+alter table SCOTT.PRICES
+  add constraint PRICES_FK_USL foreign key (USL)
+  references SCOTT.USL (USL);
+

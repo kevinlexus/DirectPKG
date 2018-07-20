@@ -1,0 +1,46 @@
+create table SCOTT.R_DOC_EVENTS
+(
+  id          NUMBER not null,
+  fk_requests NUMBER not null,
+  ts          DATE not null,
+  fk_funct    NUMBER not null,
+  fk_role     NUMBER not null
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.R_DOC_EVENTS
+  is 'События по  документам';
+comment on column SCOTT.R_DOC_EVENTS.id
+  is 'ID события';
+comment on column SCOTT.R_DOC_EVENTS.fk_requests
+  is 'ID документа';
+comment on column SCOTT.R_DOC_EVENTS.ts
+  is 'TS';
+comment on column SCOTT.R_DOC_EVENTS.fk_funct
+  is 'ID функции';
+comment on column SCOTT.R_DOC_EVENTS.fk_role
+  is 'ID Роли, выполнившей событие';
+alter table SCOTT.R_DOC_EVENTS
+  add constraint F_R_DOC_EVENTS_ID primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+alter table SCOTT.R_DOC_EVENTS
+  add constraint F_R_DOC_EVENTS_C_ROLES_ID foreign key (FK_ROLE)
+  references SCOTT.T_ROLE (ID);
+alter table SCOTT.R_DOC_EVENTS
+  add constraint F_R_DOC_EVENTS_R_DOC_FUNCT_ID foreign key (FK_FUNCT)
+  references SCOTT.R_DOC_FUNCT (ID);
+

@@ -1,0 +1,28 @@
+create table SCOTT.PREP_LSK
+(
+  lsk CHAR(8) not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.PREP_LSK
+  is 'Таблица предназначена для выполнения разных операций с лиц.счетами(перемещение из фонда в фонд)';
+comment on column SCOTT.PREP_LSK.lsk
+  is 'Лиц.счет';
+alter table SCOTT.PREP_LSK
+  add constraint PREP_LSK_P primary key (LSK)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+

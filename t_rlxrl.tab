@@ -1,0 +1,44 @@
+create table SCOTT.T_RLXRL
+(
+  id        NUMBER default 0 not null,
+  id_0      NUMBER default 0,
+  id_1      NUMBER default 0,
+  v         NUMBER default 1 not null,
+  grantable NUMBER default 0 not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.T_RLXRL
+  is 'FIN_SEQ. Роль наследует от Роли';
+comment on column SCOTT.T_RLXRL.id_0
+  is 'наследуемая роль';
+comment on column SCOTT.T_RLXRL.id_1
+  is 'наследующая роль ';
+comment on column SCOTT.T_RLXRL.v
+  is 'вкл/выкл.  включено, если = 1';
+comment on column SCOTT.T_RLXRL.grantable
+  is 'вкл/выкл.  включено, если = 1';
+alter table SCOTT.T_RLXRL
+  add constraint T_RLXRL_PK primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+alter table SCOTT.T_RLXRL
+  add constraint T_RLXRL_FK_ID0 foreign key (ID_0)
+  references SCOTT.T_ROLE (ID) on delete cascade;
+alter table SCOTT.T_RLXRL
+  add constraint T_RLXRL_FK_ID1 foreign key (ID_1)
+  references SCOTT.T_ROLE (ID) on delete cascade;
+

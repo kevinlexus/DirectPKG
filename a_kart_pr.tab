@@ -1,0 +1,148 @@
+create table SCOTT.A_KART_PR
+(
+  id            NUMBER not null,
+  lsk           CHAR(8),
+  fio           CHAR(55),
+  status        NUMBER default 1 not null,
+  dat_rog       DATE,
+  pol           NUMBER,
+  dok           CHAR(15),
+  dok_c         CHAR(8),
+  dok_n         CHAR(7),
+  dok_d         DATE,
+  dok_v         CHAR(65),
+  dat_prop      DATE,
+  dat_ub        DATE,
+  mg            CHAR(6),
+  relat_id      NUMBER,
+  status_dat    DATE,
+  status_chng   DATE,
+  k_fam         VARCHAR2(25),
+  k_im          VARCHAR2(15),
+  k_ot          VARCHAR2(15),
+  fk_doc_tp     NUMBER,
+  fk_nac        NUMBER,
+  b_place       VARCHAR2(60),
+  fk_frm_cntr   NUMBER,
+  fk_frm_regn   NUMBER,
+  fk_frm_distr  NUMBER,
+  frm_town      VARCHAR2(30),
+  frm_dat       DATE,
+  fk_frm_kul    CHAR(4),
+  frm_nd        VARCHAR2(6),
+  frm_kw        VARCHAR2(7),
+  w_place       VARCHAR2(60),
+  fk_ub         NUMBER,
+  fk_to_cntr    NUMBER,
+  fk_to_regn    NUMBER,
+  fk_to_distr   NUMBER,
+  to_town       VARCHAR2(30),
+  fk_to_kul     CHAR(4),
+  to_nd         VARCHAR2(6),
+  to_kw         VARCHAR2(7),
+  fk_citiz      NUMBER,
+  fk_milit      NUMBER,
+  fk_milit_regn NUMBER,
+  status_datb   DATE,
+  fk_deb_org    NUMBER,
+  priv_proc     VARCHAR2(10)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 24M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on column SCOTT.A_KART_PR.status_dat
+  is 'Дата действия статуса (до) (для врем. отсут, врем зарег)';
+comment on column SCOTT.A_KART_PR.status_chng
+  is 'Дата изменения статуса ';
+comment on column SCOTT.A_KART_PR.k_fam
+  is 'Фамилия ';
+comment on column SCOTT.A_KART_PR.k_im
+  is 'Имя ';
+comment on column SCOTT.A_KART_PR.k_ot
+  is 'Отчество ';
+comment on column SCOTT.A_KART_PR.fk_doc_tp
+  is 'Тип документа';
+comment on column SCOTT.A_KART_PR.fk_nac
+  is 'Национальность';
+comment on column SCOTT.A_KART_PR.b_place
+  is 'Место рождения';
+comment on column SCOTT.A_KART_PR.fk_frm_cntr
+  is 'Откуда: Страна';
+comment on column SCOTT.A_KART_PR.fk_frm_regn
+  is 'Откуда: Область';
+comment on column SCOTT.A_KART_PR.fk_frm_distr
+  is 'Откуда: Район';
+comment on column SCOTT.A_KART_PR.frm_town
+  is 'Откуда: Нас.пункт';
+comment on column SCOTT.A_KART_PR.frm_dat
+  is 'Откуда: Дата прибытия';
+comment on column SCOTT.A_KART_PR.fk_frm_kul
+  is 'Откуда: Код ул';
+comment on column SCOTT.A_KART_PR.frm_nd
+  is 'Откуда: № дома';
+comment on column SCOTT.A_KART_PR.frm_kw
+  is 'Откуда: № кв.';
+comment on column SCOTT.A_KART_PR.w_place
+  is 'Место работы и должность ';
+comment on column SCOTT.A_KART_PR.fk_ub
+  is 'Причина выписки';
+comment on column SCOTT.A_KART_PR.fk_to_cntr
+  is 'Куда: Страна';
+comment on column SCOTT.A_KART_PR.fk_to_regn
+  is 'Куда: Область';
+comment on column SCOTT.A_KART_PR.fk_to_distr
+  is 'Куда: Район';
+comment on column SCOTT.A_KART_PR.to_town
+  is 'Куда: Нас.пункт';
+comment on column SCOTT.A_KART_PR.fk_to_kul
+  is 'Куда: Код ул';
+comment on column SCOTT.A_KART_PR.to_nd
+  is 'Куда: № дома';
+comment on column SCOTT.A_KART_PR.to_kw
+  is 'Куда: № кв.';
+comment on column SCOTT.A_KART_PR.fk_citiz
+  is 'Гражданство';
+comment on column SCOTT.A_KART_PR.fk_milit
+  is 'Военнообязанность';
+comment on column SCOTT.A_KART_PR.fk_milit_regn
+  is 'Военкомат';
+comment on column SCOTT.A_KART_PR.status_datb
+  is 'Дата начала действия статуса (для врем. отсут, врем зарег)';
+comment on column SCOTT.A_KART_PR.fk_deb_org
+  is 'Организация - задолжник';
+comment on column SCOTT.A_KART_PR.priv_proc
+  is 'Доля приватизированной площади в STR (например 1/5)';
+create index SCOTT.A_KART_PR_I on SCOTT.A_KART_PR (LSK, ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 10M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create index SCOTT.A_KART_PR_I2 on SCOTT.A_KART_PR (ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 10M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

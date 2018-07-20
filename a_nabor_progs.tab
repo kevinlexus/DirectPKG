@@ -1,0 +1,25 @@
+create table SCOTT.A_NABOR_PROGS
+(
+  lsk      CHAR(8) not null,
+  usl      CHAR(3) not null,
+  fk_tarif NUMBER,
+  mg       CHAR(6),
+  id       NUMBER not null
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.A_NABOR_PROGS
+  is 'Справочник декодеров, наборов программ, пакетов по ним';
+comment on column SCOTT.A_NABOR_PROGS.usl
+  is 'ID услуги';
+comment on column SCOTT.A_NABOR_PROGS.fk_tarif
+  is 'ID Тариф (Антенн)';
+comment on column SCOTT.A_NABOR_PROGS.mg
+  is 'Период';
+

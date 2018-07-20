@@ -1,0 +1,26 @@
+create global temporary table SCOTT.LIST_CHOICES
+(
+  reu      CHAR(3),
+  kul      CHAR(4),
+  nd       CHAR(6),
+  sel      NUMBER(1),
+  uch      NUMBER,
+  house_id NUMBER
+)
+on commit preserve rows;
+comment on table SCOTT.LIST_CHOICES
+  is 'Таблица для выбора улиц пользователем';
+comment on column SCOTT.LIST_CHOICES.reu
+  is '№ РЭУ';
+comment on column SCOTT.LIST_CHOICES.kul
+  is 'Id улицы';
+comment on column SCOTT.LIST_CHOICES.nd
+  is '№ дома';
+comment on column SCOTT.LIST_CHOICES.sel
+  is 'Отмечено';
+comment on column SCOTT.LIST_CHOICES.uch
+  is 'Участок';
+comment on column SCOTT.LIST_CHOICES.house_id
+  is 'ID дома';
+create index SCOTT.LIST_CHOICES_RKNS on SCOTT.LIST_CHOICES (REU, KUL, ND, SEL);
+

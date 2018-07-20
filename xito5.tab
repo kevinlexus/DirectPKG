@@ -1,0 +1,81 @@
+create table SCOTT.XITO5
+(
+  ska   NUMBER(14,5),
+  pn    NUMBER(14,5),
+  trest CHAR(2),
+  reu   CHAR(3),
+  other CHAR(1),
+  nal   CHAR(1),
+  ink   CHAR(1),
+  oper  CHAR(2),
+  dat   DATE,
+  mg    CHAR(6),
+  nkom  CHAR(3),
+  nink  NUMBER
+)
+tablespace USERS
+  pctfree 5
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.XITO5
+  is 'Платежи по операциям (для инкассаций)';
+create index SCOTT.XITO5_IDX1 on SCOTT.XITO5 (MG, REU, TREST, OPER, OTHER, INK, NAL)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+create index SCOTT.XITO5_IDX2 on SCOTT.XITO5 (DAT, REU, TREST, OPER, OTHER, INK, NAL)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+create index SCOTT.XITO5_IDX7 on SCOTT.XITO5 (MG)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+create index SCOTT.XITO5_IDX8 on SCOTT.XITO5 (DAT)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+

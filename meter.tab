@@ -1,0 +1,64 @@
+create table SCOTT.METER
+(
+  id          NUMBER not null,
+  npp         NUMBER,
+  fk_usl      CHAR(3) not null,
+  k_lsk_id    NUMBER,
+  dt1         DATE default to_date('19000101','YYYYMMDD') not null,
+  dt2         DATE default to_date('25000101','YYYYMMDD') not null,
+  fk_klsk_obj NUMBER not null,
+  n1          NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 3M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.METER
+  is 'Счетчик';
+comment on column SCOTT.METER.id
+  is 'ID';
+comment on column SCOTT.METER.npp
+  is 'Наименование';
+comment on column SCOTT.METER.fk_usl
+  is 'fk на услугу';
+comment on column SCOTT.METER.k_lsk_id
+  is 'FK на k_lsk ПУ';
+comment on column SCOTT.METER.dt1
+  is 'Начало работы';
+comment on column SCOTT.METER.dt2
+  is 'Окончание работы';
+comment on column SCOTT.METER.fk_klsk_obj
+  is 'Объект, на котором установлен ПУ';
+comment on column SCOTT.METER.n1
+  is 'Последнее показание';
+alter table SCOTT.METER
+  add constraint METER_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 832K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.METER
+  add constraint METER_F_KLSK_OBJ foreign key (FK_KLSK_OBJ)
+  references SCOTT.K_LSK (ID);
+alter table SCOTT.METER
+  add constraint METER_F_K_LSK foreign key (K_LSK_ID)
+  references SCOTT.K_LSK (ID);
+alter table SCOTT.METER
+  add constraint METER_F_USL foreign key (FK_USL)
+  references SCOTT.USL (USL);
+

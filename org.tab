@@ -1,0 +1,35 @@
+create table SCOTT.ORG
+(
+  id   NUMBER not null,
+  name VARCHAR2(35)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.ORG
+  is 'Справочник обслуживающей организации';
+comment on column SCOTT.ORG.name
+  is 'Наименование организации';
+alter table SCOTT.ORG
+  add constraint ORG_KEY1 primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

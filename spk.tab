@@ -1,0 +1,60 @@
+create table SCOTT.SPK
+(
+  id          NUMBER not null,
+  name        CHAR(64),
+  gr_id       NUMBER default 0,
+  spk_stat_id NUMBER,
+  gr_lg_id    NUMBER,
+  fk_status_g NUMBER,
+  fk_status_k NUMBER,
+  cd          VARCHAR2(32)
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on column SCOTT.SPK.id
+  is 'ID';
+comment on column SCOTT.SPK.name
+  is 'Наименование';
+comment on column SCOTT.SPK.gr_id
+  is 'ID законов';
+comment on column SCOTT.SPK.spk_stat_id
+  is 'ID категорий для статистики';
+comment on column SCOTT.SPK.gr_lg_id
+  is 'ID группы льгот в GROUP_LG';
+comment on column SCOTT.SPK.fk_status_g
+  is 'Статус жилья, которому соответствует льгота, для т.с.';
+comment on column SCOTT.SPK.fk_status_k
+  is 'Статус жилья, которому соответствует льгота, для коммунал.усл.';
+comment on column SCOTT.SPK.cd
+  is 'CD';
+alter table SCOTT.SPK
+  add constraint SPK_P_ID primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.SPK
+  add constraint SPK_F_GR_ID foreign key (GR_ID)
+  references SCOTT.SPK_GR (ID);
+alter table SCOTT.SPK
+  add constraint SPK_F_STATUS foreign key (FK_STATUS_G)
+  references SCOTT.STATUS (ID);
+

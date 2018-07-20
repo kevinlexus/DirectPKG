@@ -1,0 +1,38 @@
+create table SCOTT.EXP_KARTXPAR
+(
+  cd_org   VARCHAR2(32 CHAR) not null,
+  fk_k_lsk NUMBER,
+  cd_list  VARCHAR2(32 CHAR) not null,
+  s1       VARCHAR2(255),
+  d1       DATE,
+  n1       NUMBER,
+  c1       CLOB,
+  pass     RAW(50)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.EXP_KARTXPAR
+  is 'Параметры по лицевому счету или по k_lsk';
+comment on column SCOTT.EXP_KARTXPAR.cd_org
+  is 'CD организации';
+comment on column SCOTT.EXP_KARTXPAR.fk_k_lsk
+  is 'FK на k_lsk';
+comment on column SCOTT.EXP_KARTXPAR.cd_list
+  is 'CD на параметр';
+comment on column SCOTT.EXP_KARTXPAR.s1
+  is 'значение параметра типа Varchar(255)';
+comment on column SCOTT.EXP_KARTXPAR.d1
+  is 'значение параметра типа Дата';
+comment on column SCOTT.EXP_KARTXPAR.n1
+  is 'значение параметра типа Number';
+comment on column SCOTT.EXP_KARTXPAR.c1
+  is 'значение параметра типа CLOB';
+comment on column SCOTT.EXP_KARTXPAR.pass
+  is 'значение параметра типа RAW(50)';
+

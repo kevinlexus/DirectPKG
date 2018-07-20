@@ -1,0 +1,76 @@
+create table SCOTT.U_LIST
+(
+  id        NUMBER not null,
+  cd        VARCHAR2(32) not null,
+  name      VARCHAR2(96) not null,
+  nm        VARCHAR2(32),
+  fk_listtp NUMBER not null,
+  npp       NUMBER default 0,
+  val_tp    VARCHAR2(3),
+  fk_unit   NUMBER,
+  sqltext   VARCHAR2(1000)
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.U_LIST
+  is 'Справочник различных списков';
+comment on column SCOTT.U_LIST.cd
+  is 'Код';
+comment on column SCOTT.U_LIST.name
+  is 'Наименование';
+comment on column SCOTT.U_LIST.nm
+  is 'Наименование краткое';
+comment on column SCOTT.U_LIST.fk_listtp
+  is 'ID вид списка ';
+comment on column SCOTT.U_LIST.npp
+  is '№пп';
+comment on column SCOTT.U_LIST.val_tp
+  is 'тип (NM)number;  (ST)string;  (DT)date; (ID) - ID шник из SELECT поля SQLTEXT, (EL) - элемент списка';
+comment on column SCOTT.U_LIST.fk_unit
+  is 'Единица измерения (для параметров)';
+comment on column SCOTT.U_LIST.sqltext
+  is 'SQL запрос для получения ID шника для параметра типа ID';
+alter table SCOTT.U_LIST
+  add constraint U_LIST_PK primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.U_LIST
+  add constraint U_LIST_U unique (CD)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.U_LIST
+  add constraint U_LIST_FK_LISTTP foreign key (FK_LISTTP)
+  references SCOTT.U_LISTTP (ID);
+alter table SCOTT.U_LIST
+  add constraint U_LIST_FK_UNIT foreign key (FK_UNIT)
+  references SCOTT.U_LIST (ID);
+

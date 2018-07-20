@@ -1,0 +1,23 @@
+create table SCOTT.C_CHANGE_TP
+(
+  id   NUMBER not null,
+  cd   VARCHAR2(32),
+  name VARCHAR2(32)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.C_CHANGE_TP
+  is 'Типы разовых изменений';
+comment on column SCOTT.C_CHANGE_TP.id
+  is 'ID ';
+comment on column SCOTT.C_CHANGE_TP.cd
+  is 'CD';
+comment on column SCOTT.C_CHANGE_TP.name
+  is 'Наименование';
+

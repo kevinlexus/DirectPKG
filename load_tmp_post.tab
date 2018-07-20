@@ -1,0 +1,29 @@
+create table SCOTT.LOAD_TMP_POST
+(
+  getd    DATE,
+  oper    CHAR(2),
+  typep   NUMBER(2),
+  ops     VARCHAR2(6),
+  dopdata VARCHAR2(50),
+  year    VARCHAR2(4),
+  month   NUMBER(2),
+  street  VARCHAR2(100),
+  house   VARCHAR2(10),
+  flat    VARCHAR2(10),
+  fio     VARCHAR2(100),
+  lc      CHAR(8),
+  num_1   NUMBER(10),
+  num_2   NUMBER(10),
+  summa   NUMBER(15,2)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.LOAD_TMP_POST
+  is 'временна€ таблица, дл€ получени€ оплаты от ѕочты';
+

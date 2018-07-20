@@ -1,0 +1,110 @@
+create table SCOTT.STATISTICS_TREST
+(
+  usl        CHAR(3),
+  reu        CHAR(3) not null,
+  cnt        NUMBER,
+  klsk       NUMBER,
+  kpr        NUMBER,
+  kpr_ot     NUMBER,
+  kpr_wr     NUMBER,
+  mg         VARCHAR2(6),
+  org        NUMBER(3),
+  status     NUMBER(1),
+  psch       NUMBER(1),
+  sch        NUMBER,
+  cnt_lg     NUMBER,
+  cnt_subs   NUMBER,
+  dat        DATE,
+  val_group  VARCHAR2(20),
+  uch        NUMBER,
+  val_group2 VARCHAR2(20),
+  cnt_room   NUMBER,
+  cena       NUMBER,
+  is_empt    NUMBER,
+  fk_tp      NUMBER,
+  opl        NUMBER,
+  is_vol     VARCHAR2(20),
+  chng_vol   NUMBER
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.STATISTICS_TREST
+  is 'Статистика по услугам без детализации по домам';
+comment on column SCOTT.STATISTICS_TREST.usl
+  is 'ID услуги';
+comment on column SCOTT.STATISTICS_TREST.reu
+  is '№ РЭУ';
+comment on column SCOTT.STATISTICS_TREST.cnt
+  is 'Предоставленный объем услуги (квт., куб., точ., чел., м2)';
+comment on column SCOTT.STATISTICS_TREST.klsk
+  is 'Кол-во лицевых счетов';
+comment on column SCOTT.STATISTICS_TREST.kpr
+  is 'Кол-во прописанных';
+comment on column SCOTT.STATISTICS_TREST.kpr_ot
+  is 'Кол-во временно отсутствующих';
+comment on column SCOTT.STATISTICS_TREST.kpr_wr
+  is 'Кол-во временно зарегистрированных';
+comment on column SCOTT.STATISTICS_TREST.mg
+  is 'Дата формирования статистики (ггггмм)';
+comment on column SCOTT.STATISTICS_TREST.org
+  is 'Код организации - поставщика услуги';
+comment on column SCOTT.STATISTICS_TREST.status
+  is 'Статус жилья';
+comment on column SCOTT.STATISTICS_TREST.psch
+  is 'Признак закрытых лицевых счетов (1-закрытые, 0-действующие)';
+comment on column SCOTT.STATISTICS_TREST.sch
+  is 'Признак наличия индивидуального счетчика (водоснабжение, электроснабжение) 0 -без сч. 1-счетчик.';
+comment on column SCOTT.STATISTICS_TREST.cnt_lg
+  is 'Кол-во льготников, пользующихся услугой';
+comment on column SCOTT.STATISTICS_TREST.cnt_subs
+  is 'Кол-во лицевых, пользующихся услугой, имеющих субсидию';
+comment on column SCOTT.STATISTICS_TREST.dat
+  is 'Дата формирования статистики (ддммгггг)';
+comment on column SCOTT.STATISTICS_TREST.cnt_room
+  is 'Кол-во квартир (только для Итогов)';
+comment on column SCOTT.STATISTICS_TREST.cena
+  is 'Цена';
+comment on column SCOTT.STATISTICS_TREST.is_empt
+  is 'Пустая ли квартира (0-нет, 1 - да)';
+comment on column SCOTT.STATISTICS_TREST.fk_tp
+  is 'FK на тип счета (Основоной, Дополнительный)';
+comment on column SCOTT.STATISTICS_TREST.opl
+  is 'Площадь по услуге (в дополнение к CNT)';
+comment on column SCOTT.STATISTICS_TREST.is_vol
+  is 'Имеется объем по услуге (null,0-нет, 1 -да)';
+comment on column SCOTT.STATISTICS_TREST.chng_vol
+  is 'Объем, полученный из перерасчета';
+create index SCOTT.ST_DAT_REU_USL_ORG on SCOTT.STATISTICS_TREST (DAT, REU, USL, ORG)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create index SCOTT.ST_MG_REU_USL_ORG on SCOTT.STATISTICS_TREST (MG, REU, USL, ORG)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

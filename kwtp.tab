@@ -1,0 +1,56 @@
+create table SCOTT.KWTP
+(
+  id      NUMBER not null,
+  lsk     CHAR(8) not null,
+  ska     NUMBER(9,2),
+  pn      NUMBER(9,2),
+  dopl    CHAR(6) not null,
+  oper    CHAR(2) not null,
+  nomz    NUMBER(8) not null,
+  dat_ink DATE not null,
+  nink    NUMBER(3) not null,
+  nkom    CHAR(3) not null
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+  )
+nologging;
+comment on table SCOTT.KWTP
+  is 'Таблица платежей, для оракляной версии распределения';
+comment on column SCOTT.KWTP.id
+  is 'ID';
+comment on column SCOTT.KWTP.lsk
+  is 'Л/С';
+comment on column SCOTT.KWTP.ska
+  is 'платеж';
+comment on column SCOTT.KWTP.pn
+  is 'пеня';
+comment on column SCOTT.KWTP.dopl
+  is 'период оплаты';
+comment on column SCOTT.KWTP.oper
+  is 'операция';
+comment on column SCOTT.KWTP.nomz
+  is 'номер записи';
+comment on column SCOTT.KWTP.dat_ink
+  is 'дата инкассации';
+comment on column SCOTT.KWTP.nink
+  is 'номер инкассации';
+comment on column SCOTT.KWTP.nkom
+  is 'номер компьютера';
+alter table SCOTT.KWTP
+  add constraint KWTP_ID primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+

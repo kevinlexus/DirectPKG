@@ -1,0 +1,21 @@
+create global temporary table SCOTT.TEMP_PREP2
+(
+  id     NUMBER not null,
+  fk_ext NUMBER,
+  summa  NUMBER,
+  tp_cd  NUMBER
+)
+on commit delete rows;
+comment on table SCOTT.TEMP_PREP2
+  is 'Временная таблица для пакета C_PREP';
+comment on column SCOTT.TEMP_PREP2.id
+  is 'ID';
+comment on column SCOTT.TEMP_PREP2.fk_ext
+  is 'Внешний идентификатор';
+comment on column SCOTT.TEMP_PREP2.summa
+  is 'Сумма';
+comment on column SCOTT.TEMP_PREP2.tp_cd
+  is 'Тип (0-Вх.значения, 1-Исх.значения, 2-Корректировка, 3 -Корректировка округленная, 4 -корректировка дополнителная)';
+alter table SCOTT.TEMP_PREP2
+  add constraint TEMP_PREP2_P primary key (ID);
+

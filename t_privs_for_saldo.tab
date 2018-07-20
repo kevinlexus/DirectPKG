@@ -1,0 +1,33 @@
+create table SCOTT.T_PRIVS_FOR_SALDO
+(
+  lsk       CHAR(8) not null,
+  summa     NUMBER,
+  uslm      CHAR(3),
+  org       NUMBER not null,
+  id_region NUMBER,
+  usl       CHAR(3)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 832K
+  )
+nologging;
+comment on table SCOTT.T_PRIVS_FOR_SALDO
+  is 'Временная таблица';
+comment on column SCOTT.T_PRIVS_FOR_SALDO.usl
+  is 'для второго этапа сальдо';
+create index SCOTT.T_PRIVS_FOR_SALDO_LUO on SCOTT.T_PRIVS_FOR_SALDO (LSK, USLM, ORG, SUMMA)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+  )
+  nologging;
+

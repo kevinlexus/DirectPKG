@@ -1,0 +1,44 @@
+create table SCOTT.TEMP_KWTP_DAY
+(
+  kwtp_id NUMBER,
+  summa   NUMBER(12,2),
+  lsk     CHAR(8) not null,
+  oper    CHAR(2) not null,
+  dopl    CHAR(6) not null,
+  nkom    CHAR(3) not null,
+  nink    NUMBER(3) not null,
+  dat_ink DATE not null,
+  priznak NUMBER(1) not null,
+  usl     CHAR(3) not null,
+  org     NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 128K
+  )
+nologging;
+create index SCOTT.TEMP_KWTP_DAY_1 on SCOTT.TEMP_KWTP_DAY (DOPL, LSK, USL, OPER, PRIZNAK)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  )
+  nologging;
+create index SCOTT.TEMP_KWTP_DAY_2 on SCOTT.TEMP_KWTP_DAY (LSK, USL, OPER, PRIZNAK)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  )
+  nologging;
+

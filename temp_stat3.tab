@@ -1,0 +1,10 @@
+create global temporary table SCOTT.TEMP_STAT3
+(
+  mg   CHAR(6),
+  reu  CHAR(3),
+  kul  CHAR(4),
+  nd   CHAR(6),
+  name VARCHAR2(64)
+)
+on commit delete rows;
+

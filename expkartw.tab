@@ -1,0 +1,48 @@
+create table SCOTT.EXPKARTW
+(
+  lsk       CHAR(8),
+  adr       CHAR(50),
+  ntr_      NUMBER(8,2),
+  ntri_     NUMBER(8,2),
+  nderi_    NUMBER(8,2),
+  not_      NUMBER(8,2),
+  n4_       NUMBER(8,2),
+  n42_      NUMBER(8,2),
+  n41_      NUMBER(8,2),
+  n412_     NUMBER(8,2),
+  ngw_      NUMBER(8,2),
+  ngwi_     NUMBER(8,2),
+  n6_       NUMBER(8,2),
+  n12_      NUMBER(8,2),
+  n161_     NUMBER(8,2),
+  n9_       NUMBER(8,2),
+  ndza_     NUMBER(8,2),
+  ndzai_    NUMBER(8,2),
+  notip_    NUMBER(8,2),
+  nder_     NUMBER(8,2),
+  itog      NUMBER,
+  mg        CHAR(6),
+  var       NUMBER,
+  nrc_      NUMBER(8,2),
+  nkap_     NUMBER(8,2),
+  nkapi_    NUMBER(8,2),
+  nugd_     NUMBER(8,2),
+  reu       CHAR(3),
+  nugdi_    NUMBER(8,2),
+  nrc2_     NUMBER(8,2),
+  kpr       NUMBER,
+  nhwfgws_  NUMBER(8,2),
+  nhwgws_   NUMBER(8,2),
+  ntepfgws_ NUMBER(8,2),
+  nel7_     NUMBER(8,2)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 24M
+  )
+nologging;
+

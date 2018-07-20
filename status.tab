@@ -1,0 +1,41 @@
+create table SCOTT.STATUS
+(
+  id      NUMBER not null,
+  name    VARCHAR2(25),
+  cd      VARCHAR2(32),
+  tp      VARCHAR2(32),
+  name_kp VARCHAR2(25)
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on table SCOTT.STATUS
+  is 'Справочник статусов Л/С';
+comment on column SCOTT.STATUS.tp
+  is 'Назначение помещения (жил./не жил)';
+comment on column SCOTT.STATUS.name_kp
+  is 'Наименование статуса, для выгрузки в фонд капремонта';
+alter table SCOTT.STATUS
+  add constraint STATUS_P_ID primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

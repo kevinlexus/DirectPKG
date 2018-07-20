@@ -1,0 +1,60 @@
+create table SCOTT.FIAS_HOUSE
+(
+  aoguid     VARCHAR2(36),
+  buildnum   VARCHAR2(10),
+  enddate    DATE,
+  eststatus  NUMBER(1),
+  houseguid  VARCHAR2(36),
+  houseid    VARCHAR2(36),
+  housenum   VARCHAR2(10),
+  statstatus NUMBER(5),
+  ifnsfl     VARCHAR2(4),
+  ifnsul     VARCHAR2(4),
+  okato      VARCHAR2(11),
+  oktmo      VARCHAR2(11),
+  postalcode VARCHAR2(6),
+  startdate  DATE,
+  strucnum   VARCHAR2(10),
+  strstatus  NUMBER(1),
+  terrifnsfl VARCHAR2(4),
+  terrifnsul VARCHAR2(4),
+  updatedate DATE,
+  normdoc    VARCHAR2(36),
+  counter    NUMBER(4)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 188M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create index SCOTT.FIAS_HOUSE_I on SCOTT.FIAS_HOUSE (AOGUID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 42M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create index SCOTT.FIAS_HOUSE_I2 on SCOTT.FIAS_HOUSE (HOUSEGUID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 42M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

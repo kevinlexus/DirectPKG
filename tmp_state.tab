@@ -1,0 +1,38 @@
+create table SCOTT.TMP_STATE
+(
+  fk_kart_pr NUMBER,
+  fk_status  NUMBER,
+  dt1        DATE,
+  dt2        DATE,
+  tp         NUMBER,
+  dat_rog    DATE,
+  rel_cd     VARCHAR2(32)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 128K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.TMP_STATE
+  is '¬ременна€ таблица, дл€ расчета долей пользовани€  услугами';
+comment on column SCOTT.TMP_STATE.fk_kart_pr
+  is 'FK на проживающего';
+comment on column SCOTT.TMP_STATE.fk_status
+  is 'FK статус проживающего (счетчика)';
+comment on column SCOTT.TMP_STATE.dt1
+  is 'ƒата начала';
+comment on column SCOTT.TMP_STATE.dt2
+  is 'ƒата окончани€';
+comment on column SCOTT.TMP_STATE.tp
+  is '0-основной статус проживающего, 1,-дополнительный (вр.рег, вр.отсут.) 2 - по счетчикам';
+comment on column SCOTT.TMP_STATE.dat_rog
+  is 'ƒата рождени€';
+comment on column SCOTT.TMP_STATE.rel_cd
+  is 'CD родственного отношени€';
+

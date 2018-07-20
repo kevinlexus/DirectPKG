@@ -1,0 +1,34 @@
+create global temporary table SCOTT.LIST_C
+(
+  id     NUMBER not null,
+  sel_id NUMBER,
+  sel_cd VARCHAR2(255),
+  name   VARCHAR2(255),
+  fk_ses NUMBER,
+  fk_par NUMBER,
+  sel    NUMBER,
+  npp    NUMBER
+)
+on commit preserve rows;
+comment on table SCOTT.LIST_C
+  is 'Таблица выбора пользователем значений для сложного параметра';
+comment on column SCOTT.LIST_C.id
+  is 'ID';
+comment on column SCOTT.LIST_C.sel_id
+  is 'ID выбранного элемента';
+comment on column SCOTT.LIST_C.sel_cd
+  is 'CD выбранного элемента';
+comment on column SCOTT.LIST_C.name
+  is 'Наименование';
+comment on column SCOTT.LIST_C.fk_ses
+  is 'FK на сесиию';
+comment on column SCOTT.LIST_C.fk_par
+  is 'FK на параметр';
+comment on column SCOTT.LIST_C.sel
+  is 'Элемент выбран -1, нет -0';
+comment on column SCOTT.LIST_C.npp
+  is '№ п/п для сортировки';
+create index SCOTT.LIST_C_I1 on SCOTT.LIST_C (FK_SES);
+alter table SCOTT.LIST_C
+  add constraint LIST_C_P primary key (ID);
+

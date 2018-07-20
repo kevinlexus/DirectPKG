@@ -1,0 +1,40 @@
+create table SCOTT.ARCH_CHANGES
+(
+  lsk       CHAR(8),
+  usl_id    CHAR(3),
+  summa     NUMBER,
+  id        NUMBER,
+  mg        VARCHAR2(6),
+  show_bill NUMBER,
+  proc      NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 2M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on column SCOTT.ARCH_CHANGES.show_bill
+  is 'Показывать ли в счетах (null,0-да, 1-нет)';
+comment on column SCOTT.ARCH_CHANGES.proc
+  is 'Суммарный % для счетов';
+create index SCOTT.ARCH_CHANGES_LSK_USLID on SCOTT.ARCH_CHANGES (LSK, USL_ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+

@@ -1,0 +1,77 @@
+create table SCOTT.T_CORRECTS_PAYMENTS
+(
+  lsk     CHAR(8) not null,
+  usl     CHAR(3) not null,
+  org     NUMBER not null,
+  summa   NUMBER,
+  user_id NUMBER default UID,
+  dat     DATE,
+  mg      CHAR(6),
+  dopl    CHAR(6),
+  id      NUMBER not null,
+  fk_doc  NUMBER,
+  var     NUMBER,
+  iter    NUMBER
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on table SCOTT.T_CORRECTS_PAYMENTS
+  is 'Исправительные операции по поставщикам-услугам';
+comment on column SCOTT.T_CORRECTS_PAYMENTS.lsk
+  is 'Л/С';
+comment on column SCOTT.T_CORRECTS_PAYMENTS.usl
+  is 'Id Услуги';
+comment on column SCOTT.T_CORRECTS_PAYMENTS.org
+  is 'Id Организации';
+comment on column SCOTT.T_CORRECTS_PAYMENTS.summa
+  is 'Сумма';
+comment on column SCOTT.T_CORRECTS_PAYMENTS.user_id
+  is 'ID пользователя, выполнившего операцию';
+comment on column SCOTT.T_CORRECTS_PAYMENTS.dat
+  is 'Дата операции';
+comment on column SCOTT.T_CORRECTS_PAYMENTS.mg
+  is 'Период';
+comment on column SCOTT.T_CORRECTS_PAYMENTS.dopl
+  is 'Период оплаты';
+comment on column SCOTT.T_CORRECTS_PAYMENTS.id
+  is 'ID';
+comment on column SCOTT.T_CORRECTS_PAYMENTS.fk_doc
+  is 'FK на c_change_docs';
+comment on column SCOTT.T_CORRECTS_PAYMENTS.var
+  is 'Вариант обработки, (null,0- до форм.сальдо, 1- после, 11 - спец.корр. сальдо (вар.с c_deb_usl )';
+comment on column SCOTT.T_CORRECTS_PAYMENTS.iter
+  is 'Итерация';
+alter table SCOTT.T_CORRECTS_PAYMENTS
+  add constraint T_CORR_PAY_P_ID primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.T_CORRECTS_PAYMENTS
+  add constraint T_CORRECTS_PAY_FK_ORG foreign key (ORG)
+  references SCOTT.T_ORG (ID);
+alter table SCOTT.T_CORRECTS_PAYMENTS
+  add constraint T_CORR_PAY_F_LSK foreign key (LSK)
+  references SCOTT.KART (LSK);
+alter table SCOTT.T_CORRECTS_PAYMENTS
+  add constraint T_CORR_PAY_F_USL foreign key (USL)
+  references SCOTT.USL (USL);
+

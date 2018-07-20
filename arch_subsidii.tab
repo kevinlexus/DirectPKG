@@ -1,0 +1,26 @@
+create table SCOTT.ARCH_SUBSIDII
+(
+  lsk    CHAR(8),
+  usl_id CHAR(3),
+  summa  NUMBER,
+  mg     VARCHAR2(6)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  )
+nologging;
+create index SCOTT.ARCH_SUBSIDII_LSK_USLID on SCOTT.ARCH_SUBSIDII (LSK, USL_ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+

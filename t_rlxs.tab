@@ -1,0 +1,49 @@
+create table SCOTT.T_RLXS
+(
+  id      NUMBER not null,
+  cd      VARCHAR2(32) default '32' not null,
+  fk_role NUMBER not null,
+  fk_objs NUMBER not null,
+  v       NUMBER default 0 not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.T_RLXS
+  is 'св€зь ролей с приложени€ми';
+comment on column SCOTT.T_RLXS.cd
+  is ' од - уникальный';
+comment on column SCOTT.T_RLXS.fk_role
+  is 'ссылка на роль';
+comment on column SCOTT.T_RLXS.fk_objs
+  is 'ссылка на систему(приложение)';
+comment on column SCOTT.T_RLXS.v
+  is 'вкл/выкл.  включено, если = 1';
+alter table SCOTT.T_RLXS
+  add constraint T_RLXS_PK primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+alter table SCOTT.T_RLXS
+  add constraint T_RLXS_UK_CD unique (CD)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+

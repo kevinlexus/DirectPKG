@@ -1,0 +1,37 @@
+create table SCOTT.SUBSIDII
+(
+  lsk   CHAR(8) not null,
+  usl   CHAR(3) not null,
+  summa NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 576K
+  )
+nologging;
+comment on table SCOTT.SUBSIDII
+  is 'Субсидии по лицевым / услугам';
+comment on column SCOTT.SUBSIDII.lsk
+  is 'Л/С';
+comment on column SCOTT.SUBSIDII.usl
+  is 'Id Услуги';
+comment on column SCOTT.SUBSIDII.summa
+  is 'Сумма субсидии';
+create index SCOTT.SUBSIDII_I_LSK_USL on SCOTT.SUBSIDII (LSK, USL)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  )
+  nologging;
+alter table SCOTT.SUBSIDII
+  add constraint SUBSIDII_F_USL foreign key (USL)
+  references SCOTT.USL (USL);
+

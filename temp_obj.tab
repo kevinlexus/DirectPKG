@@ -1,0 +1,9 @@
+create global temporary table SCOTT.TEMP_OBJ
+(
+  id NUMBER
+)
+on commit preserve rows;
+comment on table SCOTT.TEMP_OBJ
+  is 'Временная таблица содержащая выборку каких либо объектов';
+create unique index SCOTT.TEMP_OBJ_I on SCOTT.TEMP_OBJ (ID);
+

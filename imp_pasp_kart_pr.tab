@@ -1,0 +1,79 @@
+create table SCOTT.IMP_PASP_KART_PR
+(
+  objadress          VARCHAR2(256),
+  fio                VARCHAR2(256),
+  imya               VARCHAR2(256),
+  otchestvo          VARCHAR2(256),
+  daterozd           DATE,
+  rodstvo            VARCHAR2(256),
+  dokument           VARCHAR2(256),
+  hooout             VARCHAR2(256),
+  dateout            DATE,
+  seriapasport       VARCHAR2(256),
+  npasport           VARCHAR2(256),
+  mestorozd          VARCHAR2(256),
+  datepropiski       DATE,
+  datevipiski        DATE,
+  realpropisan       VARCHAR2(256),
+  data_vnesen_pribil DATE,
+  data_vnesen_ubil   DATE,
+  otkudapribil       VARCHAR2(256),
+  kudaubil           VARCHAR2(256),
+  datapribil         DATE,
+  mestojob           VARCHAR2(256),
+  pol                VARCHAR2(256),
+  nacional           VARCHAR2(256),
+  izdevenie          VARCHAR2(256),
+  vremenno           VARCHAR2(256),
+  inn                VARCHAR2(256),
+  k_lsk              VARCHAR2(8),
+  fk_kart_pr         NUMBER,
+  relat_id           NUMBER,
+  fk_doc_tp          NUMBER,
+  dok_c              CHAR(8),
+  dok_n              CHAR(7),
+  dok_d              DATE,
+  dok_v              CHAR(65),
+  b_place            VARCHAR2(60),
+  dat_prop           DATE,
+  dat_ub             DATE,
+  frm_town           VARCHAR2(30),
+  to_town            VARCHAR2(30),
+  k_pol              NUMBER,
+  status             NUMBER default 1 not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 7M
+  );
+comment on column SCOTT.IMP_PASP_KART_PR.relat_id
+  is 'Отношение к квартиросъемщику....';
+comment on column SCOTT.IMP_PASP_KART_PR.fk_doc_tp
+  is 'Документ';
+comment on column SCOTT.IMP_PASP_KART_PR.dok_c
+  is 'Док.серия';
+comment on column SCOTT.IMP_PASP_KART_PR.dok_n
+  is 'Док.номер';
+comment on column SCOTT.IMP_PASP_KART_PR.dok_d
+  is 'Док.дата выд.';
+comment on column SCOTT.IMP_PASP_KART_PR.dok_v
+  is 'Док.кем выдан';
+comment on column SCOTT.IMP_PASP_KART_PR.b_place
+  is 'Место рождения';
+comment on column SCOTT.IMP_PASP_KART_PR.dat_prop
+  is 'Дата прописки';
+comment on column SCOTT.IMP_PASP_KART_PR.dat_ub
+  is 'Дата выписки';
+comment on column SCOTT.IMP_PASP_KART_PR.frm_town
+  is 'Откуда: Нас.пункт';
+comment on column SCOTT.IMP_PASP_KART_PR.to_town
+  is 'Куда: Нас.пункт';
+comment on column SCOTT.IMP_PASP_KART_PR.k_pol
+  is 'Пол';
+comment on column SCOTT.IMP_PASP_KART_PR.status
+  is 'Статус (1-постоянно зарег, 2-временно отсут, 3-временно зарег, 4 -выбыл)';
+

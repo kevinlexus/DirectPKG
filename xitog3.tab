@@ -1,0 +1,112 @@
+create table SCOTT.XITOG3
+(
+  reu        CHAR(3) not null,
+  trest      CHAR(2) not null,
+  kul        CHAR(4) not null,
+  nd         CHAR(6) not null,
+  org        NUMBER not null,
+  uslm       CHAR(3),
+  usl        CHAR(3) not null,
+  status     NUMBER,
+  indebet    NUMBER,
+  inkredit   NUMBER,
+  charges    NUMBER,
+  changes    NUMBER,
+  subsid     NUMBER,
+  payment    NUMBER,
+  pn         NUMBER,
+  outdebet   NUMBER,
+  outkredit  NUMBER,
+  mg         CHAR(6) not null,
+  privs      NUMBER,
+  privs_city NUMBER,
+  ch_full    NUMBER,
+  changes2   NUMBER,
+  poutsal    NUMBER,
+  fk_lsk_tp  NUMBER,
+  changes3   NUMBER,
+  pinsal     NUMBER,
+  pcur       NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 4M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on table SCOTT.XITOG3
+  is 'Сальдо по домам / предприятиям / услугам по USL';
+comment on column SCOTT.XITOG3.reu
+  is 'Рэу';
+comment on column SCOTT.XITOG3.trest
+  is 'Трест';
+comment on column SCOTT.XITOG3.kul
+  is 'Код ул';
+comment on column SCOTT.XITOG3.nd
+  is '№ дома';
+comment on column SCOTT.XITOG3.org
+  is 'ID Орг';
+comment on column SCOTT.XITOG3.uslm
+  is 'ID Усл.главн.';
+comment on column SCOTT.XITOG3.usl
+  is 'ID Усл.';
+comment on column SCOTT.XITOG3.status
+  is 'Статус жилья';
+comment on column SCOTT.XITOG3.indebet
+  is 'Вх.Дебет';
+comment on column SCOTT.XITOG3.inkredit
+  is 'Вх.Кредит';
+comment on column SCOTT.XITOG3.charges
+  is 'Начисление, с учетом изменений';
+comment on column SCOTT.XITOG3.changes
+  is 'Изменения';
+comment on column SCOTT.XITOG3.subsid
+  is 'Субсидия';
+comment on column SCOTT.XITOG3.payment
+  is 'Оплата';
+comment on column SCOTT.XITOG3.pn
+  is 'Оплата пени';
+comment on column SCOTT.XITOG3.outdebet
+  is 'Исх.Дебет';
+comment on column SCOTT.XITOG3.outkredit
+  is 'Исх.Кредит';
+comment on column SCOTT.XITOG3.mg
+  is 'Период';
+comment on column SCOTT.XITOG3.privs
+  is 'Льготы';
+comment on column SCOTT.XITOG3.privs_city
+  is 'Льготы, бюджет города';
+comment on column SCOTT.XITOG3.ch_full
+  is 'Начисление по тарифу';
+comment on column SCOTT.XITOG3.changes2
+  is 'Изменения';
+comment on column SCOTT.XITOG3.poutsal
+  is 'Исходящее сальдо по пене';
+comment on column SCOTT.XITOG3.fk_lsk_tp
+  is 'Тип лиц.сч';
+comment on column SCOTT.XITOG3.changes3
+  is 'Корректировки сальдо перерасчетами';
+comment on column SCOTT.XITOG3.pinsal
+  is 'Входящее сальдо по пене';
+comment on column SCOTT.XITOG3.pcur
+  is 'Текущее начисление пени';
+create index SCOTT.XITOG3_I on SCOTT.XITOG3 (REU, KUL, ND, ORG, USL, STATUS)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+

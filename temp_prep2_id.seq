@@ -1,0 +1,7 @@
+create sequence SCOTT.TEMP_PREP2_ID
+minvalue 1
+maxvalue 999999999999999999999999999
+start with 6201
+increment by 1
+cache 20;
+

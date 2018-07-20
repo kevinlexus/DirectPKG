@@ -1,0 +1,44 @@
+create table SCOTT.SPR_PROC_PAY
+(
+  usl VARCHAR2(3) not null,
+  org NUMBER not null,
+  reu CHAR(3) not null,
+  mg1 VARCHAR2(6) not null,
+  mg2 VARCHAR2(6) not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.SPR_PROC_PAY
+  is 'Справочник обработки оплаты';
+comment on column SCOTT.SPR_PROC_PAY.usl
+  is 'Код услуги';
+comment on column SCOTT.SPR_PROC_PAY.org
+  is 'Код орг';
+comment on column SCOTT.SPR_PROC_PAY.reu
+  is 'Код УК';
+comment on column SCOTT.SPR_PROC_PAY.mg1
+  is 'Нач.период';
+comment on column SCOTT.SPR_PROC_PAY.mg2
+  is 'Конечн.период';
+create unique index SCOTT.SPR_PROC_PAY_I on SCOTT.SPR_PROC_PAY (USL, ORG, REU, MG1, MG2)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

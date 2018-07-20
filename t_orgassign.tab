@@ -1,0 +1,32 @@
+create table SCOTT.T_ORGASSIGN
+(
+  fk_src NUMBER,
+  fk_dst NUMBER,
+  mg1    VARCHAR2(6),
+  mg2    VARCHAR2(6)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+  );
+comment on table SCOTT.T_ORGASSIGN
+  is 'Правоприемники по организациям';
+comment on column SCOTT.T_ORGASSIGN.fk_src
+  is 'Орг-источник';
+comment on column SCOTT.T_ORGASSIGN.fk_dst
+  is 'Орг-назначение';
+comment on column SCOTT.T_ORGASSIGN.mg1
+  is 'Нач.период';
+comment on column SCOTT.T_ORGASSIGN.mg2
+  is 'Кон.период';
+alter table SCOTT.T_ORGASSIGN
+  add constraint T_ORGASSIGN_F_DST foreign key (FK_DST)
+  references SCOTT.T_ORG (ID);
+alter table SCOTT.T_ORGASSIGN
+  add constraint T_ORGASSIGN_F_SRC foreign key (FK_SRC)
+  references SCOTT.T_ORG (ID);
+

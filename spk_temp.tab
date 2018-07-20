@@ -1,0 +1,61 @@
+create table SCOTT.SPK_TEMP
+(
+  nk       CHAR(3),
+  ik       CHAR(25),
+  gk       NUMBER(2),
+  gr_lg    CHAR(2),
+  pl_fs    NUMBER(6,2),
+  razden   NUMBER(3),
+  kmn      NUMBER(6,2),
+  plr      NUMBER(6,2),
+  pln      NUMBER(6,2),
+  lpkw     NUMBER(1),
+  osw_norm NUMBER(1),
+  kkr      NUMBER(3),
+  kkri     NUMBER(3),
+  ktr      NUMBER(3),
+  ktri     NUMBER(3),
+  kder     NUMBER(3),
+  kderi    NUMBER(3),
+  k1l      NUMBER(3),
+  klifi    NUMBER(3),
+  k1m      NUMBER(3),
+  kmpri    NUMBER(3),
+  kot      NUMBER(3),
+  k4       NUMBER(3),
+  k5       NUMBER(3),
+  k5i      NUMBER(3),
+  k6       NUMBER(3),
+  k6i      NUMBER(3),
+  kgw      NUMBER(3),
+  kgwi     NUMBER(3),
+  k8       NUMBER(3),
+  koi      NUMBER(3),
+  k9       NUMBER(3),
+  k10      NUMBER(3),
+  k11      NUMBER(3),
+  kgi      NUMBER(3),
+  kgtr     NUMBER(3),
+  kgtri    NUMBER(3),
+  k12      NUMBER(3),
+  k12i     NUMBER(3),
+  k14      NUMBER(3),
+  k15      NUMBER(3),
+  k16      NUMBER(3),
+  k17      NUMBER(3),
+  k18      NUMBER(3),
+  kmusi    NUMBER(3),
+  k19      NUMBER(3),
+  kvaxt    NUMBER(3),
+  kvaxti   NUMBER(3)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 128K
+  )
+nologging;
+

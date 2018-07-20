@@ -1,0 +1,45 @@
+create table SCOTT.LOG
+(
+  id           NUMBER not null,
+  timestampm   DATE,
+  comments     VARCHAR2(1000),
+  timem        NUMBER,
+  comments_ext CLOB,
+  ip           VARCHAR2(20),
+  terminal     VARCHAR2(30),
+  event_id     NUMBER,
+  id_rec       NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 35M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on table SCOTT.LOG
+  is 'Логи пользователей';
+comment on column SCOTT.LOG.id
+  is 'ID - пользователя';
+comment on column SCOTT.LOG.timestampm
+  is 'Дата время операции';
+comment on column SCOTT.LOG.comments
+  is 'Комментарии';
+comment on column SCOTT.LOG.timem
+  is 'Время исполнения операции';
+comment on column SCOTT.LOG.comments_ext
+  is 'Расширенные комментарии';
+comment on column SCOTT.LOG.ip
+  is 'IP адрес';
+comment on column SCOTT.LOG.terminal
+  is 'Компьютер';
+comment on column SCOTT.LOG.event_id
+  is '1-logon';
+comment on column SCOTT.LOG.id_rec
+  is 'ID записи';
+
