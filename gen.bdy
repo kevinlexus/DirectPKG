@@ -25,7 +25,7 @@ create or replace package body scott.gen is
   
   l_mg1:=utils.add_months_pr(rec_params.period, 1);
 
-  --проверка до и во время формирования
+  --проверка до и во время формирования ния
   if var_ = 1 then --проверка всех ошибок до формирования
     if rec_params.period <> init.get_period then
        err_str_:='Стоп, заданная дата не соответствующая текущему периоду!';
