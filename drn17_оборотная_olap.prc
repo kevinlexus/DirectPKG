@@ -1,0 +1,6 @@
+CREATE OR REPLACE PROCEDURE SCOTT.drN17_Оборотная_OLAP IS
+BEGIN
+  NULL;
+END drN17_Оборотная_OLAP;
+/
+

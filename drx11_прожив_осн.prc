@@ -1,0 +1,6 @@
+CREATE OR REPLACE PROCEDURE SCOTT.drX11_опнфхб_ням IS
+BEGIN
+  NULL;
+END drX11_опнфхб_ням;
+/
+

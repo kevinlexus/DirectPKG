@@ -1,0 +1,6 @@
+CREATE OR REPLACE PROCEDURE SCOTT.drX10_ ¿–“_Œ—Õ IS
+BEGIN
+  NULL;
+END drX10_ ¿–“_Œ—Õ;
+/
+
