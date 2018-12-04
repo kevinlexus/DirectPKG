@@ -145,7 +145,7 @@ if var_ = 1 then
   execute immediate 'insert into imp_usl@apex
     (uslm, usl, kartw, kwni, lpw, ed_izm, nm, nm1, usl_p, sptarn, usl_type, usl_plr, usl_norm, typ_usl, usl_order, usl_type2, usl_subs, nm2, nm3, cd, npp, fk_calc_tp, uslg, counter, have_vvod, n_progs, fk_usl_pen, can_vv, is_iter, max_vol, fk_usl_chld)
   select uslm, usl, kartw, kwni, lpw, ed_izm, nm, nm1, usl_p, sptarn, usl_type, usl_plr, usl_norm, typ_usl, usl_order, usl_type2, usl_subs, nm2, nm3, cd, npp, fk_calc_tp, uslg, counter, have_vvod, n_progs, fk_usl_pen, can_vv, is_iter, max_vol, fk_usl_chld
-   from scott.usl';
+   from scott.usl t where t.usl is not null and t.uslm is not null'; -- ограничить, чтобы не подхватились пустые usl, uslm - виртуальных услуг
 
   logger.log_(null, 'Apex_new: экспорт справочника услуг-окончание, отправлено строк: '||to_char(SQL%ROWCOUNT));
 

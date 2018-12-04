@@ -7,7 +7,9 @@ create table SCOTT.C_PEN_CORR
   dtek    DATE not null,
   ts      DATE not null,
   fk_user NUMBER not null,
-  fk_doc  NUMBER
+  fk_doc  NUMBER,
+  usl     CHAR(3),
+  org     NUMBER
 )
 tablespace USERS
   pctfree 10
@@ -38,6 +40,10 @@ comment on column SCOTT.C_PEN_CORR.fk_user
   is 'Кем исполнено';
 comment on column SCOTT.C_PEN_CORR.fk_doc
   is 'Fk на документ';
+comment on column SCOTT.C_PEN_CORR.usl
+  is 'Код услуги, если заполнен, то по конкретной услуге корректировка, пеня не будет распределяться';
+comment on column SCOTT.C_PEN_CORR.org
+  is 'Id организации если заполнен USL, то по конкретной услуге корректировка, пеня не будет распределяться';
 create index SCOTT.C_PEN_CORR_I on SCOTT.C_PEN_CORR (FK_DOC)
   tablespace USERS
   pctfree 10
@@ -57,6 +63,12 @@ alter table SCOTT.C_PEN_CORR
   add constraint C_PEN_CORR_F_LSK foreign key (LSK)
   references SCOTT.KART (LSK) on delete cascade;
 alter table SCOTT.C_PEN_CORR
+  add constraint C_PEN_CORR_F_ORG foreign key (ORG)
+  references SCOTT.T_ORG (ID);
+alter table SCOTT.C_PEN_CORR
   add constraint C_PEN_CORR_F_USER foreign key (FK_USER)
   references SCOTT.T_USER (ID) on delete cascade;
+alter table SCOTT.C_PEN_CORR
+  add constraint C_PEN_CORR_F_USL foreign key (USL)
+  references SCOTT.USL (USL);
 

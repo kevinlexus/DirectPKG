@@ -8,23 +8,31 @@ begin
 --получить разбиение счетов на партии
  if nvl(p_cnt,0) = 0 then
   OPEN p_recset FOR
-    select 0 as first_rec, 0 as last_rec, 'Все' as name
+    select 0 as first_rec, 1000000000 as last_rec, 'Все' as name
       from dual;
  else
---   Raise_application_error(-20000, 'Обратиться к разработчику!
---   ');
-  -- вот этот код не работает: вложенный connect by всё затормаживает!!! ред.07.03.2018 
-/* чуть позже: 07.05.2018
-[14:12:47] Алена Ходосова: Л.Н.Здравствуйте! Алена А можете посмотреть в счете на оплату услуг ЖКХ если по УК выбираем печатать какую тысячу, выходит ошибка ORA-20000: Обратиться к разработчику!, ORA-06512 'SCOTT.REP_BILLS,line14
-[14:13:06] Lev: Здравствуйте
-[14:13:10] Lev: сейчас посмотрю
-[14:13:30] Алена Ходосова: ага
-[14:14:09] Lev: скажите, а давно тысячами печатали?
-[14:14:23] Алена Ходосова: в том месяце в начале.
-*/
 
   OPEN p_recset FOR
-    select 0 as first_rec, 0 as last_rec, 'Все' as name
+    select min(a.prn_num) as first_rec, max(a.prn_num) as last_rec, a.ths as name
+    from (select k.prn_num, round(rownum/p_cnt) as ths from 
+    (select t.prn_num from arch_kart t where t.reu=p_reu and t.mg=p_mg
+             order by t.prn_num) k
+    ) a
+    group by a.ths
+    order by a.ths
+    ;
+
+/* способ обработки до 23.11.18
+  OPEN p_recset FOR
+    select min(a.k_lsk_id) as first_rec, max(a.k_lsk_id) as last_rec, a.ths as name
+    from (select k.k_lsk_id, round(rownum/p_cnt) as ths from 
+    (select distinct t.k_lsk_id from kart t where t.reu=p_reu order by t.k_lsk_id) k
+    ) a
+    group by a.ths
+    order by a.ths
+    ;
+*/
+/*    select 0 as first_rec, 0 as last_rec, 'Все' as name
       from dual
     union all
     select distinct a.fst as first_rec,
@@ -38,35 +46,7 @@ begin
      where k.mg=p_mg and k.reu=p_reu
      and k.prn_num between a.fst and a.lst
      order by first_rec;
-
-
-/*    select
-     s.lvl, s.first_rec, s.last_rec,
-     'с ' || s.first_rec || ' по ' || s.last_rec as name
-      from (with t as (select count(*) as all_cnt,
-                              count(distinct k.lsk) / nvl(p_cnt, 0) as cnt
-                         from scott.arch_kart k
-                        where k.reu = p_reu
-                          and k.mg = p_mg
-                          and nvl(k.for_bill, 0) = 1)
-             select level as lvl,
-                    nvl(lag(level * nvl(p_cnt, 0) + 1, 1) over(order by level),
-                         1) as first_rec,
-                    case
-                      when level * nvl(p_cnt, 0) >= t.all_cnt then
-                       t.all_cnt
-                      else
-                       level * nvl(p_cnt, 0)
-                    end as last_rec
-               from t
-             connect by level < case
-                          when t.all_cnt > t.cnt then
-                           t.cnt + 1
-                          else
-                           t.cnt
-                        end
-              order by level) s
-              order by lvl;*/
+*/
  end if;
 end;
 
@@ -1047,10 +1027,10 @@ open p_rfcur for
   from (
   select /*+ USE_HASH(k, sl, p1, p2, p3, p4, p5, p6  )*/ k.lsk, k.k_lsk_id, k.opl,
          utils.month_name(SUBSTR(p_mg, 5, 2)) || ' ' || SUBSTR(p_mg, 1, 4) || ' г.' as mg2,
-         case when stp.cd='LSK_TP_ADDIT' and k3.lsk is not null then k3.kpr else k.kpr end as kpr,
-         case when stp.cd='LSK_TP_ADDIT' and k3.lsk is not null then k3.kpr_wr else k.kpr_wr end as kpr_wr,
-         case when stp.cd='LSK_TP_ADDIT' and k3.lsk is not null then k3.kpr_wrp else k.kpr_wrp end as kpr_wrp,
-         case when stp.cd='LSK_TP_ADDIT' and k3.lsk is not null then k3.kpr_ot else k.kpr_ot end as kpr_ot,
+         case when stp.cd in ('LSK_TP_ADDIT','LSK_TP_RSO') and k3.lsk is not null then k3.kpr else k.kpr end as kpr,
+         case when stp.cd in ('LSK_TP_ADDIT','LSK_TP_RSO') and k3.lsk is not null then k3.kpr_wr else k.kpr_wr end as kpr_wr,
+         case when stp.cd in ('LSK_TP_ADDIT','LSK_TP_RSO') and k3.lsk is not null then k3.kpr_wrp else k.kpr_wrp end as kpr_wrp,
+         case when stp.cd in ('LSK_TP_ADDIT','LSK_TP_RSO') and k3.lsk is not null then k3.kpr_ot else k.kpr_ot end as kpr_ot,
          t.name as st_name,
          decode(t.cd, 'MUN','Наниматель','Собственник') as pers_tp,
          s.name || ', ' || nvl(ltrim(k.nd, '0'), '0') || '-' ||
@@ -1064,7 +1044,7 @@ open p_rfcur for
         to_date(p_mg||'01','YYYYMMDD') as dt1,
         to_date(scott.utils.add_months_pr(p_mg, 1)||'01','YYYYMMDD') as dt2,
         k.house_id,
-        k.reu, case when stp.cd='LSK_TP_ADDIT' then o.r_sch_addit
+        k.reu, case when stp.cd in ('LSK_TP_ADDIT','LSK_TP_RSO') then o.r_sch_addit
 --                    when b.cnt = 1 then o.raschet_schet2
                     when o3.code_deb is not null then o3.raschet_schet  
                     else o.raschet_schet end
@@ -1084,8 +1064,9 @@ open p_rfcur for
       left join scott.t_org o2 on tp2.id=o2.fk_orgtp
       left join scott.t_org o3 on k.reu=o3.reu
       left join scott.v_lsk_tp stp on k.fk_tp=stp.id
-      left join scott.arch_kart k3 on k.k_lsk_id=k3.k_lsk_id and k.mg=k3.mg and k.lsk<>k3.lsk and k3.psch not in (8,9) and stp.cd='LSK_TP_ADDIT'
-         and k3.fk_tp <> k.fk_tp
+      left join scott.v_lsk_tp stp2 on stp2.cd='LSK_TP_MAIN'
+      left join scott.arch_kart k3 on k.k_lsk_id=k3.k_lsk_id and k.mg=k3.mg and k.lsk<>k3.lsk and k3.psch not in (8,9) and stp.cd in ('LSK_TP_ADDIT','LSK_TP_RSO')
+         and k3.fk_tp <> k.fk_tp and k3.fk_tp=stp2.id -- присоединить основной ЛС, чтоб получить кол-во прож.
       left join (select l.lsk, sum(l.summa) as summa --сальдо исходящее
             from scott.saldo_usl l, temp_lsk tmp
            where l.mg=scott.utils.add_months_pr(p_mg, 1) and l.lsk=tmp.lsk
@@ -1502,13 +1483,14 @@ open p_rfcur for
               on 1=1
          left join
          (select nvl(sum(t.summa),0) + nvl(sum(t.penya),0) as dolg, sum(t.penya) as penya
-             from scott.a_penya t, scott.kart k
+             from scott.a_penya t, scott.kart k, scott.v_params p
             where k.lsk = t.lsk
               and (p_adr = 1 and
                   k.k_lsk_id = scott.utils.get_k_lsk_id_by_lsk(p_lsk) or
                   p_adr = 0 and k.lsk = p_lsk)
               and t.mg1 between p_mg1 and p_mg2
-              and t.mg = p_mg2) b
+              and t.mg=p.period3--был ошибочно указан не тот период? 28.11.2018--and t.mg = p_mg2
+              ) b
               on 1=1
    where k.lsk = p_lsk;
 --здесь были комментарии: 

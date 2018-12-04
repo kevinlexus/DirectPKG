@@ -19,7 +19,7 @@ begin
                  and k.fk_tp = tp.id
                  and tp.cd = 'LSK_TP_MAIN'
                  and k2.fk_tp = tp2.id
-                 and tp2.cd = 'LSK_TP_ADDIT'
+                 and tp2.cd in ('LSK_TP_ADDIT','LSK_TP_RSO')
                  and k.psch not in (8,9)
                  and k2.psch not in (8,9)
                  ) loop

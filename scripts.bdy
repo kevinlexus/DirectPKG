@@ -2042,32 +2042,32 @@ end loop;
 
 --
 --В этом периоде еще и свыше с.н. перекинуть на норму (только для полыс)
-/*003	004	Cодер/соц.нор.
-004	004	Cодер/св.нор
-005	006	Экспл.лифт./соц.нор.
-006	006	Экспл.лифт./св.нор
-007	008	Отопление
-008	008	Отопление/св.нор
-009	010	Содерж.лифта/соц.нор.
-010	010	Содерж.лифта/св.нор
-011	012	Холодная вода
-012	012	Холодн.вода /св.нор
-013	014	Канализование
-014	014	Канализован /св.нор
-015	016	Горячая вода
-016	016	Горячая вода /св.нор
-026	026	Плата/найм
-031	046	Вывоз ТБО/соц.нор.
-033	034	Кап.ремонт/соц.нор.
-034	034	Кап.ремонт/св.нор.
-038	039	Эл.эн.
-039	039	Эл.эн./св.нор
-046	046	Вывоз ТБО/св.нор.
-052	052	Очистка   выгр.ям/соц.нор.
-053	053	ОДН-Эл.эн.
-054	054	Утилизация
-055	055	Текущий ремонт
-056		Отопление, 0 зарег.   */
+/*003 004 Cодер/соц.нор.
+004 004 Cодер/св.нор
+005 006 Экспл.лифт./соц.нор.
+006 006 Экспл.лифт./св.нор
+007 008 Отопление
+008 008 Отопление/св.нор
+009 010 Содерж.лифта/соц.нор.
+010 010 Содерж.лифта/св.нор
+011 012 Холодная вода
+012 012 Холодн.вода /св.нор
+013 014 Канализование
+014 014 Канализован /св.нор
+015 016 Горячая вода
+016 016 Горячая вода /св.нор
+026 026 Плата/найм
+031 046 Вывоз ТБО/соц.нор.
+033 034 Кап.ремонт/соц.нор.
+034 034 Кап.ремонт/св.нор.
+038 039 Эл.эн.
+039 039 Эл.эн./св.нор
+046 046 Вывоз ТБО/св.нор.
+052 052 Очистка   выгр.ям/соц.нор.
+053 053 ОДН-Эл.эн.
+054 054 Утилизация
+055 055 Текущий ремонт
+056   Отопление, 0 зарег.   */
 
 /*insert into t_corrects_payments
   (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
@@ -3080,19 +3080,19 @@ procedure swap_sal_TO_NOTHING is
   l_dt date;
 begin  
 --период, которым провести изменения
-mgchange_:='201806';
+mgchange_:='201811';
 --период, по которому смотрим сальдо
-l_mg_sal:='201806';
+l_mg_sal:='201811';
 --текущий месяц
-l_mg:='201806';
+l_mg:='201811';
 --месяц назад
-l_mg_back:='201805';
+l_mg_back:='201810';
 --дата, которой провести
-l_dt:=to_date('20180619','YYYYMMDD');
+l_dt:=to_date('20181129','YYYYMMDD');
 --комментарий
-comment_:='Снятие сальдо по УК 091';
---Уникальный номер переброски
-cd_:='swp_sal_nothing_20180619_1';
+comment_:='Снятие сальдо и пени по 017 УК';
+--Уникальный id переброски
+cd_:='swp_sal_nothing_20181129_1';
 
 select t.id into user_id_ from t_user t where t.cd='SCOTT';
 select changes_id.nextval into l_id from dual;
@@ -3115,7 +3115,7 @@ insert into c_pen_corr
   (lsk, penya, dopl, dtek, ts, fk_user, fk_doc)
 select s.lsk, s.penya*-1, s.mg1, l_dt, sysdate, user_id_, l_id
  from a_penya s, kart k where
-   s.lsk=k.lsk and k.reu in ('091')
+   s.lsk=k.lsk and k.reu in ('017')
     and s.mg=l_mg_back; 
 
 insert into c_change (lsk, usl, org, summa, mgchange, type, dtek, ts,
@@ -3123,7 +3123,7 @@ user_id, doc_id)
 select s.lsk, s.usl, s.org, -1*s.summa as summa,
  mgchange_, 1, l_dt, sysdate, user_id_, l_id
  from saldo_usl s, kart k where
-   s.lsk=k.lsk and k.reu in ('091') 
+   s.lsk=k.lsk and k.reu in ('017') 
    and s.mg=l_mg_sal;
 
 commit;
@@ -3370,13 +3370,23 @@ end swap_sal_chpay3;
 
 -- перенос лиц.счетов и сальдо
 -- описание здесь https://docs.google.com/document/d/18qo3GBuWkrtsQThg4E7P9MXYmImM0nQrhdtLdKw-mPY/edit
-procedure create_uk_new(newreu_ in kart.reu%type,
+procedure CREATE_UK_NEW(newreu_ in kart.reu%type,
   lsk_ in kart.lsk%type, -- лиц.счет, если НЕ заполнен - то присоединение к существующему УК
-  type_ in number, -- признак переноса закрытого фонда (1-перенос закрытого)
-  p_tp_sal in number, --признак как переносить сальдо 0-не переносить, 2 - переносить и дебет и кредит, 1-только дебет
-  p_mg_sal in c_change.mgchange%type) is
+  p_lsk_tp_src in varchar2, -- Обязательно указать, с какого типа счетов перенос!
+  p_get_all in number, -- признак какие брать лс (1 - все лс, в т.ч. закрытые, 0-только открытые)
+  p_close_src in number, -- закрывать период в лс. источника (mg2='999999') 1-да,0-нет
+  p_close_dst in number, -- закрывать период в лс. назначения (mg2='999999') 1-да,0-нет
+  p_move_resident in number, -- переносить проживающих? 1-да,0-нет
+  p_forced_status in number, -- установить новый статус счета (0-открытый, NULL - такой же как был в счете источника)
+  p_forced_tp in varchar2, -- установить новый тип счета (NULL-взять из источника, например 'LSK_TP_RSO' - РСО)
+  p_tp_sal in number, --признак как переносить сальдо 0-не переносить, 2 - переносить и дебет и кредит, 1-только дебет, 3 - только кредит
+  p_special_tp in varchar2, -- создать дополнительный лиц.счет в добавок к вновь созданному (NULL- не создавать, 'LSK_TP_ADDIT' - капремонт)
+  p_special_reu in varchar2, -- УК дополнительного лиц.счета
+  p_mg_sal in c_change.mgchange%type, -- период сальдо
+  p_remove_nabor_usl in varchar2 default null, -- удалить данные услуги (задавать как '033;034;035;' строго!), из справочника наборов ЛС источника (null - не удалять) и перенести в назначение 
+  p_mg_pen in c_change.mgchange%type -- период по которому перенести пеню. null - не переносить (обычно месяц назад)
+  ) is
   maxlsk_ number;
-  
   comment_ c_change_docs.text%type;
   mg_ params.period%type;
   mg_close_ params.period%type;
@@ -3390,9 +3400,13 @@ procedure create_uk_new(newreu_ in kart.reu%type,
   l_cd_tp varchar2(256);
   -- дата переброски сальдо, для корректировок
   l_dt date;
+  l_lsk_new kart.lsk%type;
+  l_ret number;
+  l_forced_tp number;
+  l_flag number;
 begin
 
---Raise_application_error(-20000, 'Сообщить ЛН чтоб проверил закрытие периодов в старых лиц.счетах! MG2');
+--Raise_application_error(-20000, 'Требуется проверка скрипта');
 
 --присоединение л/с. к УК
 --основной скрипт переброски фонда из ук в ук
@@ -3404,7 +3418,7 @@ begin
  --1-только дебет
  l_tp_sal:=nvl(p_tp_sal,0);
  -- дата переброски сальдо, для корректировок
- l_dt:=gdt(31,0,0); 
+ l_dt:=gdt(30,0,0); 
 select period into period_ from params p;
 select period3 into mg_close_ from v_params;
   for c in (select s.name, t.kul, t.nd from c_houses t, spul s
@@ -3416,54 +3430,8 @@ select period3 into mg_close_ from v_params;
      'Отмена, найдено два открытых дома с одним адресом: KUL='||c.kul||', Ул='||c.name||', ND='||c.nd);
   end loop;
 
-  if nvl(type_,0) <> 1 then
-    for c in (select s.name, t.kul, t.nd from c_houses t, spul s
-      where nvl(t.psch,0)=1 and t.kul=s.id
-        and exists
-       (select * from work_houses c where c.id=t.id and c.newreu = newreu_))
-    loop
-     Raise_application_error(-20000,
-       'Отмена, попытка перенести закрытый дом с адресом: KUL='||c.kul||', Ул='||c.name||', ND='||c.nd);
-    end loop;
-  end if;
 --установка флага переноса, т.е. записи инсертятся через скрипт переноса домов
 c_charges.scr_flag_:=1;
---ВНИМАНИЕ если type_=1 то переносятся все дома и закрытые и не закрытые
---использовать этот параметр, только в определенных случаях (ред.19.09.12)
-
---дома - не надо переносить, остаётся тот же
-/*if nvl(type_,0) =1  then
-insert into c_houses
-  (id, kul, nd, uch, maxlsk, kw, minlsk, house_type, opl, psch)
-  select c_house_id.nextval, kul, nd, uch, maxlsk, kw, minlsk, house_type, opl, 1
-   from c_houses h where exists
-   (select * from work_houses c where c.id=h.id and c.newreu = newreu_);
-else
-insert into c_houses
-  (id, reu, kul, nd, uch, maxlsk, kw, minlsk, house_type, opl)
-  select c_house_id.nextval, newreu_, kul, nd, uch, maxlsk, kw, minlsk, house_type, opl
-   from c_houses h where exists
-   (select * from work_houses c where c.id=h.id and c.newreu = newreu_);
-
---перенести необходимые параметры дома
-for c in (select h.k_lsk_id from c_houses h
-    where exists
-   (select * from work_houses c where c.id=h.id and c.newreu = newreu_))
-loop
-  l_par:=c_obj_par.get_num_param(p_k_lsk_id => c.k_lsk_id,
-    p_lsk => null, p_cd => 'area_general_property');
-  l_id := c_obj_par.set_num_param(p_k_lsk_id => c.k_lsk_id,
-                                     p_lsk => null,
-                                     p_cd => 'area_general_property',
-                                     p_val => l_par);
-end loop;
-
---отмечаем дома закрытым признаком, с которых переносим
- update c_houses t set t.psch=1 where exists
-   (select * from work_houses c where c.id=t.id and c.newreu = newreu_);
-
-end if;
-*/
 
 --лицевые
   if lsk_ is null then
@@ -3491,7 +3459,7 @@ if l_tp_sal in (1,2,3)  then
   select p.period into mg_ from params p;
   --комментарий
   comment_:='Переброска Cальдо на УК='||newreu_;
-  l_cd_tp := 'TRANSF_UK_NUM01';
+  l_cd_tp := 'TRANSF_28112018_1';
   --Уникальный номер переброски
   select changes_id.nextval into changes_id_ from dual;
 
@@ -3504,33 +3472,44 @@ if l_tp_sal in (1,2,3)  then
   select changes_id_, mg_, trunc(l_dt), sysdate, user_id_, comment_, l_cd_tp
    from dual;
 end if;
+ -- задать тип счета для новых лс
+ l_forced_tp:=null;
+ if p_forced_tp is not null then
+    select tp.id into l_forced_tp from v_lsk_tp tp where tp.cd=p_forced_tp;
+ end if;
 
+ l_flag:=0;
  for c in (select t.lsk as old_lsk, t.k_lsk_id, t.c_lsk_id,
    t.flag, t.flag1, t.kul, t.nd, t.kw, fio, k_fam, k_im, k_ot, kpr, kpr_wr, kpr_ot,
    kpr_cem, kpr_s, t.opl, ppl, pldop, ki,
    t.psch, psch_dt, status, kwt,
-   lodpl, bekpl, balpl, komn, et, kfg, kfot, phw, mhw,
-   pgw, mgw, pel, mel, sub_nach, subsidii, sub_data,
+   lodpl, bekpl, balpl, komn, et, kfg, kfot, null as phw, null as mhw,
+   null as pgw, null as mgw, null as pel, null as mel, sub_nach, subsidii, sub_data,
    polis,
    sch_el, newreu_ as reu, text,
    schel_dt, eksub1, eksub2, kran, t.kran1, el, el1,
    sgku, doppl, subs_cor, subs_cur,
    x.id as house_id, t.kan_sch, period_ as mg1,
-   case when nvl(type_,0)=1 then period_
+   case when nvl(p_close_dst,0)=1 then period_
      else '999999' end as mg2, 
    t.fk_tp, t.entr, t.fk_pasp_org
-   from kart t, c_houses x 
+   from kart t, c_houses x, v_lsk_tp tp 
    where --t.k_lsk_id=422249 and 
-   case when nvl(type_,0)=1 then 0
-   else t.psch end <> 8 and
-    --###1 Маркер для документирования https://docs.google.com/document/d/18qo3GBuWkrtsQThg4E7P9MXYmImM0nQrhdtLdKw-mPY/edit
-    exists (select * from work_houses h where h.id=t.house_id and h.newreu = newreu_)
+   case when nvl(p_get_all,0)=1 then 0 -- или брать все
+   else t.psch end not in (8,9) and -- или брать только открытые
+    --###1 Маркер https://docs.google.com/document/d/18qo3GBuWkrtsQThg4E7P9MXYmImM0nQrhdtLdKw-mPY/edit
+    t.house_id in (4475,12981,12171,12125,12138,12156,5967,5661,5663,5669,5671,5676,5672,5662,5664,5680,6931,12301,12962)
+    --and t.reu in ('084')
+    --exists (select * from work_houses h where h.id=t.house_id)
     --exists (select * from kmp_lsk h where h.lsk=t.lsk)
     and t.house_id = x.id
+    and t.fk_tp=tp.id 
+    and tp.cd in (p_lsk_tp_src) --###3 Маркер - тип лиц.счета, для разделения на РСО применять
     order by t.kul, t.nd, t.kw)
  loop
     --получить новый, уникальный лс
   maxlsk_:=p_houses.find_unq_lsk(newreu_, null);
+  l_lsk_new:=lpad(to_char(maxlsk_),8,'0');
   insert into c_lsk (id)
    values (c_lsk_id.nextval);
 
@@ -3545,7 +3524,7 @@ end if;
     schel_dt, eksub1, eksub2, kran, kran1, el,
     el1, sgku, doppl, subs_cor, subs_cur, house_id, kan_sch, mg1, mg2, fk_tp, entr, fk_pasp_org)
   values
-   (c.k_lsk_id, c_lsk_id.currval, lpad(to_char(maxlsk_),8,'0'), c.flag, c.flag1, c.kul, c.nd, c.kw,
+   (c.k_lsk_id, c_lsk_id.currval, l_lsk_new, c.flag, c.flag1, c.kul, c.nd, c.kw,
    c.fio, c.k_fam, c.k_im, c.k_ot, c.kpr, c.kpr_wr, c.kpr_ot, c.kpr_cem, c.kpr_s, c.opl,
    c.ppl, c.pldop, c.ki, c.psch, c.psch_dt, c.status, c.kwt,
    c.lodpl, c.bekpl, c.balpl, c.komn, c.et,
@@ -3554,18 +3533,28 @@ end if;
    c.polis,
    newreu_, c.text,
    c.schel_dt, c.eksub1, c.eksub2, c.kran, c.kran1, c.el,
-    c.el1, c.sgku, c.doppl, c.subs_cor, c.subs_cur, c.house_id, c.kan_sch, c.mg1, c.mg2, c.fk_tp, c.entr,
+    c.el1, c.sgku, c.doppl, c.subs_cor, c.subs_cur, c.house_id, c.kan_sch, c.mg1, c.mg2, nvl(l_forced_tp, c.fk_tp), c.entr,
     c.fk_pasp_org
     );
 
    --Проставить статус счета
    insert into c_states_sch
      (lsk, fk_status, dt1, dt2)
-   select lpad(to_char(maxlsk_),8,'0'), c.psch as fk_status, init.get_dt_start, null
+   select l_lsk_new, 
+   nvl(p_forced_status,c.psch) as fk_status, -- если статус не установлен принудительно
+   init.get_dt_start, null
    from dual;
 
---проживающих переносим, если не указана переброска закрытых лиц.счетов
-if nvl(type_,0)=0 then
+   -- создать лицевой счет дополнительно к новому (например специальный РСО ред. 07.08.2018)
+   if p_special_tp is not null then
+     l_ret:=p_houses.kart_lsk_special_add(l_lsk_new, p_special_tp, null, 0, 0, p_special_reu);
+     if l_ret !=0 then
+       Raise_application_error(-20000, 'Ошибка создания ДОПОЛНИТЕЛЬНОГО лиц.счета с типом:'||p_special_tp);
+     end if;
+   end if;  
+   
+--проживающих переносим, (обычно если не переброска закрытых лиц.счетов)
+if nvl(p_move_resident,0)=1 then
   for t in (
     select id, lsk, fio, status, dat_rog, pol, dok, dok_c, dok_n, dok_d, dok_v,
     dat_prop, dat_ub, relat_id, old_id, status_dat, status_chng, k_fam,
@@ -3584,7 +3573,7 @@ if nvl(type_,0)=0 then
     fk_to_regn, fk_to_distr, to_town, fk_to_kul, to_nd, to_kw,
     fk_citiz, fk_milit, fk_milit_regn)
   values
-    (kart_pr_id.nextval, lpad(to_char(maxlsk_),8,'0'),
+    (kart_pr_id.nextval, l_lsk_new,
     t.fio, t.status, t.dat_rog, t.pol, t.dok, t.dok_c, t.dok_n, t.dok_d, t.dok_v,
     t.dat_prop, t.dat_ub, t.relat_id, t.old_id, t.status_dat, t.status_chng,
     t.k_fam, t.k_im, t.k_ot, t.fk_doc_tp, t.fk_nac, t.b_place,
@@ -3619,13 +3608,24 @@ if nvl(type_,0)=0 then
 end if;
 
   -- наборы услуг
-  insert into nabor
-    (lsk, usl, org, koeff, norm, fk_vvod)
-   select lpad(to_char(maxlsk_),8,'0'), n.usl, n.org, n.koeff, n.norm, null as fk_vvod-- n.fk_vvod ред. 03.07.2018 странно, раньше было n.fk_vvod
-      from nabor n
-      where n.lsk=c.old_lsk;
+  if p_remove_nabor_usl is not null then
+    insert into nabor
+      (lsk, usl, org, koeff, norm, fk_vvod)
+     select l_lsk_new, n.usl, n.org, n.koeff, n.norm, n.fk_vvod-- n.fk_vvod ред. 03.07.2018 странно, раньше было n.fk_vvod
+        from nabor n
+        where n.lsk=c.old_lsk and instr(p_remove_nabor_usl, n.usl||';') > 0;
+    -- удалить заданную услугу в ЛС - источника
+    delete from nabor n where instr(p_remove_nabor_usl, n.usl||';') > 0 and n.lsk=c.old_lsk;
+  else
+    insert into nabor
+      (lsk, usl, org, koeff, norm, fk_vvod)
+     select l_lsk_new, n.usl, n.org, n.koeff, n.norm, n.fk_vvod-- n.fk_vvod ред. 03.07.2018 странно, раньше было n.fk_vvod
+        from nabor n
+        where n.lsk=c.old_lsk;
+  end if;  
 
-  if nvl(type_,0)=0 then
+
+  if nvl(p_close_src,0)=1 then
    --закрытие старого фонда
    --сохраняем старые признаки счетчиков
 
@@ -3657,6 +3657,7 @@ end if;
      from kart k 
      where k.lsk=c.old_lsk;
   end if;
+  
 
   -- сальдо переносим в конце!
   if l_tp_sal in (1,2,3)  then
@@ -3676,7 +3677,7 @@ end if;
      (select m.lsk, sum(summa) as summa from saldo_usl m where m.mg=p_mg_sal
        and m.lsk=c.old_lsk
       --###2 Маркер для документирования https://docs.google.com/document/d/18qo3GBuWkrtsQThg4E7P9MXYmImM0nQrhdtLdKw-mPY/edit
-       and m.usl='026' -- НАЙМ!
+       and instr(p_remove_nabor_usl, m.usl||';') > 0 
        group by m.lsk
       ) a
       where s.mg=p_mg_sal and s.lsk=a.lsk
@@ -3686,20 +3687,20 @@ end if;
         when l_tp_sal =2 then 1 -- всё сальдо
         else 0 end =1
       --###2 Маркер для документирования https://docs.google.com/document/d/18qo3GBuWkrtsQThg4E7P9MXYmImM0nQrhdtLdKw-mPY/edit
-       and s.usl='026' -- НАЙМ!
+       and instr(p_remove_nabor_usl, s.usl||';') > 0 
        and d.id=changes_id_
       and s.lsk=c.old_lsk;
 
    --устанавливаем сальдо
    insert into t_corrects_payments
      (lsk, usl, summa, org, user_id, dat, mg, dopl, fk_doc)
-   select lpad(to_char(maxlsk_),8,'0') as lsk, s.usl, -1 * s.summa,
+   select l_lsk_new as lsk, s.usl, -1 * s.summa,
      s.org, d.user_id, d.dtek, mg_, mg_, d.id
      from c_change_docs d, saldo_usl s,
      (select m.lsk, sum(summa) as summa from saldo_usl m where m.mg=p_mg_sal
        and m.lsk=c.old_lsk
       --###2 Маркер для документирования https://docs.google.com/document/d/18qo3GBuWkrtsQThg4E7P9MXYmImM0nQrhdtLdKw-mPY/edit
-       and m.usl='026' -- НАЙМ!
+       and instr(p_remove_nabor_usl, m.usl||';') > 0 
        group by m.lsk
       ) a
       where s.mg=p_mg_sal and s.lsk=a.lsk and
@@ -3708,14 +3709,42 @@ end if;
         when l_tp_sal =2 then 1
         else 0 end =1
       --###2 Маркер для документирования https://docs.google.com/document/d/18qo3GBuWkrtsQThg4E7P9MXYmImM0nQrhdtLdKw-mPY/edit
-       and s.usl='026' -- НАЙМ!
+       and instr(p_remove_nabor_usl, s.usl||';') > 0 
        and d.id=changes_id_
       and s.lsk=c.old_lsk;
 
   end if;
 
+  -- перенос пени
+  if p_mg_pen is not null then
+    -- ВЫБОРОЧНО ПО УСЛУГЕ
+    --снять
+    insert into c_pen_corr
+      (lsk, penya, dopl, dtek, ts, fk_user, fk_doc, usl, org)
+    select t.lsk, -1*t.poutsal as penya, mg_close_ as dopl, l_dt as dtek, sysdate, d.user_id, d.id as fk_doc, t.usl, t.org
+      from xitog3_lsk t join c_change_docs d on d.id=changes_id_
+      where t.lsk=c.old_lsk and t.mg=p_mg_pen
+      --###2 Маркер для документирования https://docs.google.com/document/d/18qo3GBuWkrtsQThg4E7P9MXYmImM0nQrhdtLdKw-mPY/edit
+      and nvl(t.poutsal,0)<>0 
+      and instr(p_remove_nabor_usl, t.usl||';') > 0 
+      ;
+    --поставить
+    insert into c_pen_corr
+      (lsk, penya, dopl, dtek, ts, fk_user, fk_doc, usl, org)
+    select l_lsk_new as lsk, t.poutsal as penya, mg_close_ as dopl, l_dt as dtek, sysdate, d.user_id, d.id as fk_doc, t.usl, t.org
+      from xitog3_lsk t join c_change_docs d on d.id=changes_id_
+      where t.lsk=c.old_lsk and t.mg=p_mg_pen
+      --###2 Маркер для документирования https://docs.google.com/document/d/18qo3GBuWkrtsQThg4E7P9MXYmImM0nQrhdtLdKw-mPY/edit
+      and nvl(t.poutsal,0)<>0 
+      and instr(p_remove_nabor_usl, t.usl||';') > 0 
+      ;
+  end if;
+  l_flag:=1;
 end loop;
 
+if l_flag=0 then
+  Raise_application_error(-20000, 'Ошибка! Не обработано ни одной записи!');
+end if;
 --пересчет коэфф. прожив и текущего начисления по старым и новым л.с.
 for c in (select r.lsk from kart r,
               work_houses t where t.kul=r.kul and t.nd=r.nd and t.newreu = newreu_
@@ -4109,10 +4138,10 @@ procedure swap_sal_chpay5 is
  l_ret number;
  l_deb number;
 begin
-  l_mg:='201610'; --тек.период
-  l_cd:='swap_sal_chpay5_20161005';
+  l_mg:='201808'; --тек.период
+  l_cd:='swap_sal_chpay5_20180831';
   l_mgchange:=l_mg;
-  l_dt:=to_date('20161005','YYYYMMDD');
+  l_dt:=to_date('20180831','YYYYMMDD');
   l_mg3:=utils.add_months_pr(l_mg,1); --месяц вперед
 
   dbms_output.enable;
@@ -4124,47 +4153,37 @@ begin
 --   and exists (select * from
 --  c_change_docs d where d.user_id=l_user and d.text=l_cd and d.id=t.doc_id);
 
+  delete from t_corrects_payments t where mg=l_mg
+   and exists (select * from c_change_docs d where
+    d.cd_tp=l_cd and d.id=t.fk_doc);
+  delete from c_change_docs t where t.user_id=l_user and t.cd_tp=l_cd;
+
   insert into c_change_docs (id, mgchange, dtek, ts, user_id, cd_tp)
    select l_id as id, l_mgchange, l_dt, sysdate, l_user, l_cd
    from dual;
 
-  delete from t_corrects_payments t where mg=l_mg
-   and exists (select * from c_change_docs d where
-    d.cd_tp=l_cd and d.id=t.fk_doc);
 
-  delete from c_change_docs t where t.user_id=l_user and t.cd_tp=l_cd;
 
-  for c in (select t.lsk, t.org, t.usl, abs(t.summa) as summa from saldo_usl t, usl u where t.mg='201610'
-            and t.org in (3, 78, 2) and t.summa<0
-            and t.usl=u.usl and u.uslm in  ('004', '008', '038')
-            union all
-            select t.lsk, t.org, t.usl, abs(t.summa) as summa from kart k, saldo_usl t, usl u where t.mg='201610'
-            and t.org in (7) and t.summa<0
-            and t.usl=u.usl and u.uslm in  ('004', '008', '038')
-            and k.lsk=t.lsk and k.reu='07'
+  for c in (select t.lsk, t.usl, t.org, sum(summa) as summa from saldo_usl_script t where t.mg='201809'
+                  and t.usl in ('093','095') and t.summa<0
+                  group by t.lsk, t.usl, t.org
         )
   loop
-
-      --снять с кредита
-      insert into t_corrects_payments
-        (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
-        select c.lsk, c.usl, c.org, -1*c.summa, uid, l_dt, l_mg, l_mg, l_id, 0 as var
-           from dual;
 
       --поставить на дебет (на текущую орг в лиц.сч.)
       insert into t_corrects_payments
         (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
-        select c.lsk, n.usl , n.org, c.summa, uid, l_dt, l_mg, l_mg, l_id, 0 as var
-           from nabor n where n.lsk=c.lsk and n.usl=decode(c.usl, '016', '015', '008', '007', c.usl); /* переадресация услуг*/
-      if sql%notfound then
-        dbms_output.put_line('check lsk='||c.lsk||' usl='||c.usl);
-
-        insert into t_corrects_payments
-          (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
-          select c.lsk, '003' as usl , 1 as org, c.summa, uid, l_dt, l_mg, l_mg, l_id, 0 as var
-             from dual n;
-             
-      end if;     
+        select c.lsk, n.usl, n.org, -1*c.summa, uid, l_dt, l_mg, l_mg, l_id, 0 as var
+           from nabor n
+            where n.lsk=c.lsk and n.usl=decode(c.usl, '093', '011', '095', '015', null);
+      if sql%rowcount  =1 then
+      --снять с кредита, если поставилось на дебет
+      insert into t_corrects_payments
+        (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
+        select c.lsk, c.usl, c.org, c.summa, uid, l_dt, l_mg, l_mg, l_id, 0 as var
+           from dual;
+      end if;
+              
            
   end loop;
 commit;

@@ -3,19 +3,21 @@ create table SCOTT.C_KWTP
   lsk       CHAR(8) not null,
   summa     NUMBER(12,2),
   penya     NUMBER(12,2),
-  oper      CHAR(2),
+  oper      CHAR(3),
   dopl      CHAR(6),
   nink      NUMBER,
   nkom      CHAR(3) not null,
   dtek      DATE not null,
   nkvit     NUMBER,
   dat_ink   DATE,
-  ts        DATE,
+  ts        DATE default sysdate,
   id        NUMBER not null,
   iscorrect NUMBER,
-  num_doc   VARCHAR2(25),
+  num_doc   VARCHAR2(32),
   dat_doc   DATE,
-  fk_doc    NUMBER
+  fk_doc    NUMBER,
+  fk_pdoc   NUMBER,
+  annul     NUMBER
 )
 tablespace USERS
   pctfree 1
@@ -57,11 +59,15 @@ comment on column SCOTT.C_KWTP.id
 comment on column SCOTT.C_KWTP.iscorrect
   is '0-обычный платёж, 1 - корректировка платежа, 2 -распр.оплаты, 3- наличка';
 comment on column SCOTT.C_KWTP.num_doc
-  is '№ платежного документа (из банка)';
+  is '№ извещения (из банка, из ГИС ЖКХ)';
 comment on column SCOTT.C_KWTP.dat_doc
   is 'Дата платежного документа (из банка)';
 comment on column SCOTT.C_KWTP.fk_doc
   is 'Fk на документ (для всяких перебросок)';
+comment on column SCOTT.C_KWTP.fk_pdoc
+  is 'Fk на ПД из ГИС ЖКХ';
+comment on column SCOTT.C_KWTP.annul
+  is 'Извещение об оплате аннулировано (1-да; null, 0 - нет) (только ГИС ЖКХ)';
 create index SCOTT.C_KWTP_F_DOC_I on SCOTT.C_KWTP (FK_DOC)
   tablespace USERS
   pctfree 10
@@ -133,4 +139,7 @@ alter table SCOTT.C_KWTP
 alter table SCOTT.C_KWTP
   add constraint C_KWTP_F_OPER foreign key (OPER)
   references SCOTT.OPER (OPER);
+alter table SCOTT.C_KWTP
+  add constraint C_KWTP_F_PDOC foreign key (FK_PDOC)
+  references EXS.PDOC (ID);
 

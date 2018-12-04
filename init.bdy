@@ -262,7 +262,7 @@ begin
   end if;
 
   select nvl(count(*),0) into cnt_ from my_messages;
-  if cnt_ <> 54 then
+  if cnt_ <> 58 then
    txt_:=txt_||to_char(i)||'.Некорректное кол-во записей в my_messages... или поправить пакет init'||chr(12);
    i:=i+1;
   end if;

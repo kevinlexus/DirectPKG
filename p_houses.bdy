@@ -243,7 +243,8 @@ BEGIN
                  WHERE n.lsk = k.lsk
                    AND n.usl = usl_)
            and k.fk_tp=tp.id
-           and tp.cd=p_lsk_tp;
+           and tp.cd=p_lsk_tp
+           and k.reu = p_reu;
     ELSIF sptarn_ = 1 AND nvl(norm_, 0) <> 0 THEN
       --норматив
       INSERT INTO nabor
@@ -256,7 +257,8 @@ BEGIN
                  WHERE n.lsk = k.lsk
                    AND n.usl = usl_)
            and k.fk_tp=tp.id
-           and tp.cd=p_lsk_tp;
+           and tp.cd=p_lsk_tp
+           and k.reu = p_reu;
     ELSIF sptarn_ IN (2, 3) AND nvl(koeff_, 0) <> 0 AND nvl(norm_, 0) <> 0 THEN
       --и коэфф и норматив
       INSERT INTO nabor
@@ -269,7 +271,8 @@ BEGIN
                  WHERE n.lsk = k.lsk
                    AND n.usl = usl_)
            and k.fk_tp=tp.id
-           and tp.cd=p_lsk_tp;
+           and tp.cd=p_lsk_tp
+           and k.reu = p_reu;
     END IF;
   ELSIF nvl(p_lvl, 0) = 4 THEN
     --по л/с
@@ -466,7 +469,8 @@ BEGIN
        WHERE EXISTS (SELECT *
                 FROM kart k
                WHERE k.lsk = n.lsk
-                 AND k.house_id = house_id_)
+                 AND k.house_id = house_id_
+                 and k.reu = p_reu)
          AND n.usl = usl_
          AND ROUND(nvl(n.koeff, 0),10) = ROUND(nvl(old_koeff_, 0),10)
          AND n.org = old_org_
@@ -482,7 +486,8 @@ BEGIN
        WHERE EXISTS (SELECT *
                 FROM kart k
                WHERE k.lsk = n.lsk
-                 AND k.house_id = house_id_)
+                 AND k.house_id = house_id_
+                 and k.reu = p_reu)
          AND n.usl = usl_
          AND ROUND(nvl(n.norm, 0),10) = ROUND(nvl(old_norm_, 0),10)
          AND n.org = old_org_
@@ -499,7 +504,8 @@ BEGIN
        WHERE EXISTS (SELECT *
                 FROM kart k
                WHERE k.lsk = n.lsk
-                 AND k.house_id = house_id_)
+                 AND k.house_id = house_id_
+                 and k.reu = p_reu)
          AND n.usl = usl_
          AND ROUND(nvl(n.koeff, 0),10) = ROUND(nvl(old_koeff_, 0),10)
          AND ROUND(nvl(n.norm, 0),10) = ROUND(nvl(old_norm_, 0),10)
@@ -693,7 +699,8 @@ BEGIN
        WHERE EXISTS (SELECT *
                 FROM kart k
                WHERE k.lsk = n.lsk
-                 AND k.house_id = house_id_)
+                 AND k.house_id = house_id_
+                 and k.reu = p_reu)
          AND n.usl = usl_
          AND n.org = org_
          AND nvl(n.koeff, 0) = nvl(koeff_, 0)
@@ -708,7 +715,8 @@ BEGIN
        WHERE EXISTS (SELECT *
                 FROM kart k
                WHERE k.lsk = n.lsk
-                 AND k.house_id = house_id_)
+                 AND k.house_id = house_id_
+                 and k.reu = p_reu)
          AND n.usl = usl_
          AND n.org = org_
          AND nvl(n.koeff, 0) = nvl(norm_, 0)
@@ -723,7 +731,8 @@ BEGIN
        WHERE EXISTS (SELECT *
                 FROM kart k
                WHERE k.lsk = n.lsk
-                 AND k.house_id = house_id_)
+                 AND k.house_id = house_id_
+                 and k.reu = p_reu)
          AND n.usl = usl_
          AND n.org = org_
          AND nvl(n.koeff, 0) = nvl(koeff_, 0)
@@ -1071,17 +1080,32 @@ end;
 FUNCTION find_unq_lsk(p_reu IN kart.reu%type, 
                       p_lsk in kart.lsk%type --рекоммендованый лиц.сч.
   ) RETURN VARCHAR2 IS
-  l_i   NUMBER;
   l_cnt NUMBER;
+  l_i number;
   l_maxlsk kart.lsk%type;
   l_lsk kart.lsk%type; 
+  i number;
+  l_flag number;
 BEGIN
   --поиск уникальных лицевых, "дырок" в списке л/с по УК
-  if p_lsk is null then
+  if p_reu is null then
+    i:=1;
+    while i<100000000 
+    loop
+      l_flag:=0;     
+      for c in (select k.lsk from kart k
+                 where k.lsk=lpad(i, 8, '0')) loop
+            l_flag:=1;     
+      end loop;
+      if l_flag=0 then 
+        return lpad(i, 8, '0');
+      end if;
+      i:=i+1;
+    end loop;  
+ elsif p_lsk is null then
     FOR c IN (SELECT DISTINCT (substr(k.lsk, 1, 4)) AS sbstr
         FROM kart k WHERE k.reu = p_reu 
         ORDER BY sbstr) LOOP
---      l_i := 0;
       for c2 in (with a as (select rownum rn, c.sbstr||lpad(rownum-1,4,'0') as lsk
                  from (select level from dual connect by level <= 10000) k ),
             b as (select k.lsk from kart k)
@@ -1092,7 +1116,6 @@ BEGIN
             order by a.rn)
       loop
         return c2.lsk;
-        exit; --нужен ли тут exit?))
       end loop;      
 
       --не было получено из первой 1000, попробовать получить из следующей 5000
@@ -1127,29 +1150,117 @@ BEGIN
   RETURN l_maxlsk;
 END;
 
---добавить к существующему основному, -дополнительный лицевой счет -по дому
---(например для капремонта)
---(ПОКА не используется в программе, сделал для автоматизации добавления) ред.04.03.15
-procedure kart_lsk_ext_add_house(p_house in kart.house_id%type) is
-  a number;
-begin
-  for c in (select k.lsk from kart k where k.house_id=p_house and k.psch not in (8,9)) 
-  loop
-    --создать по каждому л.с.      
-    a:=kart_lsk_ext_add(c.lsk, null);
-  end loop;
-  commit;
+function create_lsk (lsk_ kart.lsk%TYPE, lsk_new_ kart.lsk%TYPE, 
+      p_lsk_ext kart.lsk_ext%type, p_fio kart.fio%type, p_lsk_tp in varchar2, -- тип нового лс
+      p_reu in varchar2 -- если указан, применить данный код УК
+      )
+           RETURN number is
+  l_cnt number;
+  begin
+  begin
+    select 1 into l_cnt
+     from dual where regexP_like(lsk_new_,'[[:digit:]]{8}')
+     and length(trim(lsk_new_))=8
+     and not exists (select * from kart k where k.lsk=trim(lsk_new_));
+  exception
+    when no_data_found then
+      return 1; --формат лиц.счета не соответствует требованиям
+  end;
+  
+  insert into c_lsk (id)
+    values (c_lsk_id.nextval);
+  insert into k_lsk (id, fk_addrtp)
+     select k_lsk_id.nextval, u.id
+     from u_list u, u_listtp tp
+     where
+     u.cd='flat' and tp.cd='object_type';
+
+  insert into kart
+    (lsk, k_lsk_id, c_lsk_id, house_id, kul, nd, kw, fio, kpr, kpr_wr,
+     kpr_ot, kpr_cem, kpr_s, opl, ppl, pldop, ki,
+     psch, psch_dt, status, kwt, lodpl,
+     bekpl, balpl, komn, et, kfg,
+     kfot, phw, mhw, pgw, mgw, pel, mel,
+     sub_nach, subsidii, sub_data,
+     polis, sch_el, reu, text,
+     eksub1, eksub2, kran, kran1, el,
+     el1, sgku, doppl, subs_cor, subs_cur, fk_pasp_org, mg1, mg2, lsk_ext, fk_tp, sel1)
+  select
+     lsk_new_, k_lsk_id.currval, c_lsk_id.currval, house_id, kul, nd, kw, p_fio as fio,
+     0, 0, 0, 0, 0, opl, ppl, pldop, ki,
+     0, psch_dt, status, kwt, lodpl,
+     bekpl, balpl, komn, et, kfg,
+     kfot, 0, 0, 0, 0, 0, 0, sub_nach,
+     subsidii, null,
+     null as polis,
+     sch_el, p_reu, null as text,
+     0, 0, 0, 0, 0, 0, 0, 0, 0,  0, k.fk_pasp_org, p.period, '999999', p_lsk_ext, tp.id as fk_tp, 1 as sel1
+   from kart k, params p, v_lsk_tp tp where k.lsk=lsk_ and tp.cd=p_lsk_tp;
+  if SQL%ROWCOUNT = 0 then 
+    Raise_application_error(-20000, 'Не добавлены записи лицевых счетов!');
+  end if;
+
+  insert into nabor
+    (lsk, usl, org, koeff, norm)
+  select
+     lsk_new_, usl, org, koeff, norm
+  from nabor n where n.lsk=lsk_;
+
+  insert into c_states_sch(lsk, fk_status)
+  values
+  (lsk_new_, 0);
+  return 0;
+
 end;
 
---добавить к существующему основному, -дополнительный лицевой счет
+--добавить к существующему основному, -дополнительный лицевой счет -по дому
 --(например для капремонта)
-function kart_lsk_ext_add(p_lsk in kart.lsk%type, p_lsk_new in kart.lsk%type) return number is
+--(ПОКА не используется в программе, сделал для автоматизации добавления) ред.26.09.2018
+function kart_lsk_special_add_house(
+         p_house in kart.house_id%type, -- Id дома
+         p_lsk_tp in varchar2, -- тип нового лс
+         p_forced_status in number, -- принудительно установить статус (null - не устанавливать, 0-открытый и т.п.)
+         p_del_usl_from_dst in number, -- удалить услуги из nabor источника (1-удалить,0-нет)
+         p_reu in varchar2 -- если указан, применить данный код УК, если нет, оставить УК источника
+         ) return number is
+  a number;
+begin
+  for c in (select k.lsk from kart k join v_lsk_tp tp on k.fk_tp=tp.id
+                   where tp.cd='LSK_TP_MAIN'
+                   and k.house_id=p_house 
+                   and k.psch not in (8,9)
+                   )
+  loop
+    --создать по каждому открытому л.с.  
+    a:=kart_lsk_special_add(p_lsk              => c.lsk,
+                         p_lsk_tp           => p_lsk_tp,
+                         p_lsk_new          => null,
+                         p_forced_status    => 0,
+                         p_del_usl_from_dst => 1,
+                         p_reu              => null);
+    if a != 0 then
+      -- вернуть код ошибки, если произошла
+      return a;
+    end if;                     
+  end loop;
+  return 0;
+end;
+
+--добавить к существующему основному, - лицевой счет указанного типа
+--(например для капремонта)
+function kart_lsk_special_add(p_lsk in kart.lsk%type,-- лс источника
+         p_lsk_tp in varchar2, -- тип нового лс
+         p_lsk_new in kart.lsk%type, -- либо null, либо указан новый лс
+         p_forced_status in number, -- принудительно установить статус (null - не устанавливать, 0-открытый и т.п.)
+         p_del_usl_from_dst in number, -- удалить услуги из nabor источника (1-удалить,0-нет)
+         p_reu in varchar2 -- если указан, применить данный код УК
+         ) return number is
   l_lsk kart.lsk%type;
   l_reu kart.reu%type;
   l_klsk kart.k_lsk_id%type;
   l_cnt number;
 begin
-  select t.reu, t.k_lsk_id into l_reu, l_klsk from kart t where t.lsk=p_lsk;
+  select nvl(p_reu, t.reu), t.k_lsk_id into l_reu, l_klsk from kart t where t.lsk=p_lsk;
 
   if p_lsk_new is null then
     l_lsk:=find_unq_lsk(l_reu, null);
@@ -1167,27 +1278,28 @@ begin
       return 1; --формат лиц.счета не соответствует требованиям
   end;
     
-  --выполнить проверку на наличие открытого дополнительного счета
-  select count(*) into l_cnt from kart k, params p, v_lsk_tp tp
+  --выполнить проверку на наличие открытого дополнительного счета в данном УК - не надо проверять, возможно наличие таких лс
+/*  select count(*) into l_cnt from kart k, params p, v_lsk_tp tp
    where k.fk_tp=tp.id and p.period between k.mg1 and k.mg2
    and k.k_lsk_id=l_klsk and k.psch not in (8,9)
-   and tp.cd='LSK_TP_ADDIT';
+   and tp.cd=p_lsk_tp and k.reu=p_reu;
   if l_cnt > 0 then
      rollback;
      return 4; 
---   Raise_application_error(-20000, 'По данному лиц.счету уже существует дополнительный');
+--   Raise_application_error(-20000, 'По данному лиц.счету уже существует дополнительный'||l_klsk);
   end if;
+  */
   
   insert into kart k (lsk, reu, kul, nd, kw, k_fam, k_im, k_ot, psch, 
     status, kfg, kfot, house_id, k_lsk_id, c_lsk_id, mg1, mg2, fk_tp, kpr, kpr_wr, 
      kpr_ot, opl)
-  select l_lsk, k.reu, k.kul, k.nd, k.kw, k.k_fam, k.k_im, k.k_ot,
+  select l_lsk, l_reu, k.kul, k.nd, k.kw, k.k_fam, k.k_im, k.k_ot,
     k.psch, k.status, 2 as kfg, 2 as kfot, k.house_id, k.k_lsk_id, k.c_lsk_id, 
     p.period as mg1, '999999' as mg2, tp.id as fk_tp, 0 as kpr, 0 as kpr_wr,
      0 as kpr_ot, k.opl
     from kart k, params p, v_lsk_tp tp
     where k.lsk=p_lsk
-    and tp.cd='LSK_TP_ADDIT';
+    and tp.cd=p_lsk_tp;
   if sql%rowcount=0 then
      rollback;
      return 3; 
@@ -1199,29 +1311,41 @@ begin
 --    where k.lsk=l_lsk;
 
 --ВРЕМЯНКА!!! (hard code org=xxx and koeff!)
-  begin
-  insert into nabor
-  (lsk, usl, org, koeff, norm)
-   select l_lsk, u.usl, o.id as org, 1.18182 as koeff, null as norm
-    from usl u 
-    join t_org_tp tp on tp.cd='РКЦ' --применить организацию - РКЦ
-    join t_org o on o.fk_orgtp=tp.id
-    where u.cd='кап.';
+  if p_lsk_tp='LSK_TP_ADDIT' then
+    begin
+    insert into nabor
+    (lsk, usl, org, koeff, norm)
+     select l_lsk, u.usl, o.id as org, 1.18182 as koeff, null as norm
+      from usl u 
+      join t_org_tp tp on tp.cd='РКЦ' --применить организацию - РКЦ
+      join t_org o on o.fk_orgtp=tp.id
+      where u.cd='кап.';
 
-   if sql%rowcount=0 then
-     rollback;
-     return 2; --не добавлены услуги
+     if sql%rowcount=0 then
+       rollback;
+       return 2; --не добавлены услуги
+     end if;  
+    exception
+      when no_data_found then
+        rollback;
+        return 2; --не добавлены услуги
+    end;     
+  end if;  
+   -- удалить в старом лиц.счете услуги капрем
+   if p_del_usl_from_dst = 1 then
+      delete from nabor n
+         where n.lsk=p_lsk and exists (select * from usl u where u.usl=n.usl and u.cd in ('кап.', 'кап/св.нор'));     
+   end if;
+   -- установить статус нового лс (открытый, закрытый)
+   if p_forced_status is not null then
+     insert into c_states_sch
+       (lsk, fk_status, dt1, dt2)
+     select l_lsk, 
+     p_forced_status as fk_status,
+     init.get_dt_start, null
+     from dual;
    end if;  
-  exception
-    when no_data_found then
-      rollback;
-      return 2; --не добавлены услуги
-  end;     
-  --удалить в старом лиц.счете
-  delete from nabor n
-     where n.lsk=p_lsk and exists (select * from usl u where u.usl=n.usl and u.cd in ('кап.', 'кап/св.нор'));     
 
-   
 return 0;   
 end;
 

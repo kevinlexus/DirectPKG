@@ -1,7 +1,7 @@
 create table SCOTT.LOAD_TMP_POST
 (
   getd    DATE,
-  oper    CHAR(2),
+  oper    CHAR(3),
   typep   NUMBER(2),
   ops     VARCHAR2(6),
   dopdata VARCHAR2(50),

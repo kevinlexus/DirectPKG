@@ -7,6 +7,8 @@ begin
   if inserting then
     if :new.id is null then
       select scott.t_org_id.nextval into :new.id from dual;
+    end if;
+    if :new.cd is null then
       :new.cd := :new.id;
     end if;
   end if;

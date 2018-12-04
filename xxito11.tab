@@ -1,7 +1,7 @@
 create table SCOTT.XXITO11
 (
   usl    CHAR(3) not null,
-  oper   CHAR(2) not null,
+  oper   CHAR(3) not null,
   org    NUMBER(3) not null,
   trest  CHAR(2) not null,
   reu    CHAR(3) not null,

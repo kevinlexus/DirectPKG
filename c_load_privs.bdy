@@ -286,6 +286,14 @@ begin
        group by s.lsk) e5 on s.lsk = e5.lsk
            left join 
       (select s.lsk,
+       sum(s.test_opl) as test_opl,
+       sum(s.summa) as summa_itg,
+       null as nrm
+         from tmp_a_charge2 s
+         join usl u on s.usl=u.usl and u.cd in ('эл.эн.ОДН', 'эл.эн.МОП2', 'EL_SOD') and s.type=1 and
+         l_mg between s.mgFrom and s.mgTo
+       group by s.lsk
+      /*select s.lsk,
        max(s.test_opl) as test_opl,
        sum(s.summa) as summa_itg,
        max(d.nrm) as nrm
@@ -296,9 +304,9 @@ begin
          and s.usl=n.usl
          join a_vvod d on n.fk_vvod=d.id and n.usl=d.usl
          and l_mg=d.mg
-         join usl u2 on n.usl=u2.usl and u2.cd in ('эл.энерг.2', 'эл.эн.учет УО', 'эл.эн.учет УО 0 зар.', 'эл.эн.ОДН', 'эл.эн.МОП2') --АД
-         join usl u on s.usl=u.usl and u.cd in ('эл.эн.ОДН', 'эл.эн.МОП2') and s.type=1 --эл.энерг
-       group by s.lsk) e6 on s.lsk = e6.lsk
+         join usl u2 on n.usl=u2.usl and u2.cd in ('эл.энерг.2', 'эл.эн.учет УО', 'эл.эн.учет УО 0 зар.', 'эл.эн.ОДН', 'эл.эн.МОП2', 'EL_SOD') --АД
+         join usl u on s.usl=u.usl and u.cd in ('эл.эн.ОДН', 'эл.эн.МОП2', 'EL_SOD') and s.type=1 --эл.энерг
+       group by s.lsk*/) e6 on s.lsk = e6.lsk
            left join 
       (select s.lsk,
        sum(s.test_opl) as test_opl,
@@ -315,17 +323,25 @@ begin
       (select s.lsk,
        sum(s.test_opl) as test_opl,
        sum(s.summa) as summa_itg,
+       null as nrm
+         from tmp_a_charge2 s
+         join usl u on s.usl=u.usl and u.cd in ('х.вода.ОДН', 'HW_SOD') and s.type=1 and
+         l_mg between s.mgFrom and s.mgTo
+       group by s.lsk
+       /*select s.lsk,
+       sum(s.test_opl) as test_opl,
+       sum(s.summa) as summa_itg,
        max(d.nrm) as nrm
          from tmp_a_charge2 s
          join tmp_a_nabor2 n on s.lsk=n.lsk and 
          l_mg between s.mgFrom and s.mgTo and 
          l_mg between n.mgFrom and n.mgTo
          and s.usl=n.usl
-         join a_vvod d on n.fk_vvod=d.id and n.usl=d.usl
-         and l_mg=d.mg
+         join a_vvod d on n.fk_vvod=d.id and n.usl=d.usl and l_mg=d.mg
          join usl u2 on n.usl=u2.usl and u2.cd in ('х.вода')
-         join usl u on s.usl=u.usl and u.cd in ('х.вода.ОДН') and s.type=1
-       group by s.lsk) e8 on s.lsk = e8.lsk
+         join usl u on s.usl=u.usl and u.cd in ('х.вода.ОДН', 'HW_SOD') and s.type=1
+       group by s.lsk*/
+       ) e8 on s.lsk = e8.lsk
            left join 
       (select s.lsk,
        sum(s.test_opl) as test_opl,
@@ -342,6 +358,14 @@ begin
       (select s.lsk,
        sum(s.test_opl) as test_opl,
        sum(s.summa) as summa_itg,
+       null as nrm
+         from tmp_a_charge2 s
+         join usl u on s.usl=u.usl and u.cd in ('г.вода.ОДН', 'GW_SOD') and s.type=1 and
+         l_mg between s.mgFrom and s.mgTo
+       group by s.lsk
+       /*select s.lsk,
+       sum(s.test_opl) as test_opl,
+       sum(s.summa) as summa_itg,
        max(d.nrm) as nrm
          from tmp_a_charge2 s
          join tmp_a_nabor2 n on s.lsk=n.lsk and 
@@ -351,8 +375,8 @@ begin
          join a_vvod d on n.fk_vvod=d.id and n.usl=d.usl
          and l_mg=d.mg
          join usl u2 on n.usl=u2.usl and u2.cd in ('г.вода')
-         join usl u on s.usl=u.usl and u.cd in ('г.вода.ОДН') and s.type=1 --эл.энерг
-       group by s.lsk) e10 on s.lsk = e10.lsk
+         join usl u on s.usl=u.usl and u.cd in ('г.вода.ОДН', 'GW_SOD') and s.type=1 -- г.в. ОДН
+       group by s.lsk*/) e10 on s.lsk = e10.lsk
            left join 
       (select s.lsk,
        sum(s.test_opl) as test_opl,

@@ -1,11 +1,16 @@
-create or replace package scott.c_cpenya is
+create or replace package scott.C_CPENYA is
   time_ date;
 
   procedure gen_charge_pay_pen;
   procedure gen_charge_pay_pen(p_dt in date);
   procedure gen_charge_pay_pen_house(p_dt in date, --дата формир.
                                      p_house in number);
-  procedure gen_charge_pay_pen(p_dt in date, --дата формир.
+  procedure gen_charge_pay_pen(
+                             p_dt in date, --дата формир.
+                             p_var in number --формировать пеню? (0-нет, 1-да (старый вызов)
+          );
+  procedure gen_charge_pay_pen(p_lsk in kart.lsk%type, -- лиц счет (если null - то все лиц.счета)
+                               p_dt in date, --дата формир.
                                p_var in number --формировать пеню? (0-нет, 1-да (старый вызов)
             );
 
@@ -31,6 +36,6 @@ create or replace package scott.c_cpenya is
   function corr_sal_pen2(p_lsk in kart.lsk%type, p_lsk2 in kart.lsk%type)
     return number;
 
-end c_cpenya;
+end C_CPENYA;
 /
 

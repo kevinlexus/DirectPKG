@@ -311,68 +311,6 @@ BEGIN
   RETURN l_lsk;
 END;
 
-
-  function CREATE_LSK (lsk_ kart.lsk%TYPE, lsk_new_ kart.lsk%TYPE, 
-      p_lsk_ext kart.lsk_ext%type, p_fio kart.fio%type)
-           RETURN number is
-  l_cnt number;
-  begin
-  begin
-    select 1 into l_cnt
-     from dual where regexP_like(lsk_new_,'[[:digit:]]{8}')
-     and length(trim(lsk_new_))=8
-     and not exists (select * from kart k where k.lsk=trim(lsk_new_));
-  exception
-    when no_data_found then
-      return 1; --формат лиц.счета не соответствует требованиям
-  end;
-  
-  insert into c_lsk (id)
-    values (c_lsk_id.nextval);
-  insert into k_lsk (id, fk_addrtp)
-     select k_lsk_id.nextval, u.id
-     from u_list u, u_listtp tp
-     where
-     u.cd='flat' and tp.cd='object_type';
-
-  insert into kart
-    (lsk, k_lsk_id, c_lsk_id, house_id, kul, nd, kw, fio, kpr, kpr_wr,
-     kpr_ot, kpr_cem, kpr_s, opl, ppl, pldop, ki,
-     psch, psch_dt, status, kwt, lodpl,
-     bekpl, balpl, komn, et, kfg,
-     kfot, phw, mhw, pgw, mgw, pel, mel,
-     sub_nach, subsidii, sub_data,
-     polis, sch_el, reu, text,
-     eksub1, eksub2, kran, kran1, el,
-     el1, sgku, doppl, subs_cor, subs_cur, fk_pasp_org, mg1, mg2, lsk_ext, fk_tp, sel1)
-  select
-     lsk_new_, k_lsk_id.currval, c_lsk_id.currval, house_id, kul, nd, kw, p_fio as fio,
-     0, 0, 0, 0, 0, opl, ppl, pldop, ki,
-     0, psch_dt, status, kwt, lodpl,
-     bekpl, balpl, komn, et, kfg,
-     kfot, 0, 0, 0, 0, 0, 0, sub_nach,
-     subsidii, null,
-     null as polis,
-     sch_el, reu, null as text,
-     0, 0, 0, 0, 0, 0, 0, 0, 0,  0, k.fk_pasp_org, p.period, '999999', p_lsk_ext, tp.id as fk_tp, 1 as sel1
-   from kart k, params p, v_lsk_tp tp where k.lsk=lsk_ and tp.cd='LSK_TP_MAIN';
-  if SQL%ROWCOUNT = 0 then 
-    Raise_application_error(-20000, 'Не добавлены записи лицевых счетов!');
-  end if;
-
-  insert into nabor
-    (lsk, usl, org, koeff, norm)
-  select
-     lsk_new_, usl, org, koeff, norm
-  from nabor n where n.lsk=lsk_;
-
-  insert into c_states_sch(lsk, fk_status)
-  values
-  (lsk_new_, 0);
-  return 0;
-
-  end;
-
   procedure ins_lg_doc (kart_pr_id_ in c_kart_pr.id%type)
   is
    seq_ number;
@@ -1449,6 +1387,7 @@ end loop;
 
 end;
   
+-- удалить лиц.счет
 function del_lsk(lsk_ in kart.lsk%type) return varchar2 is
   l_mg params.period%type;
   l_cnt number;
@@ -1475,6 +1414,30 @@ begin
   delete from saldo_usl t where t.lsk=lsk_;
   delete from c_chargepay t where t.lsk=lsk_ and t.period=l_mg;
   delete from c_kwtp t where t.lsk=lsk_;
+  delete from kart t where t.lsk=lsk_;
+
+  exception when others then
+    return 'Лицевой счет используется, удаление не допустимо!';
+  end;
+  commit;
+  return null;
+end;
+
+-- удалить лиц.счет без проверок
+function del_lsk_wo_check(lsk_ in kart.lsk%type) return varchar2 is
+  l_mg params.period%type;
+  l_cnt number;
+begin
+  --удаление лицевого счета
+  select p.period into l_mg from params p;
+
+  begin
+  delete from nabor t where t.lsk=lsk_;
+  delete from c_states_sch t where t.lsk=lsk_;
+  --delete from c_kart_pr t where t.lsk=lsk_;
+  --delete from saldo_usl t where t.lsk=lsk_;
+  --delete from c_chargepay t where t.lsk=lsk_ and t.period=l_mg;
+  --delete from c_kwtp t where t.lsk=lsk_;
   delete from kart t where t.lsk=lsk_;
 
   exception when others then

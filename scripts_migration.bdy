@@ -162,6 +162,168 @@ begin
 END find_update2_reu3;
 
 
+-- найти все таблицы с длиной oper = 3 и обновить с лидирующими нулями.
+-- предварительно отключить foreign keys!
+PROCEDURE find_update_oper3 IS
+  l_cnt number;
+  TYPE CurType IS REF CURSOR;
+  v_cur CurType;
+  TYPE rec2 IS RECORD(
+    mg varchar2(6));
+  rec  rec2;
+  str  varchar(2024);
+  str2 varchar(2024);
+begin
+  -- найти все таблицы с длиной oper = 3 и обновить с лидирующими нулями.
+  -- отключить констрэйнты ДО!
+  -- от SYS: grant select on sys.dba_tab_columns to scott;
+  -- от SYS: grant select on sys.dba_views to scott;
+  -- включить констрэйнты ПОСЛЕ!
+  for c in (select t.TABLE_NAME, t.COLUMN_NAME, t.owner
+              from sys.dba_tab_columns t
+             where t.OWNER = 'SCOTT'
+               and t.COLUMN_NAME in ('OPER', 'FK_OPER')
+               and t.DATA_LENGTH = 2
+               and t.TABLE_NAME not like 'BIN%'
+               and t.TABLE_NAME not in ('PROC_PLAN_LOAD','PROC_PLAN_LOADED')
+               and not exists
+             (select *
+                      from sys.dba_views d
+                     where d.owner = t.owner
+                       and d.view_name = t.table_name)
+             order by t.TABLE_NAME, t.COLUMN_NAME) loop
+    Raise_application_error(-20000,
+                            'НАЙДЕНА НЕКОРРЕКТНАЯ длина поля! таблица='||c.owner||'.'||c.table_name);
+  end loop;
+
+  for c in (select t.TABLE_NAME, t.COLUMN_NAME, t.owner
+              from sys.dba_tab_columns t
+             where t.OWNER = 'SCOTT'
+               and t.COLUMN_NAME in ('OPER', 'FK_OPER')
+               and t.TABLE_NAME not like 'BIN%'
+               and t.TABLE_NAME not in ('PROC_PLAN_LOAD','PROC_PLAN_LOADED')
+               and not exists
+             (select *
+                      from sys.dba_views d
+                     where d.owner = t.owner
+                       and d.view_name = t.table_name)
+             order by t.TABLE_NAME, t.COLUMN_NAME) loop
+  
+    select count(*)
+      into l_cnt
+      from dba_tab_columns t
+     where t.OWNER = c.owner
+       and t.table_name = c.table_name
+       and t.COLUMN_NAME in ('MG');
+    if l_cnt > 0 then
+      -- возможно есть партиции, обновить по ним
+      str := 'SELECT distinct t.mg FROM ' || c.owner || '.' || c.table_name ||
+             ' t order by t.mg';
+      OPEN v_cur FOR str;
+      LOOP
+        FETCH v_cur
+          INTO rec;
+        if rec.mg is not null then   
+          str2 := 'update ' || c.owner || '.' || c.table_name || ' t set t.' ||
+                  c.column_name || '= lpad(trim(t.' || c.column_name ||
+                  '),3, ''0'') where length(trim(t.' || c.column_name ||
+                  '))=2 and t.mg=:mg';
+          execute immediate str2 using rec.mg;
+        else
+          str2 := 'update ' || c.owner || '.' || c.table_name || ' t set t.' ||
+                  c.column_name || '= lpad(trim(t.' || c.column_name ||
+                  '),3, ''0'') where length(trim(t.' || c.column_name ||
+                  '))=2 and t.mg is null';
+          execute immediate str2;
+        end if;          
+        commit;
+        logger.log_(null, 'партиция:'||c.owner || '.' || c.table_name ||'.'||rec.mg);
+      
+        EXIT WHEN v_cur%NOTFOUND;
+      END LOOP;
+    
+      -- Close cursor:
+      CLOSE v_cur;
+    
+    else
+      -- без партиций
+      str2 := 'update ' || c.owner || '.' || c.table_name || ' t set t.' ||
+              c.column_name || '= lpad(trim(t.' || c.column_name ||
+              '),3, ''0'') where length(trim(t.' || c.column_name ||
+              '))=2 ';
+      execute immediate str2;
+      commit;
+      logger.log_(null, 'без партиций:'||c.owner || '.' || c.table_name);
+    
+    end if;
+  
+  end loop;
+
+END find_update_oper3;
+
+-- найти все таблицы с oper или fk_oper (и т.п.), но с некорректным содержимым,
+-- без обновления
+PROCEDURE find_update2_oper3 IS
+  l_cnt number;
+  TYPE CurType IS REF CURSOR;
+  v_cur CurType;
+  TYPE rec2 IS RECORD(
+    cnt number);
+  rec  rec2;
+  str  varchar(2024);
+  str2 varchar(2024);
+begin
+  -- ПРОСТО МОНИТОРИТ ДАННЫЕ
+  -- найти все таблицы с oper или fk_oper, но с некорректным содержимым
+  -- от SYS: grant select on sys.dba_tab_columns to scott;
+  -- от SYS: grant select on sys.dba_views to scott;
+  for c in (select t.TABLE_NAME, t.COLUMN_NAME, t.owner
+              from sys.dba_tab_columns t
+             where t.OWNER = 'SCOTT'
+               and t.COLUMN_NAME in ('OPER', 'FK_OPER')
+               and t.DATA_LENGTH = 2
+               and t.TABLE_NAME not like 'BIN%'
+               and t.TABLE_NAME not in ('PROC_PLAN_LOAD','PROC_PLAN_LOADED')
+               and not exists
+             (select *
+                      from sys.dba_views d
+                     where d.owner = t.owner
+                       and d.view_name = t.table_name)
+             order by t.TABLE_NAME, t.COLUMN_NAME) loop
+    Raise_application_error(-20000,
+                            'НАЙДЕНА НЕКОРРЕКТНАЯ длина поля! таблица='||c.owner||'.'||c.table_name);
+  end loop;
+
+  for c in (select t.TABLE_NAME, t.COLUMN_NAME, t.owner
+              from sys.dba_tab_columns t
+             where t.OWNER = 'SCOTT'
+               and t.COLUMN_NAME in ('OPER', 'FK_OPER')
+               and t.TABLE_NAME not like 'BIN%'
+               and t.TABLE_NAME not in ('PROC_PLAN_LOAD','PROC_PLAN_LOADED')
+               and not exists
+             (select *
+                      from sys.dba_views d
+                     where d.owner = t.owner
+                       and d.view_name = t.table_name)
+             order by t.TABLE_NAME, t.COLUMN_NAME) loop
+
+      str := 'select count(*) from ' || c.owner || '.' || c.table_name || ' t where length(trim(t.' || c.column_name ||
+              '))=2 ';
+      OPEN v_cur FOR str;
+      LOOP
+        FETCH v_cur
+          INTO rec;
+          if rec.cnt > 0 then 
+          Raise_application_error(-20000, 'Таблица ' || c.owner || '.' || c.table_name ||
+           'имеет '||rec.cnt||' необновленных строк!');
+          end if; 
+        EXIT WHEN v_cur%NOTFOUND;
+      END LOOP;
+
+  end loop;
+
+END find_update2_oper3;
+
 -- подготовка справочника периодов пени по услугам для ИМПОРТА
 procedure prep_c_spr_pen_usl is
 begin

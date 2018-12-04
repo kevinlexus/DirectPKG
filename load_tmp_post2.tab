@@ -7,7 +7,7 @@ create table SCOTT.LOAD_TMP_POST2
   pn       NUMBER(13,2),
   nomz     NUMBER,
   fio      VARCHAR2(25),
-  oper     VARCHAR2(2),
+  oper     CHAR(3),
   nkom     VARCHAR2(3),
   nink     NUMBER(3),
   n_veksel NUMBER(4)

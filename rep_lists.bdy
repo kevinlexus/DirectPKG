@@ -118,10 +118,10 @@ create or replace package body scott.rep_lists is
         select * from (
         select k.lsk, substr(trim(k.fio),1,25) as fio,
          o2.dolg_name||','||substr(l.name||', '||NVL(LTRIM(k.nd,'0'),'0')||','||NVL(LTRIM(k.kw,'0'),'0') ,1,64)  as adr,
-          nvl(o.code_deb,1) as type, 
+          nvl(o.code_deb,1) as type,
           case when o.code_deb is not null then 'Квартплата'||' '||trim(o.name)
           else 'Квартплата'
-          end as type_name,  
+          end as type_name,
          substr(mg_,5,2)||substr(mg_,1,4) as period, nvl(sum(s.summa),0)*proc_ as summa, sum(s.cur_chrg) as cur_chrg, k.psch, tp.cd as tp_cd --(nvl(s.summa,0) > 0 or k.psch <> 8)
          from scott.kart k , scott.v_lsk_tp tp,
           scott.spul l, scott.t_org o, scott.t_org o2, scott.t_org_tp tp2,
@@ -140,7 +140,7 @@ create or replace package body scott.rep_lists is
          o2.dolg_name||','||substr(l.name||', '||NVL(LTRIM(k.nd,'0'),'0')||','||NVL(LTRIM(k.kw,'0'),'0') ,1,64),
          tp.cd
          ) a
-         where a.tp_cd='LSK_TP_MAIN' and (a.summa > 0 or a.psch not in (8,9))
+         where a.tp_cd in ('LSK_TP_MAIN','LSK_TP_RSO') and (a.summa > 0 or a.psch not in (8,9))
          order by lsk, period, type;
   elsif rep_id_ in (11,20,22) then
   --Долги для Сбербанка, Почты (для Кис)
@@ -165,7 +165,7 @@ create or replace package body scott.rep_lists is
          tp.cd, e.reu
          ) a
          where rep_id_=20 and a.tp_cd='LSK_TP_MAIN' and (a.summa > 0 or a.psch not in (8,9)) or
-               rep_id_=22 and a.tp_cd='LSK_TP_ADDIT'  --дополнительные счета
+               rep_id_=22 and a.tp_cd in ('LSK_TP_ADDIT','LSK_TP_RSO')
                and (a.summa > 0 or a.psch not in (8,9))
          order by lsk, period, type;
    elsif rep_id_=15 then

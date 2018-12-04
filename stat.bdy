@@ -3194,6 +3194,80 @@ elsif сd_ in  ('88') then
                  substr(mg_, 1, 4) as year, k.lsk as ls, o.name as np, s.name as ul,
                  ltrim(k.nd, '0') as dom, ltrim(k.kw, '0') as kv, d.name_kp as st,
                  d.tp as naz, k.k_fam as sur, k.k_im as nam, k.k_ot as mid,
+                  -- сведения о льготах
+                 g.name as lg,
+                   -- площадь
+                 k.opl as pl,
+                  -- сальдо входящее
+                 nvl(t.indebet, 0) + nvl(t.inkredit, 0) as sn,
+                  -- проценты в сальдо начисленной пени
+                 --nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p1.penya_in, 0),0) as pensn,
+                  -- начислено
+                 nvl(t.charges, 0) as bil,
+                  -- начисленная пеня (текущая)
+                 nvl(t.pcur,0) as pcur,
+                  -- вх. сальдо по пене
+                 nvl(t.pinsal,0) as pinsal,
+                  -- исх сальдо по пене
+                 nvl(t.poutsal,0) as poutsal,
+                  -- оплачено
+                 nvl(t.payment, 0) as pay,
+                  -- оплачено пени
+                 nvl(t.pn,0) as penpay,
+                  -- сальдо исходящее
+                 nvl(t.outdebet, 0) + nvl(t.outkredit, 0) as sk,
+                  -- проценты в сальдо уплаченной пени
+                 --nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p5.penya_out, 0),0) as pensk,
+                  -- перерасчет
+                 nvl(t.changes,0) as corr
+            from scott.arch_kart k
+            join scott.t_org o2 on o2.cd = 'Фонд Капремонта МКД'
+            join scott.t_org_tp tp on tp.cd = 'Город'
+            join scott.t_org o on o.fk_orgtp = tp.id
+            join scott.spul s on k.kul = s.id
+            join scott.status d on k.status = d.id
+            join v_lsk_tp tp2 on k.fk_tp=tp2.id
+            left join (select t.lsk, t.org,  sum(t.charges) as charges, sum(t.changes) as changes, 
+                     sum(t.pinsal) as pinsal, sum(t.pcur) as pcur,
+                     sum(t.poutsal) as poutsal, sum(t.indebet) as indebet, sum(t.inkredit) as inkredit, 
+                     sum(t.outdebet) as outdebet, sum(t.outkredit) as outkredit, sum(t.payment) as payment, sum(t.pn) as pn from 
+                     scott.xitog3_lsk t 
+                     join usl us2 on us2.cd in ('кап.','кап/св.нор') and t.usl=us2.usl and t.mg=mg_
+                     group by t.lsk, t.org) t on k.lsk = t.lsk and t.org = o2.id
+            left join (select p.lsk, max(p.fk_spk) as fk_spk
+                         from scott.a_charge_prep2 p
+                        where mg_ between p.mgFrom and p.mgTo
+                          and p.tp = 9
+                        group by p.lsk) sl on k.lsk = sl.lsk
+            left join scott.spk sp on sl.fk_spk = sp.id
+            left join scott.spk_gr g on sp.gr_id = g.id
+             where k.mg = mg_
+             /*and (k.status not in (1,9) and k.psch not in (8,9) and tp2.cd='LSK_TP_ADDIT' or
+             (
+             nvl(t.indebet, 0) + nvl(t.inkredit, 0) <>0 or
+                 nvl(t.charges, 0) <>0 or
+                 nvl(t.pcur,0) <>0 or
+                 nvl(t.pinsal,0) <>0 or
+                 nvl(t.poutsal,0) <>0 or
+                 nvl(t.payment, 0) <>0 or
+                 nvl(t.pn,0) <>0 or
+                 nvl(t.outdebet, 0) + nvl(t.outkredit, 0) <>0 or
+                 nvl(t.changes,0) <>0
+                 ))*/
+           order by scott.utils.f_ord_digit(k.nd), scott.utils.f_ord3(k.nd),
+                    scott.utils.f_ord_digit(k.kw), scott.utils.f_ord3(k.kw)
+                    ) xx1 ) xx2 
+                    where rn1 between 0 and 2000000; --сделал ограничение до 2 млн, чтоб можно было если что постранично выгружать
+/* до изменений 14.09.18
+          open prep_refcursor for
+                    select * from 
+                    (select 
+                    rownum as rn1, xx1.* from 
+                    (select \*+ USE_HASH(k, o2, tp, o, s, d, tp2, t, p1, p5, sl, sp, g)*\ 
+                    scott.utils.month_name(substr(mg_, 5, 2)) as mon,
+                 substr(mg_, 1, 4) as year, k.lsk as ls, o.name as np, s.name as ul,
+                 ltrim(k.nd, '0') as dom, ltrim(k.kw, '0') as kv, d.name_kp as st,
+                 d.tp as naz, k.k_fam as sur, k.k_im as nam, k.k_ot as mid,
                   --сведения о льготах
                  g.name as lg,
                    --площадь
@@ -3268,6 +3342,7 @@ elsif сd_ in  ('88') then
                     scott.utils.f_ord_digit(k.kw), scott.utils.f_ord3(k.kw)
                     ) xx1 ) xx2 
                     where rn1 between 0 and 2000000; --сделал ограничение до 2 млн, чтоб можно было если что постранично выгружать
+*/
        --  end if;
     end if;
 
@@ -3755,7 +3830,15 @@ elsif сd_ in  ('88') then
      c13.tf2 as tf_sv11,
      e13.nrm as norm11,
      null as fakt11,
-     e13.summa_itg as sum_f11
+     e13.summa_itg as sum_f11,
+     null as lchet12,
+     null as ed_izm12,
+     null as fakt12,
+     null as sum_f12,
+     null as gku12,
+     null as tf_n12,
+     null as tf_sv12,
+     null as norm12
     from (select s.* from kart k, arch_kart s, s_reu_trest e where s.mg=mg_
      and k.lsk=s.lsk
      and k.sel1=1
@@ -4101,11 +4184,14 @@ elsif сd_ in  ('88') then
        h.houseguid, o.oktmo,
        x6.s1 as cond, x.n1 as house_opl, x3.n1 as house_opl_pasp, x4.n1 as house_year, x2.n1 as house_et, 0 as house_unet, 'Новокузнецк' as clk_zone,
        'Нет' as house_cult, 'Нет' as house_cad_no,  -- НЕ выгружать кадастровый номер пока, система пишет: INT004072 Сведения в ГКН не найдены.
-       x7.n1 as ent_et, x8.d1 as ent_dt
+       x7.n1 as ent_et, x8.d1 as ent_dt, e.serviceId, e.guid as premiseGUID
        from kart k
+       join bs.addr_tp atp on atp.cd='Квартира'
+       left join exs.eolink e on k.lsk=e.lsk -- лиц.счет
+       left join exs.eolink e2 on e2.id=e.parent_id and e2.fk_objtp=atp.id -- помещение
        join u_list tp on k.fk_tp=tp.id and tp.cd='LSK_TP_MAIN' and k.psch not in (8,9) --основной лиц.счет
        join u_list tp2 on tp2.cd='LSK_TP_MAIN' --счет по капремонту
-       left join kart k2 on k.k_lsk_id=k2.k_lsk_id and k2.fk_tp=tp2.id and k2.psch not in (8,9)
+       left join kart k2 on k.k_lsk_id=k2.k_lsk_id and k2.fk_tp=tp2.id and k2.psch not in (8,9) -- счет по капремонту
        join status s on k.status=s.id
        join prep_house_fias p on k.house_id=p.fk_house
        join fias_house h on p.houseguid=h.houseguid --дом

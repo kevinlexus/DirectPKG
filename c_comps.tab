@@ -4,7 +4,7 @@ create table SCOTT.C_COMPS
   nink    NUMBER not null,
   nkvit   NUMBER not null,
   cd      VARCHAR2(100),
-  fk_oper CHAR(2),
+  fk_oper CHAR(3),
   fk_org  NUMBER,
   period  VARCHAR2(6)
 )

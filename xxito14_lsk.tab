@@ -8,7 +8,7 @@ create table SCOTT.XXITO14_LSK
   var    NUMBER not null,
   status NUMBER not null,
   dopl   CHAR(6) not null,
-  oper   CHAR(2),
+  oper   CHAR(3),
   lsk    CHAR(8) not null,
   cd_tp  NUMBER
 )

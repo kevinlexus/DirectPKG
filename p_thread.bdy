@@ -146,9 +146,9 @@ function smpl_chk (p_var in number) return number is
       union all
       select null as lsk, 'kul='||t.kul||' nd='||t.nd||' cnt='||count(*)
       ||' Дом в разных УК, по которому обнаружены открытые лицевые счета' from (
-      select k.reu, k.kul, k.nd from kart k, v_lsk_tp tp
-       where k.psch not in (8,9) and k.fk_tp=tp.id and tp.cd='LSK_TP_ADDIT'
-      group by k.reu, k.kul, k.nd
+      select k.reu, k.kul, k.nd, tp.cd from kart k, v_lsk_tp tp
+       where k.psch not in (8,9) and k.fk_tp=tp.id and tp.cd in ('LSK_TP_ADDIT','LSK_TP_RSO')
+      group by k.reu, k.kul, k.nd, tp.cd
       ) t 
       group by t.kul,t.nd
       having count(*)>1

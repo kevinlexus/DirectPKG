@@ -43,20 +43,20 @@ create or replace package body scott.p_vvod is
       kub_sch number,
       cnt     number,
       kpr_sch number);
-  
+
     type rec_cnt is record(
       vol     number,
       vol_add number);
-  
+
     type rec_norm2 is record(
       cnt number,
       kpr number);
-  
+
     type rec_ar_sch is record( --Арендаторы
       kub number,
       cnt number,
       opl number);
-  
+
     rec_sch_     rec_sch;
     rec_cnt_     rec_cnt;
     rec_norm_    rec_norm;
@@ -82,11 +82,11 @@ create or replace package body scott.p_vvod is
     l_vol_round  number; --временные переменные для округления небаланса
     l_flag       number;
     l_limit_vol  number; --допустимый лимит ОДН по законодательству (общий)
-  
+
     l_area_prop  number; --площадь общего имущества дома
     l_rate       number; --норматив по ОДН
     l_limit_area number; --допустимый лимит ОДН на 1 м2
-  
+
     l_opl_man   number; -- площадь на одного проживающего на 1 чел., для расчета ограничения
     l_opl_liter number; --кол-во литров на метр2 по таблице, для расчета ограничения
     l_usl_cd    usl.cd%type;
@@ -107,7 +107,7 @@ create or replace package body scott.p_vvod is
                else
                 null
              end as dist_vl,
-             
+
              f.vol as vol_add, --объем по счетчику
              d.vol as vol, --объем по нормативу
              nvl(f.vol, 0) + nvl(d.vol, 0) as lsk_vl --общий объем
@@ -125,7 +125,7 @@ create or replace package body scott.p_vvod is
          and n.usl = p_usl
          and k.psch not in (8, 9)
          and nvl(f.vol, 0) + nvl(d.vol, 0) > 0; --там, где вообще есть объемы > 0
-  
+
     cursor cur2 is --курсор для расчета экономии, без счетчиков
       select k.lsk,
              round(nvl((p_kub_dist - all_kub_) / all_kpr_, 0) *
@@ -150,13 +150,13 @@ create or replace package body scott.p_vvod is
                  and n.usl = e.usl
                  and e.tp = 7 --где нет наличия счетчика в тек.периоде
                  and e.sch = 1);
-  
+
     cursor cur3 is --курсор для расчета экономии, либо по арендаторам, либо чтобы кто то проживал
       select k.lsk,
              round(nvl((p_kub_dist - all_kub_) / all_kpr_, 0) *
                    (nvl(d.kpr2, 0) + decode(use_sch_, 1, nvl(f.kpr2, 0), 0)),
                    3) as dist_vl,
-             
+
              f.vol as vol_add, --объем по счетчику
              d.vol as vol, --объем по нормативу
              nvl(f.vol, 0) + nvl(d.vol, 0) as lsk_vl --общий объем
@@ -183,30 +183,30 @@ create or replace package body scott.p_vvod is
                   and e.kpr2 <> 0));
     rec cur1%rowtype;
   begin
- 
+
     --распределение воды по вводу с поддержкой последней редакции 307 постановления от 06.05.11
     --(редакция приложения № 3) взято из http://www.consultant.ru/online/base/?req=doc;base=LAW;n=114247;p=7
     --ИСПОЛЬЗОВАТЬ ТАБЛИЦУ C_VVOD В ЗАПРОСАХ в данном триггере - НЕЛЬЗЯ, ТАК КАК ОНА МУТИРУЕТ
-      
+
     --ОПРЕДЕЛЕНИЕ:
     --Запись в таблице C_VVOD означает один, общий счетчик,
     --остальные счетчики (например подъездные) должны быть прикреплены к основному через PARENT_ID
     --(пока не реализовано)
     --TO DO: Внести зависимость от обновления параметра площади общего имущества по дому (выполнять перерасчет)
     --сделать, начиная с 01.07.2013
-  
+
     l_time:=sysdate;
     p_kub_dist := p_kub;
-  
+
     --тип распределения по вводу
     dist_tp_ := nvl(p_dist_tp, 0);
-  
+
     --рассчитать доли объемов, проживающих, для использования в распределении
     --только в тех л.с, которые принадлежат вводу
     if p_gen_part_kpr = 1 then
       c_kart.set_part_kpr_vvod(p_id);
     end if;
-  
+
     --вид расчета услуги
     begin
       select nvl(u.fk_calc_tp, 0), u.fk_usl_chld, u.cd
@@ -217,12 +217,12 @@ create or replace package body scott.p_vvod is
       when no_data_found then
         Raise_application_error(-20000, 'Ввод id='||p_id||'не содержит корректный код услуги!');
     end;
-       
+
     select nvl(u.sptarn, 0) into sptarn_ from usl u where u.usl = p_usl;
-  
+
     --использовать ли счетчики при распределении объема х.в., г.в. (1-да, 0 - нет)
     use_sch_ := nvl(p_use_sch, 0);
-  
+
     select case
              when substr(p.period, 5, 2) between to_char(p.dt_otop1, 'MM') and
                   to_char(p.dt_otop2, 'MM') then
@@ -232,7 +232,7 @@ create or replace package body scott.p_vvod is
            end
       into otop_
       from params p;
-  
+
     if fk_calc_tp_ in (3, 17, 4, 18, 31, 38, 40) then
       if fk_calc_tp_ in (3, 17, 38) then
         tp_ := 0; --х.в.
@@ -241,12 +241,12 @@ create or replace package body scott.p_vvod is
       elsif fk_calc_tp_ in (31) then
         tp_ := 2; --эл.эн.
       end if;
-    
+
       --ред.от
       --сумма кубов Х.В./Г.В. по счетчикам, кол-во счетчиков, кол-во людей, площадь
       ---------------------------------------------------
       --------СБОР ИНФОРМАЦИИ ДЛЯ РАСЧЕТА ОДН------------
-    
+
       if nvl(p_kub, 0) <> 0.001 then
         --p_kub <> 0.001
         --подсчет итогов
@@ -265,15 +265,15 @@ create or replace package body scott.p_vvod is
            and e.sch = 1 --счетчики
            and e.tp = 6 --итог без ОДН
            and k.status not in (9) /*без Арендаторов*/
-           and exists (select *
+           /*and exists (select *
                   from nabor r
                  where r.lsk = n.lsk --там где есть услуга ОДН
-                   and r.usl = fk_usl_chld_);
-      
+                   and r.usl = fk_usl_chld_)*/;
+
         p_kub_sch := rec_sch_.kub_sch;
         p_sch_cnt := rec_sch_.cnt;
         p_sch_kpr := rec_sch_.kpr;
-      
+
         --кол-во кубов, людей по нормативу, кол-во лицевых, площадь
         select nvl(sum(e.vol), 0) as kub_norm,
                nvl(count(k.lsk), 0) as cnt,
@@ -290,15 +290,15 @@ create or replace package body scott.p_vvod is
            and e.sch = 0 --нормативщики
            and e.tp = 6 --итог без ОДН
            and k.status not in (9) /*без Арендаторов*/
-           and exists (select *
+           /*and exists (select *
                   from nabor r
                  where r.lsk = n.lsk --там где есть услуга ОДН
-                   and r.usl = fk_usl_chld_);
-      
+                   and r.usl = fk_usl_chld_)*/;
+
         p_kub_norm := rec_norm_.kub_norm;
         p_cnt_lsk  := rec_norm_.cnt_lsk;
         p_kpr      := rec_norm_.kpr;
-      
+
         --общее кол-во прожив.
         if use_sch_ = 1 then
           all_kpr_ := rec_norm_.kpr + rec_sch_.kpr;
@@ -307,7 +307,7 @@ create or replace package body scott.p_vvod is
         end if;
         --кол-во кубов, кол-во лицевых, площадь по арендаторам (для пост.354)
         --Юр.лица(арендаторы)
-      
+
         select nvl(sum(e.vol), 0) as ar_kub_sch,
                nvl(count(k.lsk), 0) as ar_cnt,
                nvl(sum(k.opl), 0) as ar_opl
@@ -322,20 +322,20 @@ create or replace package body scott.p_vvod is
            and e.sch = 1 --счетчики
            and e.tp = 6 --итог без ОДН
            and k.status in (9) /*Арендаторы*/
-           and exists (select *
+           /*and exists (select *
                   from nabor r
                  where r.lsk = n.lsk --там где есть услуга ОДН
-                   and r.usl = fk_usl_chld_);
-      
+                   and r.usl = fk_usl_chld_)*/;
+
         --объем арендаторов
         p_kub_ar := rec_ar_sch_.kub;
-      
+
         --площадь арендаторов
         p_opl_ar := rec_ar_sch_.opl;
-      
+
         --суммируем расход по вводу
         all_kub_ := rec_sch_.kub_sch + rec_norm_.kub_norm + rec_ar_sch_.kub;
-      
+
         --суммируем площадь по вводу
         if dist_tp_ <> 3 and use_sch_ = 1 then
           --либо в т.ч. счетчики
@@ -346,11 +346,11 @@ create or replace package body scott.p_vvod is
              and n.fk_vvod = p_id
              and n.usl = p_usl
              and k.psch not in (8, 9)
-             and exists (select *
+             /*and exists (select *
                     from nabor r
                    where r.lsk = n.lsk --там где есть услуга ОДН
-                     and r.usl = fk_usl_chld_);
-        
+                     and r.usl = fk_usl_chld_)*/;
+
         elsif dist_tp_ <> 3 and use_sch_ = 0 then
           --либо чтобы НЕ были в этом периоде счетчики
           select nvl(sum(k.opl), 0)
@@ -366,10 +366,10 @@ create or replace package body scott.p_vvod is
                      and n.usl = e.usl
                      and e.tp = 7 --наличие счетчика в тек.периоде
                      and e.sch = 1)
-             and exists (select *
+             /*and exists (select *
                     from nabor r
                    where r.lsk = n.lsk --там где есть услуга ОДН
-                     and r.usl = fk_usl_chld_);
+                     and r.usl = fk_usl_chld_)*/;
         elsif dist_tp_ = 3 then
           --если тип распр.=3 то либо арендатор, либо должен кто-то быть прописан
           select nvl(sum(k.opl), 0)
@@ -386,14 +386,14 @@ create or replace package body scott.p_vvod is
                       and e.usl = p_usl
                       and e.tp = 6 --итог без ОДН
                       and e.kpr2 <> 0))
-             and exists (select *
+             /*and exists (select *
                     from nabor r
                    where r.lsk = n.lsk --там где есть услуга ОДН
-                     and r.usl = fk_usl_chld_);
+                     and r.usl = fk_usl_chld_)*/;
         end if;
-      
+
         p_opl_add := all_opl_;
-      
+
         ---------------------------------------------------
         --------ОГРАНИЧЕНИЕ ПО ОДН-------------------------
         if nvl(p_wo_limit, 0) = 0 then
@@ -401,7 +401,7 @@ create or replace package body scott.p_vvod is
           begin
             if all_opl_ > 0 and all_kpr_ > 0 then
               --площадь > 0 и кол-во прожив > 0
-            
+
               --ограничение ОДН, для поиска по таблице (округл. до целых)
               if tp_ in (0, 1) then
                 --х.в. и г.в.
@@ -436,10 +436,10 @@ create or replace package body scott.p_vvod is
                              and h.id = p_house_id
                              and u.cd = 'exist_lift'
                              and nvl(x.n1, 0) = 1
-                          
+
                           );
                   l_odn_nrm:=2.7;
-                
+
                   /*            and not exists  --убрал, так как есть такие дома, где лифт сидит в текущем содержании! (Кис)
                   (select * from kart k, nabor n, usl u where k.house_id=h.id
                       and k.lsk=n.lsk
@@ -451,7 +451,7 @@ create or replace package body scott.p_vvod is
                   when no_data_found then
                     l_limit_vol := 0;
                 end;
-              
+
                 if l_limit_vol = 0 then
                   --значит дом с лифтом
                   begin
@@ -471,7 +471,7 @@ create or replace package body scott.p_vvod is
                                and h.id = p_house_id
                                and u.cd = 'exist_lift'
                                and nvl(x.n1, 0) = 1
-                            
+
                             );
                     /*                and exists
                     (select * from kart k, nabor n, usl u where k.house_id=h.id
@@ -485,9 +485,9 @@ create or replace package body scott.p_vvod is
                       l_limit_vol := 0;
                   end;
                 end if;
-              
+
               end if;
-            
+
             else
               l_limit_vol := 0;
             end if;
@@ -495,9 +495,9 @@ create or replace package body scott.p_vvod is
             when no_data_found then
               l_limit_vol := 0;
           end;
-        
+
           l_kub_fact_upnorm := 0;
-          -- как будто не работает этот блок (limit_proc нигде не заполнен): 
+          -- как будто не работает этот блок (limit_proc нигде не заполнен):
           if nvl(p_limit_proc, 0) <> 0 then
             --если установлено ограничение по доначислению ОДН в %
             --Вариант 2 расчета предельно допустимого объема ОДН
@@ -518,14 +518,14 @@ create or replace package body scott.p_vvod is
               l_kub_fact_upnorm := p_kub-p_kub_dist;
             end if;
           end if;
-          -- как будто не работает этот блок (limit_proc нигде не заполнен): 
+          -- как будто не работает этот блок (limit_proc нигде не заполнен):
 
         end if;
       end if;
-    
+
       ---------------------------------------------------
       --------СБОР ИНФОРМАЦИИ ДЛЯ РАСЧЕТА ОДН------------
-    
+
       if nvl(p_kub_dist, 0) = 0.001 then
         p_kub_sch  := null;
         p_sch_cnt  := null;
@@ -537,13 +537,13 @@ create or replace package body scott.p_vvod is
         p_opl_ar   := null;
         p_opl_ar   := null;
       end if;
-    
+
       ---ОЧИСТКА ИНФОРМАЦИИ ОДН-------------------------
       gen_clear_odn(p_usl      => p_usl,
                     p_usl_chld => fk_usl_chld_,
                     p_house    => null,
                     p_vvod     => p_id);
-    
+
       if all_kub_ = 0 and p_kub_dist <> 0.001 then
         --p_kub <> 0.001
         --чтобы предотвратить ошибку деление на ноль
@@ -592,7 +592,7 @@ create or replace package body scott.p_vvod is
                              and n.fk_vvod = p_id);
                   -- commit;
                   -- Raise_application_error(-20000, l_limit_area||'-'||l_rate||'-'||l_area_prop||'-'||all_opl_);
-                
+
                 elsif dist_tp_ <> 3 and use_sch_ = 0 then
                   --либо чтобы НЕ были в этом периоде счетчики
                   update nabor k
@@ -668,7 +668,7 @@ create or replace package body scott.p_vvod is
                                       and e.tp = 6 --итог без ОДН
                                       and e.kpr2 <> 0)));
                 end if;
-              
+
                 --добавить инфу по ОДН.
                 insert into c_charge
                   (lsk, usl, test_opl, type)
@@ -688,7 +688,7 @@ create or replace package body scott.p_vvod is
                 --ЭКОНОМИЯ пропорционально кол-ва проживающих, если небаланс < 0
                 --но не более потребленного объема
                 --            Raise_application_error(-20000, all_kpr_||'-'||p_kub - all_kub_);
-              
+
                 if dist_tp_ <> 3 and use_sch_ = 1 then
                   --либо в т.ч. счетчики
                   open cur1;
@@ -701,7 +701,7 @@ create or replace package body scott.p_vvod is
                 end if;
                 loop
                   if dist_tp_ <> 3 and use_sch_ = 1 then
-                  
+
                     fetch cur1
                       into rec;
                     exit when cur1%notfound;
@@ -740,7 +740,7 @@ create or replace package body scott.p_vvod is
                                            3)
                      where n.lsk = rec.lsk
                        and n.usl = fk_usl_chld_;
-                  
+
                     --экономия распред.на счетчики
                     if l_vol > 0 then
                       --добавить инфу по ОДН.
@@ -750,7 +750,7 @@ create or replace package body scott.p_vvod is
                         (lsk, usl, vol, sch, tp)
                       values
                         (rec.lsk, p_usl, -1 * l_vol, 1, 4);
-                    
+
                       insert into c_charge
                         (lsk, usl, test_opl, type)
                       values
@@ -783,7 +783,7 @@ create or replace package body scott.p_vvod is
                        end,
                        0,
                        4);
-                  
+
                     --добавить инфу по ОДН.
                     --совместить с основным распр.
                     insert into c_charge
@@ -811,15 +811,15 @@ create or replace package body scott.p_vvod is
                   --если тип распр.=3 то либо арендатор, либо должен кто-то быть прописан
                   close cur3;
                 end if;
-              
+
               end if;
-            
+
             elsif dist_tp_ = 2 then
               --доначисление пропорционально потреб. объему
               --код не поддерживается 22.04.14
               raise_application_error(-20000,
                                       'Error #2-код не поддерживается');
-            
+
               /*             update nabor k
                              set k.vol_add = --доначисление по нормативщику, счетчику небаланс, (+ или -)
                                    round((select nvl(sum(t.vol),0)
@@ -849,11 +849,11 @@ create or replace package body scott.p_vvod is
                                          );
               */
               null;
-            
+
             end if;
             ---------------------------------------------------
             --------РАСПРЕДЕЛЕНИЕ ОДН--------------------------
-          
+
             ---------------------------------------------------
             --------ОКРУГЛЕНИЕ ОДН--------------------------
             --ОКРУГЛЕНИЕ доначисления по 354 пост.
@@ -905,7 +905,7 @@ create or replace package body scott.p_vvod is
                    and t.usl = fk_usl_chld_
                    and t.vol_add <> 0
                 returning t.lsk, nvl(t.vol_add, 0) into l_lsk_round, l_vol_round;
-              
+
                 if l_lsk_round is not null and l_vol_round <> 0 then
                   --обновить инфу по ОДН.
                   update c_charge t
@@ -958,7 +958,7 @@ create or replace package body scott.p_vvod is
                     l_lsk_round := c.lsk;
                     exit;
                   end loop;
-                
+
                   /*                update nabor t
                     set t.vol_add = t.vol_add + p_kub_dist - all_kub_ -
                                     l_nbalans
@@ -978,7 +978,7 @@ create or replace package body scott.p_vvod is
                     and t.usl = p_usl
                     and t.vol_add > 0.01 --там где еще положительные объемы есть, куда округлять
                     returning t.lsk, nvl(t.vol_add,0) into l_lsk_round, l_vol_round; */
-                
+
                   if sql%notfound then
                     --округлить по нормативщику, если не найдены счетчики
                     for c in (select t.lsk,
@@ -1035,12 +1035,12 @@ create or replace package body scott.p_vvod is
                        and t.usl = fk_usl_chld_
                        and t.type = 5;
                   end if;
-                
+
                 end if;
               end if;
             elsif dist_tp_ = 2 then
               --доначисление пропорционально потреб. объему
-            
+
               raise_application_error(-20000,
                                       'КОД НЕ ИСПОЛЬЗУЕТСЯ!');
               /*            update nabor t
@@ -1074,7 +1074,7 @@ create or replace package body scott.p_vvod is
             ---------------------------------------------------
             --------ОКРУГЛЕНИЕ ОДН-----------------------------
           end if;
-        
+
           ---------------------------------------------------
           --------ИТОГИ РАСПРЕДЕЛЕНИЯ ОДН--------------------
           --итоговые выполненные доначисления
@@ -1137,7 +1137,7 @@ create or replace package body scott.p_vvod is
              and n.type = 5;
           p_kub_ar_fact := rec_cnt_.vol_add;
           p_kub_fact    := p_kub_nrm_fact + p_kub_sch_fact + p_kub_ar_fact;
-        
+
         elsif dist_tp_ = 0 then
           --РАСПРЕДЕЛЕНИЕ пропорционально объему (Кис) (устаревает)
           raise_application_error(-20000,
@@ -1182,7 +1182,7 @@ create or replace package body scott.p_vvod is
                         from kart t
                        where t.lsk = k.lsk
                          and nvl(decode(tp_, 0, t.mhw, 1, t.mgw, 0), 0) > 0);
-            
+
               --распределение счетчику, если у него снятие ( < 0)
               update nabor k
                  set k.vol_add = --распределение счетчику, где счетчик < 0
@@ -1202,7 +1202,7 @@ create or replace package body scott.p_vvod is
                         from kart t
                        where t.lsk = k.lsk
                          and nvl(decode(tp_, 0, t.mhw, 1, t.mgw, 0), 0) < 0);
-            
+
               if rec_norm_.kub_norm <> 0 then
                 --округление на случайного нормативщика
                 update nabor t
@@ -1247,7 +1247,7 @@ create or replace package body scott.p_vvod is
                    and t.vol_add > 0;
                 null;
               end if;
-            
+
             else
               --распределение только на долю нормативщиков
               if rec_norm_.kub_norm <> 0 and
@@ -1309,12 +1309,12 @@ create or replace package body scott.p_vvod is
             end if;
           end if;
         end if;
-      
+
         ---------------------------------------------------
         --------РАСПРЕДЕЛЕНИЕ------------------------------
-      
+
       end if;
-    
+
     elsif fk_calc_tp_ = 1 and dist_tp_ = 0 then
       --устаревает, смотри услугу 31
       --распределение Электроэнергии МОП, пропорционально площади, по дочерней услуге (ТСЖ)
@@ -1332,7 +1332,7 @@ create or replace package body scott.p_vvod is
       p_kub_sch := rec_sch_.kub_sch;
       p_sch_cnt := rec_sch_.cnt;
       p_sch_kpr := rec_sch_.kpr;
-    
+
       select 0 as kub_norm,
              count(*) as cnt, --да, да 0 по нормативу (нужно сделать kpr * норматив) доделать! ред 21.03.12
              nvl(sum(k.kpr - k.kpr_ot), 0) as kpr_norm,
@@ -1347,12 +1347,12 @@ create or replace package body scott.p_vvod is
       p_kub_norm := rec_norm_.kub_norm;
       p_kpr      := rec_norm_.kpr;
       p_cnt_lsk  := rec_norm_.cnt_lsk;
-    
+
       --суммируем расход по вводу
       all_kub_ := rec_sch_.kub_sch + rec_norm_.kub_norm;
       --суммируем площадь по вводу
       all_opl_ := rec_sch_.opl + rec_norm_.opl;
-    
+
       update nabor k
          set k.vol_add = --доначисление по нормативщику, счетчику небаланс, (+ или -)
               round((select t.opl from kart t where t.lsk = k.lsk) /
@@ -1365,7 +1365,7 @@ create or replace package body scott.p_vvod is
                  and t.psch not in (8, 9)
                  and n.fk_vvod = p_id
                  and n.usl = p_usl);
-    
+
       --округление на случайного нормативщика/cчетчика
       update nabor t
          set t.vol_add = t.vol_add + p_kub_dist - all_kub_ -
@@ -1446,11 +1446,11 @@ create or replace package body scott.p_vvod is
                 0
              end = 1
          and n.fk_vvod = p_id;
-    
+
       p_kub_sch := kub_rec_.kub_sch;
       p_sch_cnt := kub_rec_.cnt;
       p_sch_kpr := kub_rec_.kpr_sch;
-    
+
       --колво людей по нормативу
       select count(*), nvl(sum(k.kpr - k.kpr_ot), 0)
         into kpr_rec_
@@ -1476,7 +1476,7 @@ create or replace package body scott.p_vvod is
          and n.fk_vvod = p_id;
       p_kpr     := kpr_rec_.kpr;
       p_cnt_lsk := kpr_rec_.cnt;
-    
+
       --Обновляем кол-во квт по карточкам, по нормативу
       if (p_kub_dist - kub_rec_.kub_sch) < 0 then
         -- не реальная ситуация ( квт по сч > кубов по дому)
@@ -1503,7 +1503,7 @@ create or replace package body scott.p_vvod is
                           0
                        end = 1
                    and n.fk_vvod = p_id);
-      
+
         --расход квт по каждому человеку, по этому вводу
         p_kub_man := 0;
       elsif kpr_rec_.kpr > 0 then
@@ -1563,7 +1563,7 @@ create or replace package body scott.p_vvod is
         --расход квт по каждому человеку, по этому вводу
         p_kub_man := 0;
       end if;
-    
+
       select sum(decode(k.sch_el, 1, k.mel, k.mel * k.kpr))
         into p_kub_fact
         from kart k, nabor c
@@ -1571,7 +1571,7 @@ create or replace package body scott.p_vvod is
          and c.usl = p_usl
          and k.psch not in (8, 9)
          and k.lsk = c.lsk;
-    
+
       ---------
       ---------
     elsif fk_calc_tp_ = 11 then
@@ -1594,14 +1594,14 @@ create or replace package body scott.p_vvod is
                  and a.lsk = r.lsk
                  and r.fk_vvod = p_id)
          and n.usl = p_usl;
-    
+
     elsif fk_calc_tp_ = 23 and p_kub_dist is not null then
       --распределение по прочей услуге, расчитываемой как расценка * vol_add, пропорционально площади
       --например, эл.энерг МОП в Кис., в ТСЖ, эл.эн.ОДН в Полыс.
       --здесь же распределяется услуга ОДН, которая не предполагает собой
       --начисление по основной услуге в лицевых счетах
       l_limit_vol := 0;
-    
+
       if l_usl_cd in ('эл.эн.ОДН', 'эл.эн.МОП2', 'эл.эн.учет УО ОДН') and nvl(p_wo_limit, 0) = 0 then
         begin
           select nvl(round(x.n1 * 2.7, 4), 0)
@@ -1619,7 +1619,7 @@ create or replace package body scott.p_vvod is
                      and h.id = p_house_id
                      and u.cd = 'exist_lift'
                      and nvl(x.n1, 0) = 1
-                  
+
                   );
           l_odn_nrm:=2.7;
         exception
@@ -1651,13 +1651,13 @@ create or replace package body scott.p_vvod is
               l_limit_vol := 0;
           end;
         end if;
-      
+
         --проверяем ограничение ОДН
         if p_kub_dist > l_limit_vol then
           p_kub_dist := l_limit_vol;
         end if;
       end if;
-    
+
       --нулим по вводу-услуге
       update nabor k
          set k.vol = 0, k.vol_add = 0, k.limit = null
@@ -1689,7 +1689,7 @@ create or replace package body scott.p_vvod is
                 from kart k
                where k.lsk = n.lsk
                  and k.psch not in (8, 9));
-    
+
       --распределено фактически
       select nvl(sum(c.vol_add), 0)
         into p_kub_fact
@@ -1703,7 +1703,7 @@ create or replace package body scott.p_vvod is
         raise_application_error(-20000,
                                 'Возможно лицевые счета в карточке не привязаны ко вводу, распределение по id=' || p_id||', разница='||(p_kub_dist - p_kub_fact));
       end if;
-    
+
       --округление
       update nabor t
          set t.vol_add = t.vol_add + p_kub_dist - p_kub_fact
@@ -1714,7 +1714,7 @@ create or replace package body scott.p_vvod is
                          and n.vol_add <> 0
                          and n.usl = p_usl)
          and t.vol_add <> 0;
-    
+
       --и опять.. распределено фактически
       select sum(c.vol_add)
         into p_kub_fact
@@ -1724,7 +1724,7 @@ create or replace package body scott.p_vvod is
          and k.psch not in (8, 9)
          and nvl(c.koeff, 0) <> 0
          and k.lsk = c.lsk;
-    
+
     elsif fk_calc_tp_ = 15 then
       --Электроэнергия распр (для ТСЖ), (по лицевым счетам)
       update nabor n
@@ -1746,7 +1746,7 @@ create or replace package body scott.p_vvod is
                  and b.fk_vvod = p_id
                  and nvl(b.koeff, 0) <> 0)
          and n.usl = p_usl;
-    
+
       begin
         select nvl(round(p_kub_dist / count(*), 2), 0), count(*), null
           into kub_rec_
@@ -1761,9 +1761,9 @@ create or replace package body scott.p_vvod is
         when zero_divide then
           raise_application_error(-20000,
                                   'Возможно отсутствует услуга в лицевых счетах, деление на ноль в вводе ID=' || p_id);
-        
+
       end;
-    
+
       select sum(c.vol)
         into p_kub_fact
         from kart k, nabor c
@@ -1772,22 +1772,22 @@ create or replace package body scott.p_vvod is
          and k.psch not in (8, 9)
          and nvl(c.koeff, 0) <> 0
          and k.lsk = c.lsk;
-    
+
       p_kub_sch := kub_rec_.kub_sch;
       p_sch_cnt := kub_rec_.cnt;
       p_sch_kpr := kub_rec_.kpr_sch;
-    
+
     elsif fk_calc_tp_ = 14 then
       --начисление по услуге отопление в гигах
       --поправочный коэфф. для перевода расц за гиг в расц за площадь
       --коэфф. един для отопления по норме и свыше
-    
+
       --коэфф по норме
       koeff_ := 1;
       --распределяем СТРОГО по тем НЕ ЗАКРЫТЫМ квартирам, в которых ВКЛЮЧЕНА услуга
         --распределить без норматива, гКал пропорционально площади
 /* УБРАЛ ЭТО СТранное округление round (5), приводило к некорректному распределению (увидел в полыс) 25.07.2016
-           set n.vol = round(round(p_kub_dist /  
+           set n.vol = round(round(p_kub_dist /
                                    (select sum(k.opl)
                                       from kart k, nabor b, usl u
                                      where k.lsk = b.lsk
@@ -1818,7 +1818,7 @@ create or replace package body scott.p_vvod is
                    and b.usl = p_usl)
            and n.usl = p_usl
            and n.fk_vvod = p_id;
-               
+
       select sum(c.vol)
         into p_kub_fact
         from kart k, nabor c
@@ -1838,11 +1838,11 @@ create or replace package body scott.p_vvod is
            and k.psch not in (8, 9)
            and n.usl = p_usl
            and n.fk_vvod = p_id;
-      
+
         p_kub_sch := kub_rec_.kub_sch;
         p_sch_cnt := kub_rec_.cnt;
         p_sch_kpr := kub_rec_.kpr_sch;
-      
+
         --колво людей по нормативу
         select count(*), nvl(sum(k.kpr - k.kpr_ot), 0)
           into kpr_rec_
@@ -1855,7 +1855,7 @@ create or replace package body scott.p_vvod is
            and n.fk_vvod = p_id;
         p_kpr     := kpr_rec_.kpr;
         p_cnt_lsk := kpr_rec_.cnt;
-      
+
         --Обновляем кол-во квт по карточкам, по нормативу
         if (p_kub - kub_rec_.kub_sch) < 0 then
           -- не реальная ситуация ( квт по сч > кубов по дому)
@@ -1868,7 +1868,7 @@ create or replace package body scott.p_vvod is
                    where n.lsk = k.lsk
                      and n.usl = p_usl
                      and n.fk_vvod = p_id);
-      
+
           --расход квт по каждому человеку, по этому вводу
           p_kub_man := 0;
         elsif kpr_rec_.kpr > 0 then
@@ -1900,7 +1900,7 @@ create or replace package body scott.p_vvod is
           --расход квт по каждому человеку, по этому вводу
           p_kub_man := 0;
         end if;
-      
+
         select sum(decode(k.sch_el, 1, k.mel, k.mel * k.kpr))
           into p_kub_fact
           from kart k, nabor c
@@ -1910,10 +1910,10 @@ create or replace package body scott.p_vvod is
            and k.lsk = c.lsk;
       */
     end if;
-  
+
     --обновить вводы выходными параметрами
     --не выполнить случайно обновление по циклу!
-  
+
     update c_vvod t
        set t.kub_nrm_fact = p_kub_nrm_fact,
            t.kub_sch_fact = p_kub_sch_fact,
@@ -1933,14 +1933,14 @@ create or replace package body scott.p_vvod is
            t.nrm = l_odn_nrm,
            t.kub_fact_upnorm = l_kub_fact_upnorm
      where t.id = p_id;
-  
+
     --if p_gen_part_kpr = 1 then
     --  --расчет начисления (если из триггера)
     --  l_cnt := c_charges.gen_charges(null, null, null, p_id, 0, 0);
     --end if;
     logger.log_(l_time,
                 'Выполнено: p_vvod.gen_dist: vvod_id=' || p_id);
-    
+
   end;
 
     --перераспределение объемов по всем домам
@@ -1981,13 +1981,13 @@ create or replace package body scott.p_vvod is
                           p_vvod     => null);
       end loop;
     end loop;
-  
+
     --commit, чтобы ускорить процесс
     commit;
     logger.log_(time1_,
                 'p_vvod.gen_dist_all_houses - закончена I - Фаза:Очистка там где вообще нет записи во вводе');
     time1_ := sysdate;
-  
+
     --распределить ОДН в домах, где нет ОДПУ
     i:=0;
     for c in (select d.id
@@ -2000,11 +2000,11 @@ create or replace package body scott.p_vvod is
       --распределить объем
       gen_dist_wo_vvod_usl(c.id);
     end loop;
-  
+
     logger.log_(time1_,
                 'p_vvod.gen_dist_all_houses - закончена II - Фаза:Распр в домах, где нет ОДПУ');
     time1_ := sysdate;
-  
+
     i:=0;
     --распределить объемы по домам с ОДПУ
     for c in (select distinct d.*
@@ -2014,7 +2014,7 @@ create or replace package body scott.p_vvod is
                  and nvl(h.psch, 0) = 0 --не закрытые дома
                  and d.dist_tp not in (4,5,2) --дома с ОДПУ и с услугой для распределения, например ОДН (dist_tp<>2)
                  and d.usl is not null
-              ) 
+              )
      loop
       p_vvod.gen_dist(p_klsk           => c.fk_k_lsk,
                       p_dist_tp        => c.dist_tp,
@@ -2051,7 +2051,7 @@ create or replace package body scott.p_vvod is
                 'p_vvod.gen_dist_all_houses - закончена III - Фаза:Распр в домах, где есть ОДПУ');
     logger.log_(time_,
                 'p_vvod.gen_dist_all_houses: Окончание распределения');
-  
+
   end;
 
   procedure gen_clear_odn(p_usl      in c_vvod.usl%type,
@@ -2081,7 +2081,7 @@ create or replace package body scott.p_vvod is
                where n.fk_vvod = p_vvod
                  and n.usl = p_usl
                  and n.lsk = t.lsk);
-    
+
       --нулим по вводу-услуге
       update nabor k
          set k.vol = 0, k.vol_add = 0, k.limit = null
@@ -2103,7 +2103,7 @@ create or replace package body scott.p_vvod is
                  and n.usl = p_usl
                  and n.fk_vvod = p_vvod);
       --почистить нормативы (ограничения)
-      update c_vvod t set t.nrm=null where t.id=p_vvod;           
+      update c_vvod t set t.nrm=null where t.id=p_vvod;
     elsif p_house is not null then
       --удаляем информацию по распр.ОДН.по информационным записям
       delete from c_charge t
@@ -2115,7 +2115,7 @@ create or replace package body scott.p_vvod is
                  and k.lsk = n.lsk
                  and n.usl = p_usl
                  and n.lsk = t.lsk);
-    
+
       --нулим по вводу-услуге
       update nabor k
          set k.vol = 0, k.vol_add = 0
@@ -2139,11 +2139,11 @@ create or replace package body scott.p_vvod is
                  and n.usl = p_usl
                  and t.house_id = p_house);
       --почистить нормативы (ограничения)
-      update c_vvod t set t.nrm=null where t.house_id=p_house and t.usl=p_usl;           
+      update c_vvod t set t.nrm=null where t.house_id=p_house and t.usl=p_usl;
     end if;
     logger.log_(l_time1,
                 'Выполнена очистка: p_vvod.gen_clear_odn p_house='||p_house||', p_vvod='||p_vvod);
-  
+
   end;
 
   --распределить ОДН во вводах, где нет ОДПУ
@@ -2177,7 +2177,7 @@ create or replace package body scott.p_vvod is
     l_time1 := sysdate;
     --распределение ОДН по домам, в которых нет домового П.У.
     --(ОДН по формуле)
-  
+
     --вид расчета услуги
     select nvl(u.fk_calc_tp, 0), u.fk_usl_chld, u.usl, d.house_id, d.edt_norm
       into fk_calc_tp_, fk_usl_chld_, l_usl, l_house, l_edt_norm
@@ -2185,10 +2185,10 @@ create or replace package body scott.p_vvod is
      where u.usl = d.usl
        and d.id = p_vvod;
     select nvl(u.sptarn, 0) into sptarn_ from usl u where u.usl = l_usl;
-  
+
     --установить коэфф по проживающим, по вводу
     c_kart.set_part_kpr_vvod(p_vvod);
-  
+
     if fk_calc_tp_ in (3, 17, 38) then
       tp_ := 0; --х.в.
     elsif fk_calc_tp_ in (4, 18, 40) then
@@ -2196,13 +2196,13 @@ create or replace package body scott.p_vvod is
     elsif fk_calc_tp_ in (31) then
       tp_ := 2; --эл.эн.
     end if;
-  
+
     ---ОЧИСТКА ИНФОРМАЦИИ ОДН-------------------------
     gen_clear_odn(p_usl      => l_usl,
                   p_usl_chld => fk_usl_chld_,
                   p_house    => null,
                   p_vvod     => p_vvod);
-  
+
     if tp_ in (0, 1) then
       --х.в. или г.в.
       --кол-во проживающих
@@ -2231,7 +2231,7 @@ create or replace package body scott.p_vvod is
          and e.tp = 6 --итог без ОДН
          and k.status not in (9) /*без Арендаторов*/
       ;
-    
+
     elsif tp_ = 2 then
       --по эл.эн. - по особенному
       --дом без лифта = площадь общего имущества * 2.7 квт.
@@ -2252,14 +2252,14 @@ create or replace package body scott.p_vvod is
                    and h.id = l_house
                    and u.cd = 'exist_lift'
                    and nvl(x.n1, 0) = 1
-                
+
                 );
-         l_odn_nrm:=2.7;       
+         l_odn_nrm:=2.7;
       exception
         when no_data_found then
           l_limit_vol := 0;
       end;
-    
+
       if l_limit_vol = 0 then
         --значит дом с лифтом
         begin
@@ -2279,18 +2279,18 @@ create or replace package body scott.p_vvod is
                      and h.id = l_house
                      and u.cd = 'exist_lift'
                      and nvl(x.n1, 0) = 1
-                  
+
                   );
-         l_odn_nrm:=4.1;       
+         l_odn_nrm:=4.1;
         exception
           when no_data_found then
             l_limit_vol := 0;
         end;
       end if;
       null;
-    
+
     end if;
-  
+
     if tp_ in (0, 1) and l_kpr <> 0 or tp_ in (2) then
       --если кол-во проживающих <>0, то имеет смысл (для х.в. и г.в., но не для эл.эн.)
       for c in (select sum(k.opl) as opl,
@@ -2302,7 +2302,7 @@ create or replace package body scott.p_vvod is
                        end as vl
                   from kart k, nabor n
                  where k.house_id = l_house
-                   and k.lsk=n.lsk 
+                   and k.lsk=n.lsk
                    and n.usl=fk_usl_chld_
                    and k.psch not in (8, 9) --без арендаторов
                    and nvl(k.opl, 0) <> 0) loop
@@ -2345,7 +2345,7 @@ create or replace package body scott.p_vvod is
                      and t.lsk = r.lsk
                      and r.fk_vvod = p_vvod
                      and nvl(t.opl, 0) <> 0);
-      
+
         select nvl(sum(n.vol_add), 0)
           into l_cnt
           from nabor n
@@ -2354,7 +2354,7 @@ create or replace package body scott.p_vvod is
         l_odn_nrm:=c.vl*1000;--вернуть в литры
         --округление -- здесь не нужно
       end loop;
-    
+
       --итоговые выполненные доначисления
       select nvl(sum(case
                            when k.psch in (1, 2) and fk_calc_tp_ in (3, 17, 38) then
@@ -2399,7 +2399,7 @@ create or replace package body scott.p_vvod is
       l_kub_nrm_fact := l_rec_cnt.vol;
       l_kub_sch_fact := l_rec_cnt.vol_add;
       l_kub_fact     := l_kub_nrm_fact + l_kub_sch_fact;
-    
+
       update c_vvod t
          set t.kub_nrm_fact = l_kub_nrm_fact,
              t.kub_sch_fact = l_kub_sch_fact,
@@ -2425,13 +2425,13 @@ create or replace package body scott.p_vvod is
 
   --пересчитать ввод (из программы)
   procedure gen_vvod(p_vvod_id in number) is
-  begin  
+  begin
     for c in (select d.* from c_vvod d where d.id=p_vvod_id
         )
       loop
         if c.dist_tp in (4,5) then
         --распределить объем, если нет ОДПУ
-        p_vvod.gen_dist_wo_vvod_usl(c.id);            
+        p_vvod.gen_dist_wo_vvod_usl(c.id);
         else
         --распределить объем, если есть ОДПУ
         p_vvod.gen_dist(p_klsk => c.fk_k_lsk,
@@ -2476,7 +2476,7 @@ create or replace package body scott.p_vvod is
     a     number;
   begin
     --проверка распределения по одному выбранному вводу
-  
+
     --дата нужна для начисления
     a := init.set_date(p_cur_dt);
     for c in (select d.* from c_vvod d where d.id = p_vvod_id) loop
@@ -2560,27 +2560,27 @@ create or replace package body scott.p_vvod is
              params p
        where b.state = 'Неисправен ПУ';
 
- --больше 6 мес.не было передано объемов   
-  cursor c2 is       
+ --больше 6 мес.не было передано объемов
+  cursor c2 is
   select k.lsk, k.psch, to_date(p.period || '01', 'YYYYMMDD') as dt2
      from scott.kart k, scott.params p where not exists (
     select t.*
       from scott.t_objxpar t, scott.u_list s, scott.u_listtp tp, scott.params p
      where t.fk_list = s.id
        and t.tp =0
-       and s.fk_listtp=tp.id 
+       and s.fk_listtp=tp.id
        and tp.cd='Параметры лиц.счета'
        and t.fk_usl=p_usl
        and s.cd='ins_vol_sch'
-       and nvl(t.n1,0)>0 
+       and nvl(t.n1,0)>0
        and k.psch not in (8,9)
        and t.mg>=to_char(add_months(to_date(p.period || '01', 'YYYYMMDD'),-6),'YYYYMM') --назад на 6 месяцев
        and t.fk_lsk=k.lsk
-    ) 
+    )
     and (k.psch in (1, 2) and l_counter = 'phw' or
         (k.psch in (1, 3) and l_counter = 'pgw') or
         (k.sch_el = 1 and l_counter = 'pel'));
-       
+
     l_rec    c%rowtype;
     l_rec2    c2%rowtype;
     l_res    number;
@@ -2594,7 +2594,7 @@ create or replace package body scott.p_vvod is
       into l_counter, l_usl_nm
       from usl t
      where t.usl = p_usl;
-  
+
     --Переделать все счетчики в норматив, если признаны неисправными
     open c;
     loop
@@ -2674,12 +2674,12 @@ create or replace package body scott.p_vvod is
                          ', < 3 месяца, начислено по среднему',
                          2);
         end if;
-      
+
       end if;
     end loop;
     close c;
-    
-    
+
+
     --Переделать все счетчики в норматив, если не было передано показаний по ним
     open c2;
     loop
@@ -2734,7 +2734,7 @@ create or replace package body scott.p_vvod is
         end if;
   end loop;
   close c2;
-      
+
   end;
 
   function gen_auto_chrg_all(p_set in number, p_usl in usl.usl%type)
@@ -2752,7 +2752,7 @@ create or replace package body scott.p_vvod is
     if utils.get_int_param('VER_METER1') <> 0 then
       Raise_application_error(-20000, 'Функция не работает в новой версии!');
     end if;
-    
+
     begin
     logger.log_(null, 'p_vvod.gen_auto_chrg_all Начало');
     --установить глобальную переменную - признак автоначисления (потом сделать как нить g_tp=3)
@@ -2763,10 +2763,10 @@ create or replace package body scott.p_vvod is
     end if;
     --снять глобальную переменную
     g_tp := 0;
-  
+
     --автоначисление по счетчикам, по услуге
     l_ret := 1;
-  
+
     --узнать отопительный ли сезон?
     --(по последней дате месяца) - пока так... ничего умнее не придумал
     select case
@@ -2779,14 +2779,14 @@ create or replace package body scott.p_vvod is
            end
       into l_otop
       from params p;
-  
+
     --по среднему, за последний N месяцев, но не менее чем за последние 3 мес.
     select trim(t.counter), trim(t.nm)
       into l_counter, l_usl_nm
       from usl t
      where t.usl = p_usl;
     l_months := utils.get_int_param('AUTOCHRGM');
-  
+
     if p_set = 1 then
       --автоначислить по среднему
       --период, от года назад до прошлого месяца
@@ -2797,15 +2797,15 @@ create or replace package body scott.p_vvod is
                      'YYYYMM')
         into l_mg1, l_mg2
         from params p;
-    
+
       --снять неисправные счетчики (превратить в нормативы)
       if utils.get_int_param('DEL_BRK_SCH')=1 then  --ПОЧЕМУ ДВАЖДЫ????
         del_broken_sch(p_usl);
       end if;
-    
+
       --установить глобальную переменную - признак автоначисления
       g_tp := 1;
-    
+
       for c in (select a.lsk,
                        nvl(sum(case
                                  when a.psch in (1, 2) then
@@ -2868,7 +2868,7 @@ create or replace package body scott.p_vvod is
                                nvl(k.mgw, 0) = 0) or
                                (k.sch_el = 1 and l_counter = 'pel') and
                                nvl(k.mel, 0) = 0)
-                              
+
                            and k.psch not in (8, 9))
                  group by a.lsk) loop
         --ВНИМАНИЕ!, ПЕРЕПИСАТЬ ДЛЯ КИС, ЕСЛИ БУДУТ ИСПОЛЬЗОВАТЬ распределение по расходу!
@@ -2905,7 +2905,7 @@ create or replace package body scott.p_vvod is
       --снять автоначисление (отмена) (последнюю итерацию)
       --установить глобальную переменную - признак снятия автоначисления
       g_tp := 2;
-    
+
       for c in (select t.fk_lsk, max(t.id) as max_id
                   from t_objxpar t, params p, u_list s, u_listtp tp
                  where t.mg = p.period
@@ -2921,7 +2921,7 @@ create or replace package body scott.p_vvod is
           into l_tp, l_cnt
           from t_objxpar t
          where t.id = c.max_id;
-      
+
         --ВНИМАНИЕ!, ПЕРЕПИСАТЬ ДЛЯ КИС, ЕСЛИ БУДУТ ИСПОЛЬЗОВАТЬ распределение по расходу!
         if l_tp = 1 and l_cnt <> 0 then
           l_ret := 0;
@@ -2948,7 +2948,7 @@ create or replace package body scott.p_vvod is
           end if;
         end if;
       end loop;
-    
+
     end if;
     --снять глобальную переменную - признак автоначисления
     g_tp := 0;
@@ -2964,8 +2964,8 @@ create or replace package body scott.p_vvod is
       --если ошибка - снять глобальную переменную - признак автоначисления, иначе она повлияет на ввод обычных счетчиков (если не выйти из программы)
       g_tp := 0;
       raise;
-    end;  
-    
+    end;
+
     return l_ret;
   end;
 
@@ -3129,7 +3129,7 @@ create or replace package body scott.p_vvod is
     l_vvod_klsk number;
   begin
     begin
-      --попытаться вернуть имеющийся 
+      --попытаться вернуть имеющийся
       select d.fk_k_lsk into l_vvod_klsk
         from c_houses h, c_vvod d where h.k_lsk_id=p_klsk and d.usl is null
           and d.vvod_num=p_num and d.house_id=h.id;
@@ -3137,16 +3137,16 @@ create or replace package body scott.p_vvod is
     when NO_DATA_FOUND then
       --ввода нет, создать
       for c in (select h.id from c_houses h where h.k_lsk_id=p_klsk)
-      loop  
+      loop
         insert into c_vvod(house_id, vvod_num)
           values (c.id, p_num)
           returning fk_k_lsk into l_vvod_klsk;
         exit;
       end loop;
    end;
-   --вернуть klsk ввода   
+   --вернуть klsk ввода
    return l_vvod_klsk;
-   
+
   end;
 
 end p_vvod;

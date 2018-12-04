@@ -35,10 +35,10 @@ begin
     end if;
  end if;
  
- if utils.get_int_param('IS_NOTIF') = 1 then
+/* if utils.get_int_param('IS_NOTIF') = 1 then
    -- создать Извещение для ГИС ЖКХ
    c_get_pay.create_notification_gis(rec_);
  end if;
-end c_kwtp_mg_ai_e;
+*/end c_kwtp_mg_ai_e;
 /
 

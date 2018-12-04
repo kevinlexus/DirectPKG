@@ -14,7 +14,7 @@ create or replace package scott.scripts2 is
                                p_org in number,  -- организация
                                p_mark in varchar2, -- маркер
                                p_mg in varchar2, -- текущий период,
-                               p_dat in date -- текущая дата 
+                               p_dat in date -- текущая дата
                                );
   procedure swap_sal_chpay10;
   procedure swap_sal_chpay11;
@@ -23,8 +23,23 @@ create or replace package scott.scripts2 is
   procedure cr_new_xitog3(p_mg in params.period%type);
   procedure swap_sal_chpay12;
   procedure swap_sal_chpay13;
-  --procedure move_kart_pr(p_lsk in kart.lsk%type);
-  --procedure move_kart_pr_lsk(p_lsk in kart.lsk%type);
+  procedure swap_sal_chpay14;
+  procedure cr_rso_lsk_by_list;
+  function kart_lsk_special_add(p_lsk in kart.lsk%type,-- лс источника
+         p_lsk_tp in varchar2, -- тип нового лс
+         p_forced_status in number, -- принудительно установить статус (null - не устанавливать, 0-открытый и т.п.)
+         p_reu in varchar2, -- применить данный код УК
+         p_kul in varchar2,
+         p_nd in varchar2,
+         p_kw in varchar2,
+         p_fam in varchar2,
+         p_im in varchar2,
+         p_ot in varchar2,
+         p_cnt_prop in number, -- кол-во проживающих
+         p_sal in number, -- начальное сальдо
+         p_doc in number,
+         p_user in number
+         ) return kart.lsk%type ;
 end scripts2;
 /
 

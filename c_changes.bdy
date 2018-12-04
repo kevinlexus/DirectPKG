@@ -91,6 +91,8 @@ PROCEDURE gen_changes_proc(lsk_start_ in c_change.lsk%type,
     l_h_usl number; --have especial services (флаг) -есть особые услуги, дл€ перерасч.
     l_one_ls number; --флаг перерасчета только по одному л.с.
     l_wo_kpr number;
+    -- кол-во домов дл€ перерасчета
+    l_cnt_house number;
     cursor cur_list_choices
     is
     select distinct h.id as house_id
@@ -363,9 +365,9 @@ if lsk_start_ is not null and lsk_end_ is not null then
                           when m.counter is null then 1
                           when l_psch=1 then 1 --по закрытым л.с. производить по всем типам счетчиков
                           else 0 end = 1);*/
-if sql%rowcount = 0 then                          
-  Raise_application_error(-20000, 'test1');
-end if;
+    if sql%rowcount = 0 then                          
+      Raise_application_error(-20000, 'ѕерерасчет не выполнен!');
+    end if;
     end if;                      
                          
     exit when l_part=1;
@@ -376,11 +378,16 @@ else
     --по домам
     --две доли
   l_part:=0;
+  select count(*) into l_cnt_house from list_choices_hs;
+  logger.log_(l_time, '¬сего домов дл€ перерасчета='||l_cnt_house);
+  
   loop
     for c in (select *
                 from list_choices_hs s
                 where s.sel = 0)
     loop
+    logger.log_(l_time, 'Ќачат перерасчет по дому kul='||c.kul||' nd='||c.nd);
+
     if l_mg=mg_ then
     --текущий период
     insert into temp_c_change2
@@ -458,6 +465,7 @@ else
     end if;      
     --по каждому дому коммит, да, да! (иначе тормозит глухо, когда много домов)
     commit;
+    logger.log_(l_time, 'ќкончен перерасчет по дому kul='||c.kul||' nd='||c.nd);
     end loop;
     exit when l_part=1;
     l_part:=l_part+1;

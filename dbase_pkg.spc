@@ -31,7 +31,7 @@ as
   return varchar2;
 
   function get_cnt_to_load(p_org in t_org.id%type) return number;
-  procedure ins_to_kart(p_org in t_org.id%type);
+  --procedure ins_to_kart(p_org in t_org.id%type);
   procedure load_other_file_dbf(p_dir in varchar2,
                       p_file in varchar2);
   procedure load_file_txt_bulk(p_dir in varchar2,

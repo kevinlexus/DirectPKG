@@ -93,7 +93,7 @@ create or replace package body scott.p_meter is
        for c in (
           select m.k_lsk_id into l_met_klsk
                        from kart k join params p on 1=1
-                       join v_lsk_tp tp on k.fk_tp=tp.id and tp.cd='LSK_TP_MAIN'
+                       join v_lsk_tp tp on k.fk_tp=tp.id and tp.cd in ('LSK_TP_MAIN')
                       join meter m on k.k_lsk_id=m.fk_klsk_obj and m.fk_usl=p_usl
                       and k.lsk=p_lsk and
                       case when m.dt1 <=last_day(to_date(p.period||'01', 'YYYYMMDD'))
@@ -111,7 +111,7 @@ create or replace package body scott.p_meter is
       end if;
     end if;
 
-    -- если открыты два лиц.счета с одним k_lsk то здесь может выйти максимальный из них и не тот обновится в итоге...
+    -- если открыты два лиц.счета с одним k_lsk то здесь может выйти максимальный из них и не тот обновится kart.mgw или kart.mhw в итоге...
     select max(decode(u.cd,'ins_sch',u.id,0)), max(decode(u.cd,'ins_vol_sch',u.id,0)), max(s.id),
       trim(max(u2.counter)), trim(max(k.lsk)), max(m.dt2),
       max(to_date(p.period||'01', 'YYYYMMDD')), max(p.period)

@@ -382,8 +382,8 @@ select count(*) into l_cnt from load_tmp_e t
 return l_cnt;
 end;
 
---выполнить загрузку лицевых счетов в kart
-procedure ins_to_kart(p_org in t_org.id%type) is
+--выполнить загрузку лицевых счетов в kart (09.11.2018 - временно закомментировал, как не нужное)
+/*procedure ins_to_kart(p_org in t_org.id%type) is
  l_lsk_smpl kart.lsk%type;
  l_lsk_new kart.lsk%type;
  a number;
@@ -407,7 +407,7 @@ end loop;
 
 
 commit;
-end;
+end;*/
 
 procedure load_file_txt_bulk(p_dir in varchar2,
                       p_file in varchar2)
@@ -461,8 +461,8 @@ is
 begin
   --получение текстового файла оплаты из банка
   select nvl(count(*),0) into cnt_ from c_comps c, t_org o
-    where c.nkom=init.get_nkom and c.fk_org=o.id
-    and o.cd in ('Сбербанк', 'Почта', 'ЖКХ-1');
+    where c.nkom=init.get_nkom and c.fk_org=o.id;
+    --and o.cd in ('Сбербанк', 'Почта', 'ЖКХ-1', 'Сбербанк-2') -- убрал ограничение 25.11.2018
   if cnt_ = 0 then
     raise_application_error( -20001,
      '№ Компьютера не соответствует данному типу файлов');
@@ -556,7 +556,7 @@ begin
   begin
     select 1, p.period into cnt_, l_mg from c_comps c, t_org o, params p
       where c.nkom=init.get_nkom and c.fk_org=o.id
-      and o.cd in ('Сбербанк');
+      and o.cd in ('Сбербанк', 'Сбербанк-2');
   exception when NO_DATA_FOUND then    
     raise_application_error( -20001,
      '№ Компьютера не соответствует данному типу файлов');
@@ -675,7 +675,7 @@ begin
   --получение dbf файла оплаты из Сбербанка
   select nvl(count(*),0) into cnt_ from c_comps c, t_org o
     where c.nkom=init.get_nkom and c.fk_org=o.id
-    and o.cd in ('Сбербанк');
+    and o.cd in ('Сбербанк', 'Сбербанк-2');
   if cnt_ = 0 then
     raise_application_error( -20001,
      '№ Компьютера не соответствует данному типу файлов');

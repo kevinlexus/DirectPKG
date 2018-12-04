@@ -7,7 +7,7 @@ create table SCOTT.XITO5
   other CHAR(1),
   nal   CHAR(1),
   ink   CHAR(1),
-  oper  CHAR(2),
+  oper  CHAR(3),
   dat   DATE,
   mg    CHAR(6),
   nkom  CHAR(3),

@@ -104,18 +104,21 @@ procedure set_part_kpr(p_lsk in kart.lsk%type, p_usl in usl.usl%type,
   l_otop number;
   -- отопительный период для отопления гкал
   l_otop2 number;
-  
+  -- параметр учета проживающих для капремонта
+  l_cap_calc_kpr_tp number;
+  -- klsk лицевого счета
+  l_klsk number;
   
 cursor cur1 is
   select u.usl_norm, u.counter, u.usl, u.usl_type2, u.fk_calc_tp,
-          case when u.cd in ('х.вода', 'г.вода', 'х.в. для гвс') then n.norm
+          case when u.cd in ('х.вода', 'г.вода', 'х.в. для гвс', 'VVD') then n.norm
                else null
                end as norm,
           u.cd,
-          case when u.cd in ('х.вода') then k.mhw
-               when u.cd in ('г.вода', 'х.в. для гвс') then k.mgw
-               when u.cd in ('эл.энерг.2','EL_OTHER') then k.mel
-               when u.cd = 'эл.эн.учет УО' then k.mel
+          case when u.cd in ('х.вода') then vl.vol --k.mhw
+               when u.cd in ('г.вода', 'х.в. для гвс') then vl.vol --k.mgw
+               when u.cd in ('эл.энерг.2','EL_OTHER') then vl.vol --k.mel
+               when u.cd = 'эл.эн.учет УО' then vl.vol --k.mel
                when u.cd in ('отоп.гкал.','отоп.гараж.') and nvl(k.pot,0) <> 0 then nvl(k.mot,0) --есть ПУ ИНДИВИДУАЛЬНОГО счетчика, считать по нему! (сделал pot вместо mot)
                when u.cd in ('отоп.гкал.','отоп.гараж.') and k.opl <> 0 and d.dist_tp in (1) then nvl(n.vol,0) --есть ОДПУ по отоплению гкал, начислить по распределению
                when u.cd in ('отоп.гкал.','отоп.гараж.') and k.opl <> 0 and d.dist_tp in (4,5) 
@@ -131,9 +134,7 @@ cursor cur1 is
           nvl(n.vol,0) as vol, -- распределение (в тех усл, где есть, например отопл.г.кал)
           nvl(n.vol_add,0) as vol_add, -- распределение (в тех усл, где есть, например х.в.ОДН)
           d.kub, decode(u.cd, 'г.вода', k.kran1, 'г.вода.ОДН', k.kran1, null) as kran1,
-          case when u.cd = 'х.вода' then 1
-               when u.cd = 'г.вода' then 1
-               when u.cd = 'х.в. для гвс' then 1
+          case when u.cd in ('х.вода', 'г.вода', 'х.в. для гвс', 'VVD') then 1
                when u.cd in ('эл.энерг.2','EL_OTHER') then 2
                when u.cd = 'эл.эн.учет УО' then 2
                when u.cd in ('отоп.гкал.','отоп.гараж.') then 0  --засунуть в справочник можно
@@ -146,17 +147,35 @@ cursor cur1 is
                     k.opl,
                     f.norma_1, f.norma_2, f.norma_3,
                     k.komn
-          from kart k, nabor n, usl u, c_vvod d, load_memof f
+          from kart k join nabor n on n.lsk=k.lsk
+           join usl u on n.usl=u.usl
+           left join c_vvod d on n.fk_vvod=d.id
+           join load_memof f on 1=1
+           left join (select m2.fk_usl, sum(t2.n1) as vol -- получить объем по счетчику
+                        from meter m2
+                        join params pm on 1=1
+                        join T_OBJXPAR t2 on m2.k_lsk_id = t2.fk_k_lsk and t2.mg = pm.period
+                        join u_list s2 on t2.fk_list = s2.id and s2.cd = 'ins_vol_sch'
+                       where m2.fk_klsk_obj = l_klsk
+                       group by m2.fk_usl
+                      ) vl on u.usl_vol=vl.fk_usl -- по услуге, с которой брать объем
           where k.lsk=p_lsk
-          and n.usl=u.usl
-          and n.lsk=k.lsk
-          and n.fk_vvod=d.id(+)
           and u.usl_norm=0
           and k.psch not in (8,9)
---          and u.is_iter=1 -делать по всем услугам, ред.13.05.14
-          and (p_usl is null or u.usl = p_usl)
+          and nvl(p_usl, u.usl)=u.usl
           order by u.usl; --order by нужен для корректного заполнения/чтения массива
 
+/*           left join (select m2.fk_usl, sum(t2.n1) as vol -- получить объем по счетчику
+                        from kart k2 
+                        join v_lsk_tp tp2 on k2.fk_tp = tp2.id and tp2.cd = 'LSK_TP_MAIN'
+                        join meter m2 on m2.fk_klsk_obj = l_klsk and k2.k_lsk_id=m2.fk_klsk_obj
+                        join params pm on 1=1
+                        join T_OBJXPAR t2 on m2.k_lsk_id = t2.fk_k_lsk and t2.mg = pm.period
+                        join u_list s2 on t2.fk_list = s2.id and s2.cd = 'ins_vol_sch'
+                       where k2.psch not in (8,9)
+                       group by m2.fk_usl
+                      ) vl on u.usl_vol=vl.fk_usl -- по услуге, с которой брать объем
+*/
 --предварительная запись в temp данных о статусах
 procedure load_temp(p_load_lsk in kart.lsk%type, p_state out tab_state) is
 begin
@@ -587,24 +606,28 @@ end if;
 l_lsk_main:=null;
 l_lsk_parent:=null;
 
-if p_tp='LSK_TP_ADDIT' then
+if p_tp in ('LSK_TP_ADDIT','LSK_TP_RSO') then
+  -- дополнит.счета по капрем., по РСО
   begin
-    select t.lsk, s.cd into l_lsk_main, l_status_cd from kart k, kart t, u_list u, status s
+    select t.lsk, s.cd, k.k_lsk_id into l_lsk_main, l_status_cd, l_klsk
+                          from kart k, kart t, u_list u, status s
                           where k.lsk=p_lsk and k.k_lsk_id=t.k_lsk_id
                           and t.psch not in (8,9) and t.fk_tp=u.id
                           and u.cd='LSK_TP_MAIN'
-                          and t.status=s.id(+)
-                          and k.reu=t.reu;
+                          and t.status=s.id(+);
+                          --and k.reu=t.reu; ред.08.08.2018,- убрал условие по reu, так как в Кис появились открытые лс в разных УК
     exception when no_data_found then
       --нет основного счета, попробовать посчитать по текущему
       l_lsk_main:=p_lsk;
     when others then
+      Raise_application_error(-20000, 'Обнаружены дубли лиц.счета lsk='||p_lsk);
       raise;                      
   end;
 elsif p_tp='LSK_TP_MAIN' then
-    for c in (select s.cd as status_cd, k.parent_lsk from kart k, status s
+    for c in (select s.cd as status_cd, k.parent_lsk, k.k_lsk_id from kart k, status s
                           where k.lsk=p_lsk and k.status=s.id) loop
        l_status_cd:=c.status_cd;
+       l_klsk:=c.k_lsk_id;
        --если заполнен родительский лиц.счет, - используем его
        if c.parent_lsk is not null then
          l_lsk_parent:=c.parent_lsk;
@@ -619,6 +642,8 @@ l_var_cnt_kpr:=nvl(utils.get_int_param('VAR_CNT_KPR'),0);
 --дополнительный параметр подсчета кол-во прожив (смотреть выше, в определении)
 l_var_cnt_kpr2:=nvl(utils.get_int_param('VAR_CNT_KPR2'),0);
 
+-- параметр учета проживающих для капремонта
+l_cap_calc_kpr_tp:=nvl(utils.get_int_param('CAP_CALC_KPR_TP'),0);
 --последний день месяца
 l_dt_end:=last_day(l_dt_start);
 --кол-во дней в месяце
@@ -626,7 +651,7 @@ l_max_days:=to_number(to_char(l_dt_end,'DD'));
 --доля одного дня в месяце
 l_part_days:=1/l_max_days;
 
--- загрузить данные родителского лиц.счета
+-- загрузить данные родительского лиц.счета
 if l_lsk_parent is not null then 
   load_temp(l_lsk_parent, t_state2);
 end if;
@@ -706,8 +731,14 @@ init_arr_usl;
              and months_between(l_dt, coalesce(l_dat_rog_tmp, sysdate))/12 >= 70 and (l_rel_cd is null or l_rel_cd not in ('Квартиросъемщик', 'Собственник')) then
             --постоянно проживающий >=70 лет, НО НЕ квартиросъемщик (НЕ собственник)
             l_above70:=1;
-          elsif (l_prop in (1) or l_prop_reg in (3)) --или ПЗ или ВЗ
+          elsif l_cap_calc_kpr_tp=1 and l_prop in (1) -- только ПЗ
                 and months_between(l_dt, coalesce(l_dat_rog_tmp, sysdate))/12 < 70 then
+            --постоянно, временно зарег <70 лет
+            -- вариант Полыс
+            l_under70:=1;
+          elsif l_cap_calc_kpr_tp=0 and (l_prop in (1) or l_prop_reg in (3)) --или ПЗ или ВЗ
+                and months_between(l_dt, coalesce(l_dat_rog_tmp, sysdate))/12 < 70 then
+            -- вариант прочих
             --постоянно, временно зарег <70 лет
             l_under70:=1;
           end if;
@@ -746,14 +777,37 @@ init_arr_usl;
                      p_var_cnt_kpr => l_var_cnt_kpr2);
           end loop;
         end if;
+
+        if l_var_cnt_kpr = 0 then
+          --ВАРИАНТ Кис.
+          if p_tp in ('LSK_TP_RSO') and nvl(l_kpr_wro,0) = 0 --если нет временно отсутств.
+            -- счет РСО
+            and l_kpr2 = 0 and l_status_cd not in ('MUN') then
+            -- поставить хоть одного проживающего для определения объема
+            l_kpr2:=1;
+          end if;  
+        end if;  
       else  
         -- только в родительских лицевых!
-        if l_var_cnt_kpr = 0 and nvl(l_kpr_wro,0) = 0 --если нет временно отсутств.
-          and l_kpr2 = 0 and l_status_cd not in ('MUN') then
+        if l_var_cnt_kpr = 0 then
           --ВАРИАНТ Кис.
-          -- поставить хоть одного проживающего для определения объема
-          l_kpr2:=1;
-        end if;  
+          if c2.fk_calc_tp=49 then
+            -- услуга по обращению с ТКО (Кис.)
+            if l_kpr2 = 0 and l_status_cd not in ('MUN') then
+              -- нет проживающих и не муницип. квартира
+              l_kpr:=1;
+              l_kpr2:=1;
+            end if;
+          else
+            -- прочие услуги
+            if nvl(l_kpr_wro,0) = 0 --если нет временно отсутств.
+              and l_kpr2 = 0 and l_status_cd not in ('MUN') then
+              -- поставить хоть одного проживающего для определения объема
+              l_kpr2:=1;
+            end if;  
+          end if;       
+        end if;
+          
         if l_var_cnt_kpr = 1 and nvl(l_kpr_wro,0) = 0 --если нет временно отсутств.
           and l_kpr2 = 0 then
           --ВАРИАНТ Полыс, в т.ч. по муницип жилью.

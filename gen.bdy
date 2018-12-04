@@ -216,6 +216,13 @@ create or replace package body scott.gen is
       return;
     end if;
     
+  -- проверка, что не идет долг в c_chargepay с a_penya  
+  select nvl(count(*),0) into cnt_ from 
+  (select t.lsk, sum(summa) as summa from a_PENYA t 
+          where t.mg=rec_params.period group by t.lsk) a join
+  (select t.lsk, sum(summa) as summa from v_chargepay t 
+          where t.period=rec_params.period group by t.lsk) b on a.lsk=b.lsk
+  where nvl(a.summa,0)<>nvl(b.summa,0);
 
   --проверка, что начисление идёт с начислением в оборотке (да, да, без учёта перерасчетов - не получилось с ними)
    select nvl(count(*),0) into cnt_
@@ -2880,6 +2887,8 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
          iscorrect,
          num_doc,
          dat_doc,
+         fk_pdoc,
+         annul,
          mg)
         select c.lsk,
                c.summa,
@@ -2896,6 +2905,8 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
                c.iscorrect,
                c.num_doc,
                c.dat_doc,
+               c.fk_pdoc,
+               c.annul,
                p.period
           from c_kwtp c, params p
          where 
@@ -2919,6 +2930,8 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
          iscorrect,
          num_doc,
          dat_doc,
+         fk_pdoc,
+         annul,
          mg)
         select c.lsk,
                c.summa,
@@ -2935,6 +2948,8 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
                c.iscorrect,
                c.num_doc,
                c.dat_doc,
+               c.fk_pdoc,
+               c.annul,
                p.period
           from c_kwtp c, params p
          where c.dat_ink between init.g_dt_start and init.g_dt_end
@@ -3515,16 +3530,16 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
     if lsk_ is null then
       delete from a_pen_corr a where a.mg=mg_;
       insert into a_pen_corr
-        (id, lsk, penya, dopl, dtek, ts, fk_user, mg, fk_doc)
-        select c.id, c.lsk, c.penya, c.dopl, c.dtek, c.ts, c.fk_user, p.period, c.fk_doc
+        (id, lsk, penya, dopl, dtek, ts, fk_user, mg, fk_doc, usl, org)
+        select c.id, c.lsk, c.penya, c.dopl, c.dtek, c.ts, c.fk_user, p.period, c.fk_doc, c.usl, c.org
           from c_pen_corr c, params p;
     else
       delete from a_pen_corr a
        where a.lsk = lsk_
          and a.mg = mg_;
       insert into a_pen_corr
-        (id, lsk, penya, dopl, dtek, ts, fk_user, mg, fk_doc)
-        select c.id, c.lsk, c.penya, c.dopl, c.dtek, c.ts, c.fk_user, p.period, c.fk_doc
+        (id, lsk, penya, dopl, dtek, ts, fk_user, mg, fk_doc, usl, org)
+        select c.id, c.lsk, c.penya, c.dopl, c.dtek, c.ts, c.fk_user, p.period, c.fk_doc, c.usl, c.org
           from c_pen_corr c, params p
           where c.lsk = lsk_;
     end if;
@@ -4035,44 +4050,32 @@ if p_mg is null then
     l_mg:=p_mg;
 end if;
 
+-- TODO навести порядок с тем что p_klsk больше не используется
 if p_klsk is null then
-  update arch_kart t set t.prn_num=null, t.prn_new=null
+  update arch_kart t set t.prn_num=null
     where t.mg=l_mg;
-else
-  update arch_kart t set t.prn_num=null, t.prn_new=null
-    where t.mg=l_mg and t.k_lsk_id=p_klsk;
 end if;  
 
-for c2 in (select distinct t.reu from s_reu_trest t)
-loop
   i:=0;
-  k_lsk_old:=-1;
-  for c in (select t.rowid as rd, t.k_lsk_id, tp.cd as lsk_tp
+  if p_klsk is null then
+    for c in (select t.rowid as rd, t.k_lsk_id, tp.cd as lsk_tp
       from arch_kart t, spul s, v_lsk_tp tp where t.mg=l_mg 
-      and t.reu=c2.reu and t.fk_tp=tp.id and t.for_bill=1
+      and t.fk_tp=tp.id and t.for_bill=1
       and t.kul=s.id and nvl(p_klsk, t.k_lsk_id)=t.k_lsk_id
-      order by s.name, scott.utils.f_ord_digit(t.nd), --Внимание! порядок точно такой как и в Form_print_bills.OD_main!!!
+      order by s.name, scott.utils.f_ord_digit(t.nd),
        scott.utils.f_ord3(t.nd) desc, 
        scott.utils.f_ord_digit(t.kw),
        scott.utils.f_ord3(t.kw) desc, 
         t.k_lsk_id, tp.npp
     ) 
   loop
-    
-    if k_lsk_old<>c.k_lsk_id then
-      --новый лист
-      i:=i+1;
-      k_lsk_old:=c.k_lsk_id;
-      update arch_kart t set t.prn_num=i, t.prn_new=1
-        where t.rowid=c.rd;
-    else
-      --тот же лист, другой счет
-      update arch_kart t set t.prn_num=i, t.prn_new=0
-        where t.rowid=c.rd;
-    end if;
+    -- тупо порядок печати
+    i:=i+1;
+    update arch_kart t set t.prn_num=i
+      where t.rowid=c.rd;
+
   end loop;
-end loop;
-  
+  end if;
 end;
   
   procedure gen_stat_debits is

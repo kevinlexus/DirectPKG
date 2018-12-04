@@ -9,7 +9,7 @@ create table SCOTT.TEMP_KWTP_ROUND
   trest  CHAR(2),
   var    NUMBER,
   forreu CHAR(3),
-  oper   CHAR(2),
+  oper   CHAR(3),
   oborot NUMBER,
   dat    DATE,
   summa  NUMBER(20,8),

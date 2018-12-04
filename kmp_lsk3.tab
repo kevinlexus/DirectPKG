@@ -1,0 +1,32 @@
+create table SCOTT.KMP_LSK3
+(
+  area   VARCHAR2(40),
+  kul    VARCHAR2(40),
+  street VARCHAR2(40),
+  nd     VARCHAR2(40),
+  kw     VARCHAR2(40),
+  fam    VARCHAR2(40),
+  im     VARCHAR2(40),
+  ot     VARCHAR2(40),
+  prop   VARCHAR2(40),
+  sal    VARCHAR2(40),
+  sal2   NUMBER,
+  prop2  NUMBER,
+  nd2    VARCHAR2(6),
+  kw2    VARCHAR2(7),
+  kul2   VARCHAR2(40)
+)
+tablespace DATA
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.KMP_LSK3
+  is ' ';
+

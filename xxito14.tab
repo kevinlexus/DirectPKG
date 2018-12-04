@@ -13,7 +13,7 @@ create table SCOTT.XXITO14
   forreu    CHAR(3) not null,
   status    NUMBER not null,
   dopl      CHAR(6) not null,
-  oper      CHAR(2),
+  oper      CHAR(3),
   fk_distr  NUMBER,
   sum_distr NUMBER,
   cd_tp     NUMBER

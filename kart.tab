@@ -49,7 +49,7 @@ create table SCOTT.KART
   doppl       NUMBER(9,2),
   subs_cor    NUMBER(9,2),
   house_id    NUMBER not null,
-  c_lsk_id    NUMBER not null,
+  c_lsk_id    NUMBER,
   mg1         CHAR(6) not null,
   mg2         CHAR(6) not null,
   kan_sch     NUMBER,
@@ -84,7 +84,8 @@ create table SCOTT.KART
   mot         NUMBER,
   elsk        VARCHAR2(255),
   parent_lsk  CHAR(8),
-  fk_klsk_obj NUMBER
+  fk_klsk_obj NUMBER,
+  dt_cr       DATE default sysdate not null
 )
 tablespace USERS
   pctfree 60
@@ -243,6 +244,8 @@ comment on column SCOTT.KART.parent_lsk
   is 'Родительский (основной лиц.счет)';
 comment on column SCOTT.KART.fk_klsk_obj
   is 'KLSK Лиц.счета';
+comment on column SCOTT.KART.dt_cr
+  is 'Дата создания записи';
 create index SCOTT.KART_C_LSK_ID on SCOTT.KART (C_LSK_ID)
   tablespace USERS
   pctfree 10

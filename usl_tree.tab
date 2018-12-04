@@ -1,0 +1,65 @@
+create table SCOTT.USL_TREE
+(
+  usl         CHAR(3) not null,
+  parent_usl  CHAR(3),
+  tp          NUMBER not null,
+  fk_bill_var NUMBER,
+  fk_house    NUMBER,
+  npp         NUMBER not null,
+  hide_price  NUMBER,
+  hide_vol    NUMBER,
+  hide_row    NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.USL_TREE
+  is 'Иерархия услуг для построения счета';
+comment on column SCOTT.USL_TREE.usl
+  is 'Код усл.';
+comment on column SCOTT.USL_TREE.parent_usl
+  is 'Код усл. родит.';
+comment on column SCOTT.USL_TREE.tp
+  is 'Тип (0-обычная услуга, 1-содержит вложенные, 2- SUM(сумма,объем, расценка вложенных))';
+comment on column SCOTT.USL_TREE.fk_bill_var
+  is 'Вариант счета';
+comment on column SCOTT.USL_TREE.fk_house
+  is 'FK на дом, для особенных счетов по дому';
+comment on column SCOTT.USL_TREE.npp
+  is 'Порядок вывода строк';
+comment on column SCOTT.USL_TREE.hide_price
+  is 'Погасить цену (0-нет, 1-да)';
+comment on column SCOTT.USL_TREE.hide_vol
+  is 'Погасить объем (0-нет, 1-да)';
+comment on column SCOTT.USL_TREE.hide_row
+  is 'Погасить строку (0-нет, 1-да)';
+create unique index SCOTT.USL_TREE_U_I on SCOTT.USL_TREE (USL, PARENT_USL, FK_BILL_VAR, FK_HOUSE)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.USL_TREE
+  add constraint USL_TREE_F_HOUSE foreign key (FK_HOUSE)
+  references SCOTT.C_HOUSES (ID) on delete cascade;
+alter table SCOTT.USL_TREE
+  add constraint USL_TREE_F_PARENT_USL foreign key (PARENT_USL)
+  references SCOTT.USL (USL) on delete cascade;
+alter table SCOTT.USL_TREE
+  add constraint USL_TREE_F_USL foreign key (USL)
+  references SCOTT.USL (USL) on delete cascade;
+

@@ -1,7 +1,7 @@
 create table SCOTT.C_DEB_OPER
 (
   id      NUMBER not null,
-  fk_oper CHAR(2) not null,
+  fk_oper CHAR(3) not null,
   fk_lsk  CHAR(8) not null,
   summa   NUMBER,
   n1      NUMBER,

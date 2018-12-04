@@ -104,13 +104,15 @@ if cnt_ <> 0 then
   'ѕериод платежей не соответствует периоду в базе Ёнергии+!');
 end if;
 
- select nvl(count(*),0) into cnt_ from load_en_pay l where
+ for c in (select l.* from load_en_pay l where
   not exists (select * from kart k where k.lsk=
-   lpad(trim(replace(to_char(l.tel_sch,'9999999.99'),'.','')),8, '0'));
-if cnt_ <> 0 then
+   lpad(trim(replace(to_char(l.tel_sch,'9999999.99'),'.','')),8, '0'))) loop
+--if cnt_ <> 0 then
   Raise_application_error(-20001,
-  'ќтправленна€ оплата содержит лицевые счета не соответствующие счетам поставщика услуги Ёнергии+!');
-end if;
+  'ќтправленна€ оплата содержит лицевые счета 
+  не соответствующие счетам поставщика услуги Ёнергии+, например:
+  kul='||c.kul||' nd='||c.nd||' kw='||c.kw);
+ end loop;
 
 if dat1_ is null and dat2_ is null then
   delete from c_kwtp_mg t where

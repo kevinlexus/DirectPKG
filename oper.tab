@@ -1,6 +1,6 @@
 create table SCOTT.OPER
 (
-  oper       CHAR(2) not null,
+  oper       CHAR(3) not null,
   naim       CHAR(25),
   tpl        CHAR(1) default 9 not null,
   oigu       CHAR(4) default 1001 not null,

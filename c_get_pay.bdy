@@ -280,10 +280,21 @@ procedure get_payment_mg(id_ in c_kwtp.id%type, nkvit_ in c_kwtp.nkvit%type,
 t_lsk tab_lsk;
 summa_pay_ number;
 summa_pn_ number;
+
+--задолжность по основному долгу
 saldo_ number;
+--задолжность по пене
+saldo_pen_ number;
+--переплата по основному долгу
+saldo_cr_ number;
+--переплата по пене
+saldo_pen_cr_ number;
+
 l_proc_summa number;
 l_summa number;
 l_penya number;
+saldo_amnt_ number;
+
 l_kwtp_id number;
 l_tp number;
 l_pay_tp number;
@@ -396,6 +407,10 @@ end if;
 
 
 saldo_:=0;
+saldo_pen_:=0;
+saldo_cr_:=0;
+saldo_pen_cr_:=0;
+saldo_amnt_:=0;
 
 if nvl(l_pay_tp,0) = 0 then --обычный платёж  --распределение со старых периодов (нового л.с.) к новым
 open c;
@@ -445,6 +460,76 @@ open c;
 loop
   fetch c into rec_;
   exit when c%notfound or summa_pay_ = 0;
+  l_summa := 0;
+  l_penya := 0;
+
+  -- задолженность с учетом переплаты предыдущ. периода
+  saldo_:=rec_.summa+saldo_cr_;
+  saldo_pen_:=rec_.penya+saldo_pen_cr_;
+
+  --если переплата, перенести на след. период.
+  if saldo_ < 0 then
+    saldo_cr_:=saldo_;
+  else
+    saldo_cr_:=0;
+  end if;
+  if saldo_pen_ < 0 then
+    saldo_pen_cr_:=saldo_pen_;
+  else
+    saldo_pen_cr_:=0;
+  end if;
+  saldo_amnt_:=saldo_+saldo_pen_;
+  
+  if saldo_ > 0 or saldo_pen_ > 0 then
+    -- есть задолженность, распределить
+    if saldo_ > 0 and saldo_pen_ > 0 then
+      -- есть основной долг и долг пени
+      l_proc_summa:=saldo_/saldo_amnt_;
+      if summa_pay_ <= saldo_amnt_ then
+        -- сумма оплаты меньше совокупного долга
+        l_summa:= round(l_proc_summa * summa_pay_ ,2);
+        l_penya:= summa_pay_ - l_summa;
+      else 
+        -- сумма оплаты больше совокупного долга
+        l_summa:= round(l_proc_summa * saldo_amnt_ ,2);
+        l_penya:= saldo_amnt_ - l_summa;
+      end if;
+    elsif saldo_ > 0 and saldo_pen_ <= 0 then
+      -- есть только основной долг и переплата пени
+      if summa_pay_ <= saldo_ then
+        -- сумма оплаты меньше долга
+        l_summa:= summa_pay_;
+        l_penya:= 0;
+      else 
+        -- сумма оплаты больше совокупного долга
+        l_summa:= saldo_;
+        l_penya:= 0;
+      end if;
+    elsif saldo_ <= 0 and saldo_pen_ > 0 then
+      -- есть переплата по долгу и долг пени
+      if summa_pay_ <= saldo_pen_ then
+        -- сумма оплаты меньше долга
+        l_summa:= 0;
+        l_penya:= summa_pay_;
+      else 
+        -- сумма оплаты больше совокупного долга
+        l_summa:= 0;
+        l_penya:= saldo_pen_;
+      end if;
+    end if;
+  end if;
+  
+  if l_summa !=0 or l_penya !=0 then
+    -- остаток
+    summa_pay_:=summa_pay_-(l_summa+l_penya);
+    -- распределены средства, сохранить
+    insert into c_kwtp_mg
+      (lsk, summa, penya, oper, dopl, nink, nkom, dtek, nkvit, ts, c_kwtp_id)
+      values
+        (rec_.lsk, l_summa, l_penya, oper_, rec_.mg, nink_, nkom_, dtek_, nkvit_, sysdate,
+          id_);
+  end if;
+/*
   if rec_.summa+rec_.penya+saldo_ <= 0 then --если переплата, перенести на след. период.
     saldo_:=rec_.summa+rec_.penya+saldo_;
   elsif summa_pay_ <= rec_.summa+rec_.penya+saldo_ then
@@ -471,21 +556,18 @@ loop
    summa_pay_:=summa_pay_-(l_summa+l_penya);
    saldo_:=0;
   end if;
-
+*/
 end loop;
 close c;
 
---если оплата не обработалась, ставим её на текущий период
-if summa_pay_ <>0 or summa_pn_ <>0 then
-
-
+--если оплата не обработалась, ставим её на текущий период, на основной долг
+if summa_pay_ <>0 then
     insert into c_kwtp_mg
       (lsk, summa, penya, oper, dopl, nink, nkom, dtek, nkvit, ts, c_kwtp_id)
-      select k.lsk, summa_pay_, summa_pn_, oper_, p.period, nink_,
+      select k.lsk, summa_pay_, 0, oper_, p.period, nink_,
           nkom_, dtek_, nkvit_, sysdate, id_
         from kart k, params p where
                 k.lsk=lpad(lsk_,8,'0') and rownum = 1;
-
 end if;
 
 
@@ -1143,7 +1225,7 @@ end;
 /** Создать извещение об оплате в ГИС.
     Отрабатывается по триггеру на insert C_KWTP_MG
  **/
-procedure create_notification_gis(rec c_kwtp_mg%rowtype) is 
+/*procedure create_notification_gis(rec c_kwtp_mg%rowtype) is 
 begin
   -- оплата + пеня? (в гисе проводится всё в одном ПД и квитируется видимо пропорционально)
   insert into exs.notif(fk_pdoc, summa, dt, fk_kwtp_mg)
@@ -1155,8 +1237,8 @@ begin
 
 end;  
 
-/** Создать извещение об оплате в ГИС по всем необработанным платежам текущего периода
- **/
+\** Создать извещение об оплате в ГИС по всем необработанным платежам текущего периода
+ **\
 procedure create_notification_gis_all is 
 begin
   for c in (select * from scott.c_kwtp_mg t 
@@ -1165,7 +1247,7 @@ begin
   end loop;    
 
 end;  
-
+*/
 end C_GET_PAY;
 /
 

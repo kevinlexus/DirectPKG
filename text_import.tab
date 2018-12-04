@@ -1,0 +1,30 @@
+create table SCOTT.TEXT_IMPORT
+(
+  name1  VARCHAR2(40),
+  area   VARCHAR2(40),
+  kul    VARCHAR2(40),
+  street VARCHAR2(40),
+  nd     VARCHAR2(40),
+  kw     VARCHAR2(40),
+  name2  VARCHAR2(40),
+  fam    VARCHAR2(40),
+  im     VARCHAR2(40),
+  ot     VARCHAR2(40),
+  prop   NUMBER,
+  sal    NUMBER,
+  name3  VARCHAR2(40),
+  name4  VARCHAR2(40),
+  name5  VARCHAR2(40)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

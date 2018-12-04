@@ -72,9 +72,24 @@ CREATE OR REPLACE PACKAGE SCOTT.P_HOUSES IS
                         p_lsk in kart.lsk%type --рекоммендованый лиц.сч.
                         )
   RETURN VARCHAR2;
-  procedure kart_lsk_ext_add_house(p_house in kart.house_id%type);
-  function kart_lsk_ext_add(p_lsk in kart.lsk%type, p_lsk_new in kart.lsk%type) return number;
-
+  function create_lsk (lsk_ kart.lsk%TYPE, lsk_new_ kart.lsk%TYPE, 
+        p_lsk_ext kart.lsk_ext%type, p_fio kart.fio%type, p_lsk_tp in varchar2, -- тип нового лс
+        p_reu in varchar2 -- если указан, применить данный код ” 
+        ) RETURN number;
+  function kart_lsk_special_add_house(
+         p_house in kart.house_id%type, -- Id дома
+         p_lsk_tp in varchar2, -- тип нового лс
+         p_forced_status in number, -- принудительно установить статус (null - не устанавливать, 0-открытый и т.п.)
+         p_del_usl_from_dst in number, -- удалить услуги из nabor источника (1-удалить,0-нет)
+         p_reu in varchar2 -- если указан, применить данный код ” , если нет, оставить ”  источника
+         ) return number;
+  function kart_lsk_special_add(p_lsk in kart.lsk%type,-- базовый лс 
+         p_lsk_tp in varchar2, -- тип нового лс
+         p_lsk_new in kart.lsk%type, -- либо null, либо указан новый лс
+         p_forced_status in number, -- принудительно установить статус (null - не устанавливать, 0-открытый и т.п.)
+         p_del_usl_from_dst in number, -- удалить услуги из nabor источника (1-удалить,0-нет)
+         p_reu in varchar2 -- если указан, применить данный код ” 
+         ) return number;
   procedure set_g_lsk_tp(p_tp in number);
   function get_g_lsk_tp return number;
   function get_other_lsk(p_lsk in kart.lsk%type) return tab_lsk;

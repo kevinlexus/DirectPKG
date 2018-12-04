@@ -39,9 +39,9 @@ procedure init_c_kwtp_temp_dolg (lsk_ in kart.lsk%type);
 procedure remove_pay(id_ in c_kwtp.id%type);
 procedure remove_inkass(nkom_ in c_kwtp.nkom%type, nink_ in c_kwtp.nink%type);
 function reverse_pay(p_kwtp_id in c_kwtp.id%type) return number;
-procedure create_notification_gis(rec c_kwtp_mg%rowtype);
+/*procedure create_notification_gis(rec c_kwtp_mg%rowtype);
 procedure create_notification_gis_all;
-
+*/
 end C_GET_PAY;
 /
 

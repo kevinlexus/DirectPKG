@@ -9,7 +9,7 @@ end;
 --еще одна обертка, для старых вызовов
 procedure gen_charge_pay_pen(p_dt in date) is
 begin
-  gen_charge_pay_pen(p_dt, 1);
+  gen_charge_pay_pen(null, p_dt, 1);
 end;
 
 --формирование по домам, в потоках
@@ -36,9 +36,19 @@ begin
   
 end;
 
+--процедура распределения начисленной пени по исх.сальдо - обертка
+procedure gen_charge_pay_pen(
+                             p_dt in date, --дата формир.
+                             p_var in number --формировать пеню? (0-нет, 1-да (старый вызов)
+          ) is
+begin
+  gen_charge_pay_pen(null, p_dt, p_var);
+end;          
+
 --процедура распределения начисленной пени по исх.сальдо
 --сделано так, потому что не ведётся начисление пени по услугам (если вести - то надо учитывать округления и т.п.)
-procedure gen_charge_pay_pen(p_dt in date, --дата формир.
+procedure gen_charge_pay_pen(p_lsk in kart.lsk%type, -- лиц счет (если null - то все лиц.счета)
+                             p_dt in date, --дата формир.
                              p_var in number --формировать пеню? (0-нет, 1-да (старый вызов)
           ) is
   l_usl_dst usl.usl%type;
@@ -59,7 +69,7 @@ begin
     l_dt:=p_dt;
   end if; 
   if p_var=1 then 
-    for c in (select lsk from kart) loop
+    for c in (select lsk from kart t where nvl(p_lsk, t.lsk) = t.lsk) loop
       --пеня, на дату, с коммитом
       --движение работает внутри
       gen_penya(lsk_ => c.lsk, dat_ => l_dt, islastmonth_ => 0, p_commit => 1);
@@ -68,44 +78,60 @@ begin
   
   -- после формирования начисления пени, распределяем её по услугам
   -- ПЕНЯ РАСПРЕДЕЛИТСЯ СТРОГО НА УСЛУГИ УКАЗАННЫЕ процедурой c_gen_pay.redirect
-  -- по ВХОДящему сальдо по пене ред.изменение 27.02.2018
-  -- почистить распределение пени
-  delete from t_chpenya_for_saldo; -- текущая, начисленная пеня с учетом корректировок по пене!
+  if p_lsk is null then
+    delete from t_chpenya_for_saldo t; -- текущая, начисленная пеня с учетом корректировок по пене!
+  else
+    delete from t_chpenya_for_saldo t where t.lsk=p_lsk; -- текущая, начисленная пеня с учетом корректировок по пене!
+  end if;
   
-  for c in (select t.reu, t.lsk, t.tp, t.penya, coalesce(a.deb_summa,0) as deb_summa, coalesce(a.kr_summa,0) as kr_summa, t.pen_sign
+  for c in (select t.reu, t.lsk, t.tp, t.penya, coalesce(b.deb_summa,0) as deb_summa, coalesce(b.kr_summa,0) as kr_summa, t.pen_sign
    from (select k.reu, tp.cd as tp, d.lsk, sum(d.penya) as penya, sign(sum(d.penya)) as pen_sign
     from kart k, v_lsk_tp tp, (select r.lsk, sum(r.penya) as penya from (
-      select c.lsk, c.mg1, round(sum(penya),2) as penya from c_pen_cur c 
+      select c.lsk, c.mg1, round(sum(penya),2) as penya from c_pen_cur c where nvl(p_lsk,c.lsk)=c.lsk
         group by c.lsk, c.mg1       -- текущее начисление пени   
       union all
-     select c.lsk, c.dopl, c.penya  -- прибавить корректировку пени за месяц
-          from c_pen_corr c
+     select c.lsk, c.dopl, c.penya  -- прибавить корректировку пени за месяц (не разбитую по услугам)
+          from c_pen_corr c where nvl(p_lsk,c.lsk)=c.lsk and c.usl is null
         ) r group by r.lsk
-      ) d -- ред. 12.01.18 - заменил c_penya на c_pen_cur (исх.сальдо по пене на текущую пеню)
-    where k.lsk=d.lsk and k.fk_tp=tp.id
+      ) d 
+    where nvl(p_lsk,k.lsk)=k.lsk and k.lsk=d.lsk and k.fk_tp=tp.id
     group by k.reu, d.lsk, tp.cd
     having sum(d.penya)<>0) t left join 
    (select d.lsk, sum(case when d.poutsal > 0 then d.poutsal else 0 end) as deb_summa, 
                   sum(case when d.poutsal < 0 then d.poutsal else 0 end) as kr_summa
-    from xitog3_lsk d 
-     where d.mg=l_mg_back
-     group by d.lsk) a on t.lsk=a.lsk and t.penya <> 0
+    from (select a.lsk, a.usl, a.org, sum(a.poutsal) as poutsal from (
+           select s.lsk, s.usl, s.org, s.poutsal from xitog3_lsk s where s.mg=l_mg_back -- входящее сальдо по пене
+           and nvl(p_lsk,s.lsk)=s.lsk
+           union all 
+           select s.lsk, s.usl, s.org, s.penya from c_pen_corr s where s.usl is not null
+           and nvl(p_lsk,s.lsk)=s.lsk -- корректировка, разбитая по услугам (для исключения распределения по необходимым услугам) (ниже добавляется)
+           ) a group by a.lsk, a.usl, a.org) d 
+     group by d.lsk) b on t.lsk=b.lsk and t.penya <> 0
        order by t.lsk)
   loop
     --распределение на услуги
-    --перенаправление пени
     if c.pen_sign > 0 and c.deb_summa <> 0 then 
-        --распределить по дебет сальдо положительное значение пени
+        --распределить по дебет сальдо пени - положительное значение пени
         select rec_summ(t.usl, t.org, t.poutsal, 0) bulk collect
           into t_summ from
-           xitog3_lsk t
-          where t.lsk=c.lsk and t.mg=l_mg_back and t.poutsal > 0;
+          (select a.usl, a.org, sum(a.poutsal) as poutsal from (
+           select s.usl, s.org, s.poutsal from xitog3_lsk s where s.lsk=c.lsk and s.mg=l_mg_back -- сальдо по пене
+           union all 
+           select s.usl, s.org, s.penya from c_pen_corr s where s.lsk=c.lsk and s.usl is not null
+           ) a group by a.usl, a.org -- корректировка, разбитая по услугам (для исключения распределения по необходимым услугам) (ниже добавляется)
+           ) t
+          where t.poutsal > 0;
     elsif c.pen_sign > 0 and c.kr_summa <> 0 then       
-        --распределить по кредит сальдо положительное значение пени
+        --распределить по кредит сальдо пени - положительное значение пени
         select rec_summ(t.usl, t.org, t.poutsal*-1, 0) bulk collect
           into t_summ from
-           xitog3_lsk t
-          where t.lsk=c.lsk and t.mg=l_mg_back and t.poutsal < 0;
+           (select a.usl, a.org, sum(a.poutsal) as poutsal from (
+           select s.usl, s.org, s.poutsal from xitog3_lsk s where s.lsk=c.lsk and s.mg=l_mg_back -- сальдо по пене
+           union all 
+           select s.usl, s.org, s.penya from c_pen_corr s where s.lsk=c.lsk and s.usl is not null
+           ) a group by a.usl, a.org -- корректировка, разбитая по услугам (для исключения распределения по необходимым услугам) (ниже добавляется)
+           ) t
+          where t.poutsal < 0;
     elsif c.pen_sign > 0 and c.deb_summa = 0 and c.kr_summa = 0 then       
         --распределить по начислению положительное значение пени, если сальдо=0
         select rec_summ(n.usl, n.org, t.summa, 0) bulk collect
@@ -130,17 +156,27 @@ begin
             end if;    
         end if;   
     elsif c.pen_sign < 0 and c.kr_summa <> 0 then       
-        --распределить по кредит сальдо отрицательное значение пени
+        --распределить по кредит сальдо пени - отрицательное значение пени
         select rec_summ(t.usl, t.org, t.poutsal*-1, 0) bulk collect
           into t_summ from
-           xitog3_lsk t
-          where t.lsk=c.lsk and t.mg=l_mg_back and t.poutsal < 0;
+           (select a.usl, a.org, sum(a.poutsal) as poutsal from (
+           select s.usl, s.org, s.poutsal from xitog3_lsk s where s.lsk=c.lsk and s.mg=l_mg_back -- сальдо по пене
+           union all 
+           select s.usl, s.org, s.penya from c_pen_corr s where s.lsk=c.lsk and s.usl is not null
+           ) a group by a.usl, a.org -- корректировка, разбитая по услугам (для исключения распределения по необходимым услугам) (ниже добавляется)
+           ) t
+          where t.poutsal < 0;
     elsif c.pen_sign < 0 and c.deb_summa <> 0 then       
-        --распределить по дебет сальдо отрицательное значение пени
+        --распределить по дебет сальдо пени - отрицательное значение пени
         select rec_summ(t.usl, t.org, t.poutsal, 0) bulk collect
           into t_summ from
-           xitog3_lsk t
-          where t.lsk=c.lsk and t.mg=l_mg_back and t.poutsal > 0;
+           (select a.usl, a.org, sum(a.poutsal) as poutsal from (
+           select s.usl, s.org, s.poutsal from xitog3_lsk s where s.lsk=c.lsk and s.mg=l_mg_back -- сальдо по пене
+           union all 
+           select s.usl, s.org, s.penya from c_pen_corr s where s.lsk=c.lsk and s.usl is not null
+           ) a group by a.usl, a.org -- корректировка, разбитая по услугам (для исключения распределения по необходимым услугам) (ниже добавляется)
+           ) t
+          where t.poutsal > 0;
     elsif c.pen_sign < 0 and c.deb_summa = 0 and c.kr_summa = 0 then       
         --распределить по начислению отрицательное значение пени, если сальдо=0
         select rec_summ(n.usl, n.org, t.summa, 0) bulk collect
@@ -187,6 +223,11 @@ begin
       insert into temp_prep(usl, org, summa)
         values (l_usl_dst, l_org_dst, c2.summa);
     end loop;
+
+    -- добавить корректировку, разбитую по услугам    
+    insert into temp_prep(usl, org, summa)
+    select t.usl, t.org, t.penya from c_pen_corr t
+     where t.lsk=c.lsk and t.usl is not null; -- разбитая по услугам!
     --группируем, иначе удваивается в оборотке
     insert into t_chpenya_for_saldo (lsk, summa, usl, org)
       select c.lsk, sum(summa) as summa, t.usl, t.org
@@ -202,72 +243,10 @@ PROCEDURE gen_charge_pay_full is
 --заполнение c_chargepay
 --делать, ДО расчета пени
 begin
-
-for c in (select k.lsk from kart k)
-loop
-  gen_charge_pay(c.lsk, 1);
-end loop;
-
---убрал 15.11.12, сделал пересчет по л.с.(выше)
-/*
-SELECT v.period1 INTO newperiod_ FROM sys.v_params v;
-SELECT period INTO period_ FROM PARAMS;
-SELECT TO_CHAR(ADD_MONTHS(TO_DATE(period || '01', 'YYYYMMDD'), -1), 'YYYYMM')
- INTO oldperiod_ FROM PARAMS;
-
-gen.trunc_part('c_chargepay', period_);
-
---начисление
-insert into c_chargepay (lsk, summa, type, mg, period)
-select a.lsk, sum(summa) as summa, 0, mg, period_
-           from (select c.lsk, c.summa, period_ as mg
-                    from kart k, c_charge c where k.lsk=c.lsk
-                    and c.type=1 --начисление
-                    and c.usl not in (select usl_id from usl_excl)
-                  union all
-                  select c.lsk, c.summa, c.mgchange as mg
-                    from kart k, c_change c where k.lsk=c.lsk
-                    and c.usl not in (select usl_id from usl_excl)
-                    and to_char(c.dtek , 'YYYYMM')=period_ and c.show_bill is null
-                  union all
-                  select c.lsk, c.summa * -1, period_ as mg
-                    from kart k, c_charge c where k.lsk=c.lsk
-                    and c.type=2 --субсидии
-                    and c.usl not in (select usl_id from usl_excl)
-                  union all
-                  select c.lsk, c.summa * -1, period_ as mg
-                    from kart k, c_charge c where k.lsk=c.lsk
-                    and c.type=4 --льготы
-                    and c.usl not in (select usl_id from usl_excl)
-                  union all
-                  select c.lsk, c.summa, c.mg --из старого периода берем начисление
-                    from c_chargepay c where c.period=oldperiod_
-                    and c.type=0
-                    ) a
-                  group by a.lsk, a.mg
-                  having sum(summa) <>0;
-
---оплата, оплата пени
-insert into c_chargepay (lsk, summa, summap, type, mg, period)
-select a.lsk, sum(summa) as summa, sum(summap) as summap, 1, mg, period_
-           from (select c.lsk, c.summa, c.penya as summap, c.dopl as mg
-                    from kart k, c_kwtp_mg c where k.lsk=c.lsk
-                  union all
-                select c.lsk, c.summa, null as summap,
-                c.dopl as mg --корректировки оплаты
-                    from kart k, t_corrects_payments c, params p
-                     where k.lsk=c.lsk and
-                     c.mg=p.period
-                  union all
-                  select c.lsk, c.summa, c.summap, c.mg --из старого периода берем оплату
-                    from c_chargepay c where c.period=oldperiod_
-                    and c.type=1
-                    ) a
-                  group by a.lsk, a.mg
-                  having sum(summa) <>0 or sum(summap) <>0;
-
-commit;
-*/
+  for c in (select k.lsk from kart k)
+  loop
+    gen_charge_pay(c.lsk, 1);
+  end loop;
 end;
 
 --обертка под старый вызов
@@ -436,7 +415,7 @@ begin
         t.mg, null as dtek, 1 as tp from c_chargepay t where t.lsk=lsk_ and t.period=l_mg_back --долги прошлых периодов
       union all
       select t.summa, t.summa as summa_deb, l_mg, null as dtek, 2 as tp 
-        from c_charge t where t.lsk=lsk_ and t.type=0--начисление
+        from c_charge t where t.lsk=lsk_ and t.type=1--начисление
       union all
       select -1*t.summa, 0 as summa_deb, t.dopl, t.dtek as dtek, 3 as tp 
         from c_kwtp_mg t where t.lsk=lsk_ 

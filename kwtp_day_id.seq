@@ -1,7 +1,7 @@
 create sequence SCOTT.KWTP_DAY_ID
 minvalue 1
 maxvalue 999999999999999999999999999
-start with 310321
+start with 314741
 increment by 1
 cache 20;
 

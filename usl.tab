@@ -41,7 +41,10 @@ create table SCOTT.USL
   linked_usl     NUMBER,
   ids            VARCHAR2(3),
   tp_pen_dt      NUMBER,
-  tp_pen_ref     NUMBER
+  tp_pen_ref     NUMBER,
+  usl_vol        CHAR(3),
+  bill_col       NUMBER,
+  bill_col2      NUMBER
 )
 tablespace USERS
   pctfree 1
@@ -124,6 +127,12 @@ comment on column SCOTT.USL.tp_pen_dt
   is 'Для справочника дат начала обязательств по долгу -  PEN_DT Тип услуги (0-прочие услуги, 1-капремонт)';
 comment on column SCOTT.USL.tp_pen_ref
   is 'Для справочника ставок рефинансирования - PEN_REF Тип услуги (0-прочие услуги, 1-капремонт)';
+comment on column SCOTT.USL.usl_vol
+  is 'Получить объем со счетчика указанной услуги (используется в C_KART, курсор cur1, строка 112)';
+comment on column SCOTT.USL.bill_col
+  is 'Для Счета, отнести к колонке Индивид.потребление (0, null) или Общедом.нужды (1)';
+comment on column SCOTT.USL.bill_col2
+  is 'Для Счета, отнести к колонке Доп.инф. (0,null - нет, 1-да)';
 create index SCOTT.USL_I2 on SCOTT.USL (FK_CALC_TP)
   tablespace USERS
   pctfree 10
@@ -192,6 +201,9 @@ alter table SCOTT.USL
   references SCOTT.USL (USL);
 alter table SCOTT.USL
   add constraint USL_F_USL_PEN foreign key (FK_USL_PEN)
+  references SCOTT.USL (USL);
+alter table SCOTT.USL
+  add constraint USL_F_USL_VOL foreign key (USL_VOL)
   references SCOTT.USL (USL);
 alter table SCOTT.USL
   add constraint USL_G_USLG foreign key (USLG)

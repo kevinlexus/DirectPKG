@@ -8,7 +8,9 @@ create table SCOTT.A_PEN_CORR
   ts      DATE not null,
   fk_user NUMBER not null,
   mg      CHAR(6),
-  fk_doc  NUMBER
+  fk_doc  NUMBER,
+  usl     CHAR(3),
+  org     NUMBER
 )
 tablespace USERS
   pctfree 10
@@ -41,6 +43,10 @@ comment on column SCOTT.A_PEN_CORR.mg
   is 'Архивный период';
 comment on column SCOTT.A_PEN_CORR.fk_doc
   is 'Fk на документ';
+comment on column SCOTT.A_PEN_CORR.usl
+  is 'Код услуги, если заполнен, то по конкретной услуге корректировка, пеня не будет распределяться';
+comment on column SCOTT.A_PEN_CORR.org
+  is 'Id организации если заполнен USL, то по конкретной услуге корректировка, пеня не будет распределяться';
 create index SCOTT.A_PEN_CORR_I on SCOTT.A_PEN_CORR (MG, LSK)
   tablespace USERS
   pctfree 10

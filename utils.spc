@@ -40,9 +40,6 @@ function GET_LSK_BY_ADR2(house_id_ kart.house_id%TYPE, kw_ kart.kw%TYPE)
  function GET_NEW_LSK (lsk_ in kart.lsk%TYPE, p_lsk in kart.lsk%TYPE)
            RETURN kart.lsk%type;
  FUNCTION GET_NEW_LSK_BY_REU(p_reu kart.reu%TYPE) RETURN kart.lsk%TYPE;
- function CREATE_LSK (lsk_ kart.lsk%TYPE, lsk_new_ kart.lsk%TYPE, 
-      p_lsk_ext kart.lsk_ext%type, p_fio kart.fio%type)
-           RETURN number;
  procedure ins_lg_doc (kart_pr_id_ in c_kart_pr.id%type);
  procedure del_lg_doc (c_lg_docs_id_ in c_lg_docs.id%type);
  procedure count_krt_kpr (lsk_ in kart.lsk%type);
@@ -77,7 +74,9 @@ function GET_LSK_BY_ADR2(house_id_ kart.house_id%TYPE, kw_ kart.kw%TYPE)
    usl_org_ in usl.usl%type);
  procedure usl_add_flds;
  function del_lsk(lsk_ in kart.lsk%type) return varchar2;
- procedure del_usl(usl_ in usl.usl%type);
+ -- удалить лиц.счет без проверок
+function del_lsk_wo_check(lsk_ in kart.lsk%type) return varchar2;
+procedure del_usl(usl_ in usl.usl%type);
  procedure del_uslm(uslm_ in usl.uslm%type);
  procedure cp_price(err_ out number, err_str_ out varchar2,
    usl_ in prices.usl%type, fk_org_src_ in prices.fk_org%type,

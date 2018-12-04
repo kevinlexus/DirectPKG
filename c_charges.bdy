@@ -530,7 +530,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
     t_nabor tab_nabor; 
 
     CURSOR cur_krt IS
-      SELECT k.lsk, k.reu, k.psch, nvl(k.sch_el, 0) AS sch_el, k.schel_dt, k.schel_end, nvl(k.opl,
+      SELECT k.k_lsk_id, k.lsk, k.reu, k.psch, nvl(k.sch_el, 0) AS sch_el, k.schel_dt, k.schel_end, nvl(k.opl,
                   0) AS opl, nvl(k.mhw, 0) AS mhw, nvl(k.mgw, 0) AS mgw, nvl(k.mel,
                   0) AS mel, k.kran, k.kran1, k.kan_sch, k.el, k.el1, k.subs_cor, k.subs_cur, k.subs_inf, k.eksub1, k.eksub2, k.sgku, k.doppl, k.status, decode(k.komn,
                      NULL,
@@ -543,7 +543,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
       WHERE  k.fk_tp=u.id and k.lsk BETWEEN '' || lsk_ || '' AND '' || lsk_end_ || '';
 
     CURSOR cur_krt2 IS
-      SELECT k.lsk, k.reu, k.psch, nvl(k.sch_el, 0) AS sch_el, k.schel_dt, k.schel_end, nvl(k.opl,
+      SELECT k.k_lsk_id, k.lsk, k.reu, k.psch, nvl(k.sch_el, 0) AS sch_el, k.schel_dt, k.schel_end, nvl(k.opl,
                   0) AS opl, nvl(k.mhw, 0) AS mhw, nvl(k.mgw, 0) AS mgw, nvl(k.mel,
                   0) AS mel, k.kran, k.kran1, k.kan_sch, k.el, k.el1, k.subs_cor, k.subs_cur, k.subs_inf, k.eksub1, k.eksub2, k.sgku, k.doppl, k.status, decode(k.komn,
                      NULL,
@@ -557,7 +557,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
 
 
     CURSOR cur_krt3 IS
-      SELECT k.lsk, k.reu, k.psch, nvl(k.sch_el, 0) AS sch_el, k.schel_dt, k.schel_end, nvl(k.opl,
+      SELECT k.k_lsk_id, k.lsk, k.reu, k.psch, nvl(k.sch_el, 0) AS sch_el, k.schel_dt, k.schel_end, nvl(k.opl,
                   0) AS opl, nvl(k.mhw, 0) AS mhw, nvl(k.mgw, 0) AS mgw, nvl(k.mel,
                   0) AS mel, k.kran, k.kran1, k.kan_sch, k.el, k.el1, k.subs_cor, k.subs_cur, k.subs_inf, k.eksub1, k.eksub2, k.sgku, k.doppl, k.status, decode(k.komn,
                      NULL,
@@ -571,7 +571,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
 
 
     CURSOR cur_krt4 IS
-      SELECT k.lsk, k.reu, k.psch, nvl(k.sch_el, 0) AS sch_el, k.schel_dt, k.schel_end, nvl(k.opl,
+      SELECT k.k_lsk_id, k.lsk, k.reu, k.psch, nvl(k.sch_el, 0) AS sch_el, k.schel_dt, k.schel_end, nvl(k.opl,
                   0) AS opl, nvl(k.mhw, 0) AS mhw, nvl(k.mgw, 0) AS mgw, nvl(k.mel,
                   0) AS mel, k.kran, k.kran1, k.kan_sch, k.el, k.el1, k.subs_cor, k.subs_cur, k.subs_inf, k.eksub1, k.eksub2, k.sgku, k.doppl, k.status, decode(k.komn,
                      NULL,
@@ -584,7 +584,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
        where k.fk_tp=u.id;
 
     CURSOR cur_krt5 IS
-      SELECT k.lsk, k.reu, k.psch, nvl(k.sch_el, 0) AS sch_el, k.schel_dt, k.schel_end, nvl(k.opl,
+      SELECT k.k_lsk_id, k.lsk, k.reu, k.psch, nvl(k.sch_el, 0) AS sch_el, k.schel_dt, k.schel_end, nvl(k.opl,
                   0) AS opl, nvl(k.mhw, 0) AS mhw, nvl(k.mgw, 0) AS mgw, nvl(k.mel,
                   0) AS mel, k.kran, k.kran1, k.kan_sch, k.el, k.el1, k.subs_cor, k.subs_cur, k.subs_inf, k.eksub1, k.eksub2, k.sgku, k.doppl, k.status, decode(k.komn,
                      NULL,
@@ -679,7 +679,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
     -- кол-во проживающих (для расценок) - убрать !
     --kpr_price_ NUMBER;
 
-
+    l_usl_round usl.usl%type;
     --курсор для расчета по упрощенной схеме (без учета льгот)
     CURSOR cur_wo_peop(p_usl in usl.usl%type  --если не заполнено p_usl, возьмётся usl_
       ) IS
@@ -789,12 +789,26 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
         sum(t.vol_nrm) as vol_nrm,
         sum(t.vol_sv_nrm) as vol_sv_nrm,
         decode(nvl(t.kpr,0),0,1,0) as empty,
-        /*sum(t.kpr) as kpr,
-        sum(t.kprz) as kprz,
-        sum(t.kpro) as kpro,*/
         t.sch
         from c_charge_prep t, usl u
         where t.lsk=rec_krt.lsk and t.usl=u.usl
+        and regexp_instr(p_list_usl_cd, '(,|^)'||u.cd||'(,|$){1,}') <> 0
+        and t.tp=1
+        group by decode(nvl(t.kpr,0),0,1,0),t.sch) a
+        order by a.empty, a.sch; --order by - не менять, влияет на расчёт! (сперва не пустая кв, потом пустая)
+
+    -- курсор для поиска информации по k_lsk (по всем привязанным к нему лс), например для канализования для РСО счетов (ред.28.09.2018)
+    cursor cur_charge_prep_usl_cd_by_klsk(p_list_usl_cd in varchar2) is
+    select a.vol, a.sch, a.vol_nrm, a.vol_sv_nrm,
+      a.empty, --a.kpr, a.kprz, a.kpro, нельзя здесь получать кол-во прожив, так как оно будет складываться вместе!
+      sum(a.vol) over (partition by 0) as sum_vol from
+      (select sum(t.vol) as vol,
+        sum(t.vol_nrm) as vol_nrm,
+        sum(t.vol_sv_nrm) as vol_sv_nrm,
+        decode(nvl(t.kpr,0),0,1,0) as empty,
+        t.sch
+        from kart k, c_charge_prep t, usl u
+        where k.lsk=t.lsk and k.k_lsk_id=rec_krt.k_lsk_id and t.usl=u.usl
         and regexp_instr(p_list_usl_cd, '(,|^)'||u.cd||'(,|$){1,}') <> 0
         and t.tp=1
         group by decode(nvl(t.kpr,0),0,1,0),t.sch) a
@@ -836,6 +850,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
     rec_prep cur_prep%ROWTYPE;
 
     -- начисление по услуге в виде суммы p_tp_sch - наличие счетчика 1-да 0-нет
+    -- для услуги по повыш.коэфф
     cursor cur_chrg(p_usl in usl.usl%type, p_tp_sch in number) is
       select sum(t.summa) as summa from c_charge t, usl u
          where t.lsk=rec_krt.lsk and nvl(t.sch,0)=p_tp_sch
@@ -844,6 +859,16 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
          and exists (select * from usl u2 -- выбрать все подуслуги 
              where u2.usl=p_usl and u2.uslm=u.uslm);
          
+    -- начисление по услуге в виде суммы p_tp_sch - наличие счетчика 1-да 0-нет.
+    -- для услуги по повыш.коэфф
+    -- по klsk, для РСО счетов
+    cursor cur_chrg_by_klsk(p_usl in usl.usl%type, p_tp_sch in number) is
+      select sum(t.summa) as summa from kart k, c_charge t, usl u
+         where k.lsk=t.lsk and k.k_lsk_id=rec_krt.k_lsk_id and nvl(t.sch,0)=p_tp_sch
+         and t.usl=u.usl
+         and t.type=1
+         and exists (select * from usl u2 -- выбрать все подуслуги 
+             where u2.usl=p_usl and u2.uslm=u.uslm);
     rec_chrg cur_chrg%ROWTYPE;
 
     -- процент наличия объема по счетчику / нормативу в периоде, по услуге
@@ -859,6 +884,21 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
        from c_charge t, usl u where t.lsk=rec_krt.lsk and t.type=1
            and t.usl=u.usl
            and exists (select * from usl u2 -- выбрать все подуслуги 
+               where u2.usl=p_usl and u2.uslm=u.uslm)
+               ) a;
+    -- процент наличия объема по счетчику / нормативу в периоде, по услуге
+    -- обычно используется для повышающих коэфф ОДН
+    -- если 0 объем, то счетчик=0 норматив=0
+    cursor cur_proc_sch_by_klsk(p_usl in usl.usl%type) is
+      select case when nvl(a.vol,0) <> 0 then a.vol_sch/a.vol else 0 end as proc_sch,  
+             case when nvl(a.vol,0) <> 0 then a.vol_nrm/a.vol else 0 end as proc_nrm
+      from (
+      select sum(decode(t.sch, 1, t.test_opl)) as vol_sch,
+             sum(decode(t.sch, 0, t.test_opl)) as vol_nrm,
+             sum(t.test_opl) as vol
+       from kart k, c_charge t, usl u where k.lsk=t.lsk and k.k_lsk_id=rec_krt.k_lsk_id and t.type=1
+           and t.usl=u.usl
+           and exists (select * from usl u2 -- выбрать все подуслуги
                where u2.usl=p_usl and u2.uslm=u.uslm)
                ) a;
 
@@ -1030,7 +1070,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
       summaf_ := p_vol * p_cena * l_proc;
       summa_  := round(summaf_, 2);
       INSERT INTO c_charge
-        (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE,
+        (npp, lsk, usl, summa, summaf, kart_pr_id, type,
         spk_id, test_opl, test_cena, test_tarkoef,
         test_spk_koef, sch, kpr, kprz, kpro, opl)
       VALUES
@@ -1042,7 +1082,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
       summaf_ := p_vol * p_cena * l_proc;
       summa_  := round(summaf_, 2);
       INSERT INTO c_charge
-        (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE,
+        (npp, lsk, usl, summa, summaf, kart_pr_id, type,
         spk_id, test_opl, test_cena, test_tarkoef,
         test_spk_koef, sch, kpr, kprz, kpro, opl)
       VALUES
@@ -1074,7 +1114,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
       summaf_ := vol_ * cena_;
       summa_  := round(summaf_, 2);
       INSERT INTO c_charge
-        (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef, sch)
+        (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef, sch)
       VALUES
         (0, lsk_, usl_, summa_, summaf_, NULL, 0, NULL, vol_, cena_, NULL, NULL, sch_);
         
@@ -1083,7 +1123,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
       summaf_ := vol_ * cena_;
       summa_  := round(summaf_, 2);
       INSERT INTO c_charge
-        (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef, sch)
+        (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef, sch)
       VALUES
         (npp_, lsk_, usl_, summa_, summaf_, NULL, 1, NULL, vol_, cena_, NULL, NULL, sch_);
     END IF;
@@ -1835,8 +1875,8 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
           END IF;
           --||||||||||||||||||||||||||||||||||||||--
           --УСЛУГА С РАСЦЕНКОЙ ДЛЯ ПУСТЫХ КВАРТИР
-          -- холодная/ревизия для кис. от 18.01.2018/
-          IF rec_nabor.chrg1 <> 0 AND rec_nabor.fk_calc_tp IN (17) THEN --#17#18#
+          -- холодная вода/ревизия для кис. от 18.01.2018/
+          IF rec_nabor.chrg1 <> 0 AND rec_nabor.fk_calc_tp IN (17) THEN --#17
             OPEN cur_wo_peop(null);
             FETCH cur_wo_peop
               INTO rec_wo_peop;
@@ -1870,7 +1910,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
           --||||||||||||||||||||||||||||||||||||||--
           --УСЛУГА С РАСЦЕНКОЙ ДЛЯ ПУСТЫХ КВАРТИР
           -- горячая вода /ревизия для кис. от 18.01.2018/
-          IF rec_nabor.chrg1 <> 0 AND rec_nabor.fk_calc_tp IN (18) THEN --#17#18#
+          IF rec_nabor.chrg1 <> 0 AND rec_nabor.fk_calc_tp IN (18) THEN --#18
             OPEN cur_wo_peop_gw(null);
             FETCH cur_wo_peop_gw
               INTO rec_wo_peop_gw;
@@ -1912,7 +1952,8 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
             --сохранить расценку
             l_cena:=rec_wo_peop.cena;
             i:=0;
-            for c in cur_charge_prep_usl_cd('х.вода,г.вода,х.в. для гвс')
+            -- поиск по всем лс принадлежащим klsk
+            for c in cur_charge_prep_usl_cd_by_klsk('х.вода,г.вода,х.в. для гвс')
             loop
               if c.empty = 0 then
                 --расчет для не пустой квартиры
@@ -2381,7 +2422,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
               summaf_ := rec_krt.el1;
               summa_  := round(summaf_, 2);
               INSERT INTO c_charge
-                (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+                (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
               VALUES
                 (0, rec_krt.lsk, usl_, summa_, summaf_, NULL, 0, NULL, NULL, rec_wo_peop.cena, NULL, NULL);
               --без льготы
@@ -2389,7 +2430,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
               summaf_ := rec_krt.el1;
               summa_  := round(summaf_, 2);
               INSERT INTO c_charge
-                (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+                (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
               VALUES
                 (npp_, rec_krt.lsk, usl_, summa_, summaf_, NULL, 1, NULL, NULL, rec_wo_peop.cena, NULL, NULL);
               CLOSE cur_wo_peop;
@@ -2408,7 +2449,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
               summaf_ := rec_krt.el;
               summa_  := round(summaf_, 2);
               INSERT INTO c_charge
-                (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+                (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
               VALUES
                 (0, rec_krt.lsk, usl_, summa_, summaf_, NULL, 0, NULL, NULL, rec_peoples.cena, NULL, NULL);
               --без льготы
@@ -2417,7 +2458,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
               summaf_ := rec_krt.el;
               summa_  := round(summaf_, 2);
               INSERT INTO c_charge
-                (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+                (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
               VALUES
                 (npp_, rec_krt.lsk, usl_, summa_, summaf_, NULL, 1, NULL, NULL, rec_peoples.cena, NULL, NULL);
             END IF; */
@@ -2438,7 +2479,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
               summaf_ := rec_wo_peop.tarkoef;
               summa_  := round(summaf_, 2);
               INSERT INTO c_charge
-                (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+                (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
               VALUES
                 (0, rec_krt.lsk, usl_, summa_, summaf_, NULL, 0, NULL, NULL, rec_wo_peop.cena, rec_wo_peop.tarkoef, NULL);
               --без льготы
@@ -2446,7 +2487,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
               summaf_ := rec_wo_peop.tarkoef;
               summa_  := round(summaf_, 2);
               INSERT INTO c_charge
-                (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+                (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
               VALUES
                 (npp_, rec_krt.lsk, usl_, summa_, summaf_, NULL, 1, NULL, NULL, rec_wo_peop.cena, rec_wo_peop.tarkoef, NULL);
             END IF;
@@ -2466,7 +2507,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
               summaf_ := nvl(rec_nabor.vol, 0) * rec_wo_peop.cena;
               summa_  := round(summaf_, 2);
               INSERT INTO c_charge
-                (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+                (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
               VALUES
                 (0, rec_krt.lsk, usl_, summa_, summaf_, NULL, 0, NULL, round(rec_nabor.vol,
                         2), rec_wo_peop.cena, rec_wo_peop.tarkoef, NULL);
@@ -2474,7 +2515,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
               summaf_ := nvl(rec_nabor.vol, 0) * rec_wo_peop.cena;
               summa_  := round(summaf_, 2);
               INSERT INTO c_charge
-                (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+                (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
               VALUES
                 (npp_, rec_krt.lsk, usl_, summa_, summaf_, NULL, 1, NULL, round(rec_nabor.vol,
                         2), rec_wo_peop.cena, rec_wo_peop.tarkoef, NULL);
@@ -2510,7 +2551,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
                              END * rec_wo_peop.tarnorm;
                   summa_  := round(summaf_, 2);
                   INSERT INTO c_charge
-                    (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+                    (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
                   VALUES
                     (0, rec_krt.lsk, usl_, summa_, summaf_, NULL, 0, NULL, CASE WHEN
                       rec_nabor.fk_tarif IS NULL THEN
@@ -2528,7 +2569,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
                              END * rec_wo_peop.tarnorm;
                   summa_  := round(summaf_, 2);
                   INSERT INTO c_charge
-                    (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+                    (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
                   VALUES
                     (npp_, rec_krt.lsk, usl_, summa_, summaf_, NULL, 1, NULL, CASE WHEN
                       rec_nabor.fk_tarif IS NULL THEN
@@ -2540,7 +2581,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
                 ELSIF rec_nabor.fk_calc_tp IN (13) THEN
                   --Антенна Э+ (без начисления)
                   INSERT INTO c_charge
-                    (npp, lsk, usl, summa, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+                    (npp, lsk, usl, summa, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
                   VALUES
                     (0, rec_krt.lsk, usl_, NULL, NULL, 0, NULL, CASE
                         WHEN rec_nabor.fk_tarif IS NULL THEN
@@ -2551,7 +2592,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
                       rec_wo_peop.tarnorm, rec_wo_peop.cena, rec_wo_peop.tarkoef, NULL);
                   --без льготы
                   INSERT INTO c_charge
-                    (npp, lsk, usl, summa, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+                    (npp, lsk, usl, summa, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
                   VALUES
                     (npp_, rec_krt.lsk, usl_, NULL, NULL, 1, NULL, CASE WHEN
                       rec_nabor.fk_tarif IS NULL THEN NULL WHEN
@@ -2567,7 +2608,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
                 summaf_ := rec_wo_peop.cena;
                 summa_  := round(summaf_, 2);
                 INSERT INTO c_charge
-                  (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+                  (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
                 VALUES
                   (0, rec_krt.lsk, usl_, summa_, summaf_, NULL, 0, NULL, round(rec_wo_peop.tarkoef *
                           rec_wo_peop.tarnorm,
@@ -2576,7 +2617,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
                 summaf_ := rec_wo_peop.cena;
                 summa_  := round(summaf_, 2);
                 INSERT INTO c_charge
-                  (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+                  (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
                 VALUES
                   (npp_, rec_krt.lsk, usl_, summa_, summaf_, NULL, 1, NULL, round(rec_wo_peop.tarkoef *
                           rec_wo_peop.tarnorm,
@@ -2604,12 +2645,12 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
             --Кабельное Э+
             --со льготой
             INSERT INTO c_charge
-              (npp, lsk, usl, summa, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+              (npp, lsk, usl, summa, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
             VALUES
               (0, rec_krt.lsk, usl_, cena_, NULL, 0, NULL, rec_wo_peop.tarnorm, cena_, rec_wo_peop.tarkoef, NULL);
             --без льготы
             INSERT INTO c_charge
-              (npp, lsk, usl, summa, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+              (npp, lsk, usl, summa, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
             VALUES
               (npp_, rec_krt.lsk, usl_, cena_, NULL, 1, NULL, rec_wo_peop.tarnorm, cena_, rec_wo_peop.tarkoef, NULL);
             CLOSE cur_wo_peop;
@@ -2627,7 +2668,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
             summaf_ := rec_wo_peop.cena * rec_nabor.vol_add;
             summa_  := round(summaf_, 2);
             INSERT INTO c_charge
-              (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+              (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
             VALUES
               (0, rec_krt.lsk, usl_, summa_, summaf_, NULL, 0, NULL, rec_nabor.vol_add, rec_wo_peop.cena, NULL, NULL);
             --без льготы
@@ -2636,7 +2677,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
             summaf_ := rec_wo_peop.cena * rec_nabor.vol_add;
             summa_  := round(summaf_, 2);
             INSERT INTO c_charge
-              (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+              (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
             VALUES
               (npp_, rec_krt.lsk, usl_, summa_, summaf_, NULL, 1, NULL, rec_nabor.vol_add, rec_wo_peop.cena, NULL, NULL);
             CLOSE cur_wo_peop;
@@ -2654,7 +2695,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
             summaf_ := rec_krt.opl * rec_wo_peop.cena * rec_wo_peop.tarnorm;
             summa_  := round(summaf_, 2);
             INSERT INTO c_charge
-              (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+              (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
             VALUES
               (0, rec_krt.lsk, usl_, summa_, summaf_, NULL, 0, NULL, rec_krt.opl, rec_wo_peop.cena, NULL, NULL);
             --без льготы
@@ -2664,7 +2705,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
             summaf_ := rec_krt.opl * rec_wo_peop.cena * rec_wo_peop.tarnorm;
             summa_  := round(summaf_, 2);
             INSERT INTO c_charge
-              (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+              (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
             VALUES
               (npp_, rec_krt.lsk, usl_, summa_, summaf_, NULL, 1, NULL, rec_krt.opl, rec_wo_peop.cena, NULL, NULL);
             CLOSE cur_wo_peop;
@@ -2682,7 +2723,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
             summaf_ := rec_krt.opl * rec_wo_peop.cena * rec_wo_peop.tarnorm;
             summa_  := round(summaf_, 2);
             INSERT INTO c_charge
-              (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+              (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
             VALUES
               (0, rec_krt.lsk, usl_, summa_, summaf_, NULL, 0, NULL, rec_krt.opl, rec_wo_peop.cena, NULL, NULL);
             --без льготы
@@ -2692,7 +2733,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
             summaf_ := rec_krt.opl * rec_wo_peop.cena * rec_wo_peop.tarnorm;
             summa_  := round(summaf_, 2);
             INSERT INTO c_charge
-              (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+              (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
             VALUES
               (npp_, rec_krt.lsk, usl_, summa_, summaf_, NULL, 1, NULL, rec_krt.opl, rec_wo_peop.cena, NULL, NULL);
             CLOSE cur_wo_peop;
@@ -2710,7 +2751,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
             summaf_ := rec_wo_peop.cena * rec_wo_peop.tarnorm * kpr_;
             summa_  := round(summaf_, 2);
             INSERT INTO c_charge
-              (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+              (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
             VALUES
               (0, rec_krt.lsk, usl_, summa_, summaf_, NULL, 0, NULL, rec_wo_peop.tarnorm * kpr_, rec_wo_peop.cena, NULL, NULL);
             --без льготы
@@ -2719,11 +2760,44 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
             summaf_ := rec_wo_peop.cena * rec_wo_peop.tarnorm * kpr_;
             summa_  := round(summaf_, 2);
             INSERT INTO c_charge
-              (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+              (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
             VALUES
               (npp_, rec_krt.lsk, usl_, summa_, summaf_, NULL, 1, NULL, rec_wo_peop.tarnorm * kpr_, rec_wo_peop.cena, NULL, NULL);
             CLOSE cur_wo_peop;
           END IF;
+          
+          --||||||||||||||||||||||||||||||||||||||--
+          -- Услуга вывоз мусора - кол-во прожив * норматив (Кис.)
+          IF rec_nabor.chrg1 <> 0 AND rec_nabor.fk_calc_tp = 49 --AND rec_krt.status != 1-- кроме муницип. лс (ред.03.09.18 для Кис.) - убрал это, по просьбе Кис.14.09.18
+              THEN --#49#
+            OPEN cur_wo_peop(null);
+            FETCH cur_wo_peop
+              INTO rec_wo_peop;
+            CLOSE cur_wo_peop;
+            OPEN cur_prep;
+            FETCH cur_prep
+              INTO rec_prep;
+            CLOSE cur_prep;
+            sit_    := sit_ + round(rec_wo_peop.cena * rec_prep.kpr2,
+                                    2);
+            npp_    := npp_ + 1;
+            summaf_ := rec_wo_peop.cena * rec_prep.kpr2;
+            summa_  := round(summaf_, 2);
+            INSERT INTO c_charge
+              (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+            VALUES
+              (npp_, rec_krt.lsk, usl_, summa_, summaf_, NULL, 0, NULL, rec_prep.kpr2, rec_wo_peop.cena, NULL, NULL);
+            --без льготы
+            msit_   := msit_ + round(rec_wo_peop.cena * rec_prep.kpr2,
+                                     2);
+            summaf_ := rec_wo_peop.cena * rec_prep.kpr2;
+            summa_  := round(summaf_, 2);
+            INSERT INTO c_charge
+              (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+            VALUES
+              (npp_, rec_krt.lsk, usl_, summa_, summaf_, NULL, 1, NULL, rec_prep.kpr2, rec_wo_peop.cena, NULL, NULL);
+          END IF;
+          
           --||||||||||||||||||||||||||||||||||||||--
           --Холодная вода (УСТАРЕВШЕЕ, для Полыс)
           --||||||||||||||||||||||||||||||||||||||--
@@ -2739,7 +2813,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
             summaf_ := rec_wo_peop.cena * rec_wo_peop.tarnorm;
             summa_  := round(summaf_, 2);
             INSERT INTO c_charge
-              (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+              (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
             VALUES
               (0, rec_krt.lsk, usl_, summa_, summaf_, NULL, 0, NULL, rec_wo_peop.tarnorm, rec_wo_peop.cena, NULL, NULL);
             --без льготы
@@ -2748,7 +2822,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
             summaf_ := rec_wo_peop.cena * rec_wo_peop.tarnorm;
             summa_  := round(summaf_, 2);
             INSERT INTO c_charge
-              (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+              (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
             VALUES
               (npp_, rec_krt.lsk, usl_, summa_, summaf_, NULL, 1, NULL, rec_wo_peop.tarnorm, rec_wo_peop.cena, NULL, NULL);
             CLOSE cur_wo_peop;
@@ -2768,13 +2842,13 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
               end loop;
             end if;
             
-            for c in cur_chrg(rec_nabor.parent_usl, 0) loop
+            for c in cur_chrg_by_klsk(rec_nabor.parent_usl, 0) loop
               sit_    := sit_ + round(c.summa * rec_wo_peop.tarnorm,2);
               npp_    := npp_ + 1;
               summaf_ := round(l_proc_nrm * c.summa * rec_wo_peop.tarnorm,2);
               summa_  := round(summaf_, 2);
               INSERT INTO c_charge
-                (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+                (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
               VALUES
                 (0, rec_krt.lsk, usl_, summa_, summaf_, NULL, 0, NULL, null, null, NULL, NULL);
               --без льготы
@@ -2782,7 +2856,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
               summaf_ := round(l_proc_nrm * c.summa * rec_wo_peop.tarnorm,2);
               summa_  := round(summaf_, 2);
               INSERT INTO c_charge
-                (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+                (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
               VALUES
                 (npp_, rec_krt.lsk, usl_, summa_, summaf_, NULL, 1, NULL, rec_krt.opl, null, NULL, NULL);
               CLOSE cur_wo_peop;
@@ -2811,7 +2885,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
                   summaf_ := round(c.summa * rec_wo_peop.tarnorm,2);
                   summa_  := round(summaf_, 2);
                   INSERT INTO c_charge
-                    (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+                    (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
                   VALUES
                     (0, rec_krt.lsk, usl_, summa_, summaf_, NULL, 0, NULL, null, null, NULL, NULL);
                   --без льготы
@@ -2819,7 +2893,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
                   summaf_ := round(c.summa * rec_wo_peop.tarnorm,2);
                   summa_  := round(summaf_, 2);
                   INSERT INTO c_charge
-                    (npp, lsk, usl, summa, summaf, kart_pr_id, TYPE, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
+                    (npp, lsk, usl, summa, summaf, kart_pr_id, type, spk_id, test_opl, test_cena, test_tarkoef, test_spk_koef)
                   VALUES
                     (npp_, rec_krt.lsk, usl_, summa_, summaf_, NULL, 1, NULL, rec_krt.opl, null, NULL, NULL);
 
@@ -2837,7 +2911,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
         IF rec_krt.corr_lg = 1 THEN
           --учитываем корректировку в льготах
           INSERT INTO c_charge
-            (npp, lsk, usl, summa, kart_pr_id, spk_id, TYPE, main, lg_doc_id)
+            (npp, lsk, usl, summa, kart_pr_id, spk_id, type, main, lg_doc_id)
             SELECT t.npp, t.lsk, t.usl, round(t.summa + CASE
                             WHEN nvl(v.summa, 0) <> 0 AND nvl(x.summa, 0) <> 0 THEN
                              t.summa * v.summa / x.summa
@@ -2847,12 +2921,12 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
                           2), t.kart_pr_id, t.spk_id, 4, t.main, t.lg_doc_id
             FROM   (SELECT npp, lsk, usl, r.kart_pr_id, r.spk_id, r.main, r.lg_doc_id, SUM(summa) summa
                      FROM   c_charge r, params p
-                     WHERE  TYPE = 3
+                     WHERE  type = 3
                      AND    lsk = '' || rec_krt.lsk || ''
                      GROUP  BY npp, lsk, usl, r.spk_id, r.kart_pr_id, r.main, r.lg_doc_id) t, --льготы
                    (SELECT lsk, usl, nvl(SUM(summa), 0) AS summa
                      FROM   c_charge r, params p
-                     WHERE  TYPE = 1
+                     WHERE  type = 1
                      AND    lsk = '' || rec_krt.lsk || ''
                      GROUP  BY lsk, usl) x, -- нач без льг.
                    (SELECT lsk, usl, SUM(summa) summa
@@ -2869,7 +2943,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
         ELSE
           --НЕ учитываем корректировку в льготах
           INSERT INTO c_charge
-            (npp, lsk, usl, summa, kart_pr_id, spk_id, TYPE, main, lg_doc_id)
+            (npp, lsk, usl, summa, kart_pr_id, spk_id, type, main, lg_doc_id)
             SELECT npp, lsk, usl, summa, kart_pr_id, spk_id, 4, main, lg_doc_id
             FROM   c_charge t
             WHERE  t.type = 3
@@ -2905,7 +2979,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
             subs_       := nvl(rec_krt.subs_cor, 2);
             koeff_rasp_ := subs_ / sit_s_;
             INSERT INTO c_charge
-              (npp, lsk, usl, summa, kart_pr_id, spk_id, TYPE, test_opl, test_cena, test_tarkoef, test_spk_koef)
+              (npp, lsk, usl, summa, kart_pr_id, spk_id, type, test_opl, test_cena, test_tarkoef, test_spk_koef)
               SELECT MAX(v.npp), v.lsk, v.usl, round(SUM(v.summa *
                                 koeff_rasp_),
                             2), NULL, NULL, 2, NULL, NULL, NULL, NULL
@@ -2936,7 +3010,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
             INTO   chk_subs_corr_
             FROM   c_charge t
             WHERE  t.lsk = '' || rec_krt.lsk || ''
-            AND    TYPE = 2;
+            AND    type = 2;
             IF chk_subs_corr_ > 0.10 THEN
               --больше десяти копеек - expception
               raise_application_error(-20001,
@@ -2945,7 +3019,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
                                       ' произошло не правильное округление корректировки субсидии. Остановка.');
             END IF;
             INSERT INTO c_charge
-              (npp, lsk, usl, summa, kart_pr_id, spk_id, TYPE, test_opl, test_cena, test_tarkoef, test_spk_koef)
+              (npp, lsk, usl, summa, kart_pr_id, spk_id, type, test_opl, test_cena, test_tarkoef, test_spk_koef)
               SELECT t.npp, t.lsk, t.usl, chk_subs_corr_, NULL, NULL, 2, NULL, NULL, NULL, NULL
               FROM   c_charge t, usl u
               WHERE  t.lsk = '' || rec_krt.lsk || ''
@@ -3031,7 +3105,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
 
             koeff_rasp_ := subs_ / sit_s_;
             INSERT INTO c_charge
-              (lsk, usl, summa, kart_pr_id, spk_id, TYPE, test_opl, test_cena, test_tarkoef, test_spk_koef)
+              (lsk, usl, summa, kart_pr_id, spk_id, type, test_opl, test_cena, test_tarkoef, test_spk_koef)
               SELECT v.lsk, v.usl, round(SUM(v.summa * koeff_rasp_), 2), NULL, NULL, 2, NULL, NULL, NULL, NULL
               FROM   (SELECT t.lsk, t.usl, t.summa
                        FROM   c_charge t, usl u
@@ -3141,22 +3215,36 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
       and abs(nvl(a.summa,0)-nvl(b.summa,0))>0.1
       */
       -- округлить текущее содержание, для ГИС ЖКХ, выполняется, если заполнен справочник usl_round
-      for c in (select u.usl, nvl(round(sum(decode(u.usl_norm,1,0,t.test_cena)) over (partition by k.lsk) * k.opl,2),0) as summa,
-              nvl(round(sum(decode(u.usl_norm,1,0,t.test_cena)) over (partition by k.lsk),2),0) as price,
-              t.test_cena,
-                  nvl(sum(t.summa) over (partition by k.lsk),0) as summa_fact, t.rd
+ for c in (select a.usl, nvl(round(sum(a.price) over (partition by a.lsk) * a.opl,2),0) as summa, -- расчетная сумма
+           nvl(sum(a.summa_fact) over (partition by a.lsk),0) as summa_fact, a.rd -- фактическая сумма, до округления
+           from (
+          select u.uslm, u.usl, 
+                 decode(lead(u.uslm, 1) over (order by u.uslm, u.usl), u.uslm, 0, 1) * t.test_cena as price, -- убрать расценку, если идёт повтор услуги по uslm
+                  t.summa as summa_fact, k.lsk, k.opl, t.rd
                   from scott.kart k, 
-                  (select s.test_cena, s.usl, u2.usl_norm, max(s.rowid) as rd, sum(s.summa) as summa from 
+                  (select s.test_cena, s.usl, max(s.rowid) as rd, sum(s.summa) as summa from 
                      scott.c_charge s, scott.usl u2 where s.usl=u2.usl and s.lsk=rec_krt.lsk and s.type=1
-                  group by s.test_cena, s.usl, u2.usl_norm) t
+                  group by s.test_cena, s.usl) t
                   , scott.usl u, scott.usl_round r
                   where t.usl=u.usl and t.usl=r.usl
                   and k.lsk=rec_krt.lsk and k.reu=r.reu
-                  and t.summa > 0
-                  order by t.usl -- не менять порядок! чтобы округлялось всегда на одну услугу, не зависимо от суммы начисления
+                  and t.summa > 0) a
+                  order by a.usl -- не менять порядок! чтобы округлялось всегда на одну услугу, не зависимо от суммы начисления
                   ) loop
         if abs(c.summa-c.summa_fact) <= 0.05 then
-          update scott.c_charge t set t.summa=t.summa+(c.summa-c.summa_fact) where t.rowid=c.rd;
+          -- обновить type=1  
+          update scott.c_charge t set t.summa=t.summa+(c.summa-c.summa_fact) where t.rowid=c.rd 
+            returning t.usl into l_usl_round;
+          if sql%rowcount != 1 then
+            Raise_application_error(-20000, '1.Некорректно кол.во обновленных записей, по лиц.счету:'||rec_krt.lsk);
+          end if;  
+          -- обновить type=0  
+          update scott.c_charge t set t.summa=t.summa+(c.summa-c.summa_fact) where t.usl = l_usl_round
+            and t.lsk=rec_krt.lsk
+            and t.type=0 and rownum=1;
+          if sql%rowcount != 1 then
+            Raise_application_error(-20000, '2.Некорректно кол.во обновленных записей, по лиц.счету:'||rec_krt.lsk);
+          end if;  
         else
           Raise_application_error(-20000, 'Некорректное округление='
             ||to_char(c.summa - c.summa_fact)||', по лиц.счету:'||rec_krt.lsk);

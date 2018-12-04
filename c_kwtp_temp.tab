@@ -2,7 +2,7 @@ create global temporary table SCOTT.C_KWTP_TEMP
 (
   summa    NUMBER(12,2),
   penya    NUMBER(12,2),
-  oper     CHAR(2) not null,
+  oper     CHAR(3) not null,
   cnt_sch  NUMBER,
   cnt_sch0 NUMBER,
   itog     NUMBER(12,2)
