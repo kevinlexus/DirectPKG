@@ -1,7 +1,7 @@
 create sequence SCOTT.K_LSK_ID
 minvalue 1
 maxvalue 999999999999999999999999999
-start with 524913
+start with 525433
 increment by 1
 cache 20
 order;

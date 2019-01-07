@@ -55,7 +55,7 @@ create or replace package body scott.p_meter is
     end loop;
   end;
 
-  --внести расход или новое показание по счетчику
+  --внести расход по счетчику
   function ins_vol_meter(p_met_klsk in number, -- klsk счетчика --либо klsk счетчика
                          p_lsk in kart.lsk%type, --лиц.счет     --либо лиц.счет + услуга!
                          p_usl in usl.usl%type,  --услуга
@@ -167,6 +167,78 @@ create or replace package body scott.p_meter is
        return 1;
      end if;
   end;
+
+  --внести показание по счетчику (обычно - Java вызов из GisExchange)
+  procedure ins_data_meter(p_met_klsk in number, -- klsk счетчика --либо klsk счетчика
+                          p_n1 in number, -- новое показание
+                          p_ts in date, -- timestamp
+                          p_period in varchar2,
+                          p_ret out number
+                         ) is
+  l_vol number;
+  l_n1 number;
+  begin
+    p_ret:=0;
+    if p_met_klsk is null then
+      Raise_application_error(-20000, 'Некорректное использование функции p_meter.ins_data_meter, p_lsk пустое!');
+    end if;
+    if nvl(p_n1,0)=0 then
+      p_ret:=1; -- пустые новые показания
+      return;
+    end if;
+    l_n1:=0;
+    for c in (select k.lsk, m.id, trim(u3.counter) as counter, u.id as vol_id, u2.id as num_id
+                     from meter m join kart k on m.fk_klsk_obj=k.k_lsk_id
+                     join v_lsk_tp tp on k.fk_tp=tp.id 
+                     and tp.cd='LSK_TP_MAIN' and k.psch not in (8,9) -- активный, основной лиц.сч.
+                     join usl u3 on m.fk_usl=u3.usl
+                     join u_list u on u.cd='ins_vol_sch'
+                     join u_list u2 on u2.cd='ins_sch'
+                     where m.k_lsk_id=p_met_klsk
+                     and sysdate between m.dt1 and m.dt2 -- активный счетчик 
+                     ) loop
+      for c2 in (select x.n1 from t_objxpar x 
+                            where x.fk_k_lsk=p_met_klsk -- последние показания счетчика (любые, в т.ч. из ГИС)
+                            order by x.id desc) loop
+          l_n1:=c2.n1;
+          exit;                  
+      end loop;   
+
+         if p_n1 > l_n1 then
+           -- обработка новых показаний
+           -- получить объем
+           l_vol:=p_n1-l_n1;
+           for c3 in (select u.id as user_id from dual p join t_user u on u.cd='GIS') loop
+             -- флаг, что не надо добавлять информацию в триггере
+             g_flag:=1;
+             -- отразить объем
+             insert into t_objxpar (fk_k_lsk, fk_list, n1, fk_user, mg, tp, ts)
+               values(p_met_klsk, c.vol_id, l_vol, c3.user_id, p_period, 0, p_ts);
+             -- отразить показание
+             insert into t_objxpar (fk_k_lsk, fk_list, n1, fk_user, mg, tp, ts)
+               values(p_met_klsk, c.num_id, p_n1, c3.user_id, p_period, 0, p_ts);
+             --изменить последние показания в счетчике
+             update meter m set m.n1=p_n1 where m.k_lsk_id=p_met_klsk;
+
+             --обновить показания и общий расход за месяц в kart
+             execute immediate 'update kart k set k.'||c.counter||'=nvl('||p_n1||',0) where k.lsk='||c.lsk;
+             --меняем первую букву на "m" - получаем поле для расхода (изврат)
+             execute immediate 'update kart k set k.'||'m'||substr(c.counter,2,3)||'=nvl(k.'||'m'
+                     ||substr(c.counter,2,3)||',0) + nvl('||l_vol||+',0) where k.lsk='||c.lsk;
+             g_flag:=0; -- снять флаг от добавления в триггере
+             p_ret:=0; -- успешно сохранено
+             return;
+           end loop;
+         
+         else
+             p_ret:=3; -- новые показания меньше или равны существующим в базе
+             return;
+         end if;                                          
+    exit;
+    end loop;
+    p_ret:=4; -- не найден счетчик
+    return;
+end;
 
   -- автоначисление по счетчикам
 function gen_auto_chrg_all(p_set in number, p_usl in usl.usl%type)

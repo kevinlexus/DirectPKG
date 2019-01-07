@@ -40,6 +40,8 @@ create or replace package scott.scripts2 is
          p_doc in number,
          p_user in number
          ) return kart.lsk%type ;
+procedure swap_sal_PEN;   
+procedure swap_sal_from_main_to_rso;      
 end scripts2;
 /
 

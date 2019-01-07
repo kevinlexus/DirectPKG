@@ -25,7 +25,7 @@ create or replace package body scott.gen is
   
   l_mg1:=utils.add_months_pr(rec_params.period, 1);
 
-  --проверка до и во время формирования ния
+  --проверка до и во время формирования
   if var_ = 1 then --проверка всех ошибок до формирования
     if rec_params.period <> init.get_period then
        err_str_:='Стоп, заданная дата не соответствующая текущему периоду!';
@@ -485,6 +485,20 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
     err_:=12;
    end if;
     
+   -- проверка что исх.сальдо по пене идёт в двух таблицах
+   select count(*) into cnt_ from (
+      select t.lsk, sum(t.penya) as summa from A_PENYA t where 
+      t.mg=rec_params.period
+      group by t.lsk) a
+      full join 
+      (select t.lsk, sum(t.poutsal) as summa from xitog3_lsk t where 
+      t.mg=rec_params.period
+      group by t.lsk) b on a.lsk=b.lsk
+      where nvl(a.summa,0)<>nvl(b.summa,0);
+   if cnt_ <> 0 then
+    err_:=12;
+   end if;
+   
  end if;
  end;
 
@@ -4307,11 +4321,7 @@ end;
     --устанавливаем кол-во прожив, с учетом выбывших и зарегистрированных
     --(например человек прописался в конце прошлого месяца)
 
---перенес в расчет начисления 11.04.14
---    logger.log_(null, 'Переход-utils.set_kpr начало');
---    utils.set_kpr(null);
---    logger.log_(null, 'Переход-utils.set_kpr окончание');
-
+    --перенес в расчет начисления 11.04.14
     --изменяем признаки счетчиков, в л.с. где они должны поменяться по срокам
     logger.log_(null, 'Переход-utils.upd_krt_sch_state начало');
     utils.upd_krt_sch_state(null);

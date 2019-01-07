@@ -9,7 +9,9 @@ CREATE OR REPLACE TYPE SCOTT."REC_BILL_ROW" as object
   change1 number,
   change_proc1 NUMBER,
   change2 number,
-  kub number
+  kub number,
+  pay number,
+  chargeOwn NUMBER
 )
 /
 

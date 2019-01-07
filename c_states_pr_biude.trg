@@ -22,13 +22,14 @@ begin
       c_charges.tb_rec_pr_states.extend;
       c_charges.tb_rec_pr_states(c_charges.tb_rec_pr_states.last).id := :new.id;
       c_charges.tb_rec_pr_states(c_charges.tb_rec_pr_states.last).fk_kart_pr := :new.fk_kart_pr;
-      c_charges.tb_rec_pr_states(c_charges.tb_rec_pr_states.last).fk_tp := :new.fk_tp;
+      --c_charges.tb_rec_pr_states(c_charges.tb_rec_pr_states.last).fk_tp := :new.fk_tp;
       c_charges.tb_rec_pr_states(c_charges.tb_rec_pr_states.last).dt1 := :new.dt1;
       c_charges.tb_rec_pr_states(c_charges.tb_rec_pr_states.last).dt2 := :new.dt2;
 
       --аудит
       select c.name into txt_ from c_status_pr c where c.id=:new.fk_status;
       select c.lsk, c.fio into rec_kart_pr_ from c_kart_pr c where c.id=:new.fk_kart_pr;
+      
       logger.log_act(rec_kart_pr_.lsk, 'добавлен новый период действия статуса проживающего: '||
          trim(rec_kart_pr_.fio)||' -'||
          txt_||
@@ -42,7 +43,7 @@ begin
       c_charges.tb_rec_pr_states.extend;
       c_charges.tb_rec_pr_states(c_charges.tb_rec_pr_states.last).id := :old.id;
       c_charges.tb_rec_pr_states(c_charges.tb_rec_pr_states.last).fk_kart_pr := :old.fk_kart_pr;
-      c_charges.tb_rec_pr_states(c_charges.tb_rec_pr_states.last).fk_tp := :old.fk_tp;
+      --c_charges.tb_rec_pr_states(c_charges.tb_rec_pr_states.last).fk_tp := :old.fk_tp;
       c_charges.tb_rec_pr_states(c_charges.tb_rec_pr_states.last).dt1 := :new.dt1;
       c_charges.tb_rec_pr_states(c_charges.tb_rec_pr_states.last).dt2 := :new.dt2;
       --аудит
@@ -64,7 +65,7 @@ begin
       c_charges.tb_rec_pr_states.extend;
       c_charges.tb_rec_pr_states(c_charges.tb_rec_pr_states.last).id := :old.id;
       c_charges.tb_rec_pr_states(c_charges.tb_rec_pr_states.last).fk_kart_pr := :old.fk_kart_pr;
-      c_charges.tb_rec_pr_states(c_charges.tb_rec_pr_states.last).fk_tp := :old.fk_tp;
+      --c_charges.tb_rec_pr_states(c_charges.tb_rec_pr_states.last).fk_tp := :old.fk_tp;
       c_charges.tb_rec_pr_states(c_charges.tb_rec_pr_states.last).dt1 := :old.dt1;
       c_charges.tb_rec_pr_states(c_charges.tb_rec_pr_states.last).dt2 := :old.dt2;
       --аудит, вести если не было каскадного удаления из c_kart_pr (иначе mutating в триггере)

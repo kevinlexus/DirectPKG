@@ -1,0 +1,43 @@
+create table SCOTT.LOG_VERSION
+(
+  id   NUMBER not null,
+  n1   NUMBER not null,
+  comm VARCHAR2(1024),
+  ts   DATE default sysdate not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.LOG_VERSION
+  is 'Логгирование обновлений версий';
+comment on column SCOTT.LOG_VERSION.id
+  is 'ID';
+comment on column SCOTT.LOG_VERSION.n1
+  is '№ версии';
+comment on column SCOTT.LOG_VERSION.comm
+  is 'Описание';
+comment on column SCOTT.LOG_VERSION.ts
+  is 'Timestamp';
+alter table SCOTT.LOG_VERSION
+  add constraint LOG_VERSION_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

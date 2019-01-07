@@ -11,6 +11,9 @@ tablespace USERS
   storage
   (
     initial 30M
+    next 1M
+    minextents 1
+    maxextents unlimited
   )
 nologging;
 comment on table SCOTT.C_LG_PR
@@ -27,6 +30,9 @@ create index SCOTT.C_LG_PR_I on SCOTT.C_LG_PR (C_LG_DOCS_ID, TYPE, SPK_ID)
   storage
   (
     initial 20M
+    next 1M
+    minextents 1
+    maxextents unlimited
   )
   compress;
 create index SCOTT.C_LG_PR_I2 on SCOTT.C_LG_PR (C_LG_DOCS_ID, SPK_ID)
@@ -37,6 +43,9 @@ create index SCOTT.C_LG_PR_I2 on SCOTT.C_LG_PR (C_LG_DOCS_ID, SPK_ID)
   storage
   (
     initial 20M
+    next 1M
+    minextents 1
+    maxextents unlimited
   )
   compress;
 alter table SCOTT.C_LG_PR

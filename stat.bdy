@@ -4155,7 +4155,7 @@ elsif сd_ in  ('88') then
 
     order by l.name, s.nd, s.kw;
       
- elsif сd_ in ('94') then
+ elsif сd_ in ('94') then -- следующий номер CD смотреть так же в REP_LSK!
     --ГИС ЖКХ
     --Шаблон импорта ЛС
     l_dt1:=gdt(0,0,0);

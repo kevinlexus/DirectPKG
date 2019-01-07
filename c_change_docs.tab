@@ -6,7 +6,7 @@ create table SCOTT.C_CHANGE_DOCS
   ts       DATE not null,
   user_id  NUMBER not null,
   text     VARCHAR2(2000),
-  cd_tp    VARCHAR2(32),
+  cd_tp    VARCHAR2(132),
   mg2      VARCHAR2(6)
 )
 tablespace USERS

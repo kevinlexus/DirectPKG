@@ -18,7 +18,8 @@ create table SCOTT.NABOR
   kf_kpr_wrz_sch NUMBER,
   kf_kpr_wro_sch NUMBER,
   limit          NUMBER,
-  nrm_kpr2       NUMBER
+  nrm_kpr2       NUMBER,
+  id             NUMBER not null
 )
 tablespace USERS
   pctfree 1
@@ -70,6 +71,8 @@ comment on column SCOTT.NABOR.limit
   is 'Лимит объема по услуге (Используется при начислении по ОДН)';
 comment on column SCOTT.NABOR.nrm_kpr2
   is 'Кол-во проживающих для расценки';
+comment on column SCOTT.NABOR.id
+  is 'ID';
 create unique index SCOTT.NABOR_I on SCOTT.NABOR (LSK, USL, ORG)
   tablespace USERS
   pctfree 10

@@ -761,9 +761,9 @@ if org_var_ = 0 and l_cd='LSK_TP_MAIN' then
   select nvl(count(*),0) into cnt_ from (
    select k.id,
    max(t.dt2) keep (dense_rank first order by nvl(t.dt1, to_date('01011900','DDMMYYYY')) desc) as dat
-   from c_kart_pr k, c_states_pr t, u_list u
+   from c_kart_pr k, c_states_pr t, u_list u, c_status_pr pr
    where k.lsk=lsk_
-   and k.id=t.fk_kart_pr and t.fk_tp=u.id and u.cd='PROP'
+   and k.id=t.fk_kart_pr and t.fk_status=pr.id and  pr.fk_tp=u.id and u.cd='PROP'
    group by k.id) a
    where a.dat is not null;
    if cnt_ > 0 then
@@ -823,7 +823,8 @@ if org_var_ = 0 and l_cd='LSK_TP_MAIN' then
     where k.lsk=lsk_
     and k.id=c.fk_kart_pr
     and exists
-    (select * from c_states_pr t where t.fk_kart_pr=k.id and t.fk_tp=c.fk_tp
+    (select * from c_states_pr t 
+        where t.fk_kart_pr=k.id and t.fk_status=c.fk_status
     and t.id <> c.id and
     (nvl(t.dt1, to_date('01011900','DDMMYYYY'))
         between nvl(c.dt1, to_date('01011900','DDMMYYYY'))
@@ -1003,13 +1004,14 @@ begin
                          )
                  ) loop*/
 fk_kart_pr_:=null;
-     for c in (select c.fk_kart_pr from c_states_pr c, u_list u, params m where  --найти квартиросъемщика, прописанного
+     for c in (select c.fk_kart_pr from c_states_pr c, c_status_pr pr, u_list u, params m where  --найти квартиросъемщика, прописанного
                   last_day(to_date(m.period||'01','YYYYMMDD')) --на последнюю дату мес€ца
                   between nvl(c.dt1(+), to_date('01011900','DDMMYYYY')) and
                           nvl(c.dt2(+), to_date('01012900','DDMMYYYY'))
                          and c.fk_status = 1 --нельз€ делать статус 5 (так как устанавливаетс€ квартиросъемщик, всЄ серъЄзно)))
                          and u.cd='PROP'
-                         and c.fk_tp=u.id
+                         and c.fk_status=pr.id
+                         and pr.fk_tp=u.id
                    and exists
                    (select *
                       from c_kart_pr p, relations s
@@ -1077,21 +1079,21 @@ ccc number;
     update c_kart_pr k
        set k.dat_prop =
            (select max(a.dt1)
-              from c_states_pr a, u_list u
-             where u.id = a.fk_tp
+              from c_states_pr a, u_list u, c_status_pr pr
+             where a.fk_status=pr.id and pr.fk_tp=u.id
                and u.cd = 'PROP'
                and a.fk_kart_pr = fk_kart_pr_
                and a.fk_status in (1, 5)),
            k.dat_ub  =
            (select max(a.dt1)
-              from c_states_pr a, u_list u
-             where u.id = a.fk_tp
+              from c_states_pr a, u_list u, c_status_pr pr
+             where a.fk_status=pr.id and pr.fk_tp=u.id
                and u.cd = 'PROP'
                and a.fk_kart_pr = fk_kart_pr_
                and a.fk_status = 4 --если будет найдена дата убыти€ >= даты прописки
              having max(a.dt1) >= (select max(nvl(a.dt1, to_date('01011900', 'DDMMYYYY')))
-                                    from c_states_pr a, u_list u
-                                   where u.id = a.fk_tp
+                                    from c_states_pr a, u_list u, c_status_pr pr
+                                     where a.fk_status=pr.id and pr.fk_tp=u.id
                                      and u.cd = 'PROP'
                                      and a.fk_kart_pr = fk_kart_pr_
                                      and a.fk_status in (1, 5))),
@@ -1127,8 +1129,8 @@ ccc number;
                            a.fk_status,
                            nvl(a.dt1, to_date('01011900', 'DDMMYYYY')) as dt1,
                            nvl(a.dt2, to_date('01012900', 'DDMMYYYY')) as dt2
-                      from c_states_pr a, u_list u, params p
-                     where u.id = a.fk_tp
+                      from c_states_pr a, u_list u, params p, c_status_pr pr
+                     where a.fk_status=pr.id and pr.fk_tp=u.id
                        and last_day(to_date(p.period || '01', 'YYYYMMDD')) between
                            nvl(a.dt1, to_date('01011900', 'DDMMYYYY')) and nvl(a.dt2, to_date('01012900', 'DDMMYYYY'))
                        and u.cd = 'PROP'
@@ -1137,8 +1139,8 @@ ccc number;
                            a.fk_status,
                            nvl(a.dt1, to_date('01011900', 'DDMMYYYY')) as dt1,
                            nvl(a.dt2, to_date('01012900', 'DDMMYYYY')) as dt2
-                      from c_states_pr a, u_list u, params p
-                     where u.id = a.fk_tp
+                      from c_states_pr a, u_list u, params p, c_status_pr pr
+                     where a.fk_status=pr.id and pr.fk_tp=u.id
                        and last_day(to_date(p.period || '01', 'YYYYMMDD')) between
                            nvl(a.dt1, to_date('01011900', 'DDMMYYYY')) and nvl(a.dt2, to_date('01012900', 'DDMMYYYY'))
                        and u.cd = 'PROP_REG'
@@ -1172,7 +1174,7 @@ ccc number;
    --по всем проживающим (после перехода)
    i:=0;
    for c in (select distinct t.fk_kart_pr
-        from c_states_pr t, u_list u where t.fk_tp=u.id
+        from c_states_pr t, u_list u, c_status_pr pr where t.fk_status=pr.id and pr.fk_tp=u.id
           and (t.dt1 is not null or t.dt2 is not null)
           )
    loop

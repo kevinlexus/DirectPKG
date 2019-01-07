@@ -1,8 +1,8 @@
-create sequence SCOTT.DEB_ID
+create sequence SCOTT.PRICES_ID
 minvalue 1
 maxvalue 999999999999999999999999999
-start with 614401
-increment by 10
+start with 61
+increment by 1
 cache 20
 order;
 

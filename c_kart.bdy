@@ -193,8 +193,8 @@ begin
                       p.dat_rog,
                       r.cd) bulk collect
       into p_state
-      from c_states_pr t, u_list u, u_listtp tp, c_kart_pr p, relations r
-     where t.fk_tp = u.id
+      from c_states_pr t, u_list u, u_listtp tp, c_kart_pr p, relations r, c_status_pr pr
+     where t.fk_status=pr.id and pr.fk_tp = u.id
        and u.fk_listtp = tp.id
        and tp.cd = 'Типы статусов проживающих' --необх.использовать типы u_listtp
        and t.fk_kart_pr = p.id
@@ -224,8 +224,8 @@ begin
                       p.dat_rog,
                       r.cd) bulk collect
       into p_state
-      from c_states_pr t, u_list u, u_listtp tp, c_kart_pr p, relations r
-     where t.fk_tp = u.id
+      from c_states_pr t, u_list u, u_listtp tp, c_kart_pr p, relations r, c_status_pr pr
+     where t.fk_status=pr.id and pr.fk_tp = u.id
        and u.fk_listtp = tp.id
        and tp.cd = 'Типы статусов проживающих' --необх.использовать типы u_listtp
        and t.fk_kart_pr = p.id
@@ -606,16 +606,32 @@ end if;
 l_lsk_main:=null;
 l_lsk_parent:=null;
 
+for c in (select s.cd as status_cd, k.parent_lsk, k.k_lsk_id from kart k, status s
+                      where k.lsk=p_lsk and k.status=s.id) loop
+   l_status_cd:=c.status_cd;
+   l_klsk:=c.k_lsk_id;
+   --если заполнен родительский лиц.счет, - используем его
+   if c.parent_lsk is not null then
+     l_lsk_parent:=c.parent_lsk;
+   end if;  
+end loop;                          
+
 if p_tp in ('LSK_TP_ADDIT','LSK_TP_RSO') then
   -- дополнит.счета по капрем., по РСО
   begin
-    select t.lsk, s.cd, k.k_lsk_id into l_lsk_main, l_status_cd, l_klsk
-                          from kart k, kart t, u_list u, status s
-                          where k.lsk=p_lsk and k.k_lsk_id=t.k_lsk_id
-                          and t.psch not in (8,9) and t.fk_tp=u.id
-                          and u.cd='LSK_TP_MAIN'
-                          and t.status=s.id(+);
-                          --and k.reu=t.reu; ред.08.08.2018,- убрал условие по reu, так как в Кис появились открытые лс в разных УК
+    if l_lsk_parent is null then 
+      select t.lsk, s.cd, k.k_lsk_id into l_lsk_main, l_status_cd, l_klsk
+                            from kart k, kart t, u_list u, status s
+                            where k.lsk=p_lsk and k.k_lsk_id=t.k_lsk_id
+                            and t.psch not in (8,9) and t.fk_tp=u.id
+                            and u.cd='LSK_TP_MAIN'
+                            and t.status=s.id(+);
+                            --and k.reu=t.reu; ред.08.08.2018,- убрал условие по reu, так как в Кис появились открытые лс в разных УК
+    else
+      select k.lsk, s.cd, k.k_lsk_id into l_lsk_main, l_status_cd, l_klsk
+                            from kart k join status s on k.status=s.id
+                            where k.lsk=l_lsk_parent;
+    end if;                        
     exception when no_data_found then
       --нет основного счета, попробовать посчитать по текущему
       l_lsk_main:=p_lsk;
@@ -623,17 +639,6 @@ if p_tp in ('LSK_TP_ADDIT','LSK_TP_RSO') then
       Raise_application_error(-20000, 'Обнаружены дубли лиц.счета lsk='||p_lsk);
       raise;                      
   end;
-elsif p_tp='LSK_TP_MAIN' then
-    for c in (select s.cd as status_cd, k.parent_lsk, k.k_lsk_id from kart k, status s
-                          where k.lsk=p_lsk and k.status=s.id) loop
-       l_status_cd:=c.status_cd;
-       l_klsk:=c.k_lsk_id;
-       --если заполнен родительский лиц.счет, - используем его
-       if c.parent_lsk is not null then
-         l_lsk_parent:=c.parent_lsk;
-       end if;  
-    end loop;                          
-                                                
 end if;
 
 

@@ -4,7 +4,8 @@ create table SCOTT.PRICES
   summa  NUMBER,
   summa2 NUMBER,
   fk_org NUMBER,
-  summa3 NUMBER
+  summa3 NUMBER,
+  id     NUMBER not null
 )
 tablespace USERS
   pctfree 1
@@ -25,9 +26,11 @@ comment on column SCOTT.PRICES.summa
 comment on column SCOTT.PRICES.summa2
   is 'Дополнительная расценка (допустим за Гкал пот отопл.)';
 comment on column SCOTT.PRICES.fk_org
-  is 'FK на УК';
+  is 'FK на организацию';
 comment on column SCOTT.PRICES.summa3
   is 'Расценка по услуге, в случае отсутствия проживающих';
+comment on column SCOTT.PRICES.id
+  is 'ID';
 alter table SCOTT.PRICES
   add constraint PRICES_FK_ORG foreign key (FK_ORG)
   references SCOTT.T_ORG (ID);

@@ -32,6 +32,7 @@ CREATE OR REPLACE PACKAGE SCOTT.ADMIN IS
   procedure truncate_partitions;
   --разовая процедура по переносу пени в новую таблицу, сжатую по дням
   --procedure move_to_new_cur_pen;
+  procedure set_version(p_n1 in number, p_comm in varchar2 default null);
   
 END ADMIN;
 /

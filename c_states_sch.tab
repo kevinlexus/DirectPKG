@@ -18,7 +18,7 @@ tablespace USERS
     maxextents unlimited
   );
 comment on table SCOTT.C_STATES_SCH
-  is 'Изменение статусов счетчиков, периодическое';
+  is 'Статус лиц счета - открыт/ закрыт (раньше был статус счетчиков)';
 comment on column SCOTT.C_STATES_SCH.id
   is 'ID';
 comment on column SCOTT.C_STATES_SCH.lsk

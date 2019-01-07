@@ -15,6 +15,9 @@ tablespace USERS
   storage
   (
     initial 4M
+    next 1M
+    minextents 1
+    maxextents unlimited
   )
 nologging;
 comment on table SCOTT.C_LG_DOCS
@@ -39,6 +42,9 @@ create index SCOTT.C_LG_DOCS_I on SCOTT.C_LG_DOCS (C_KART_PR_ID)
   storage
   (
     initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
   )
   compress;
 create index SCOTT.C_LG_DOCS_I2 on SCOTT.C_LG_DOCS (ID, C_KART_PR_ID)
@@ -49,6 +55,9 @@ create index SCOTT.C_LG_DOCS_I2 on SCOTT.C_LG_DOCS (ID, C_KART_PR_ID)
   storage
   (
     initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
   );
 alter table SCOTT.C_LG_DOCS
   add constraint C_LG_DOCS_ID primary key (ID);

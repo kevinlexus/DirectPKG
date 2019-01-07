@@ -8,7 +8,7 @@ t."PKU",t."GKU1",t."LCHET1",t."ED_IZM1",t."FAKT1",t."SUM_F1",t."PRZ1",t."GKU2",t
     on t.nylic=t2.ext_nylic and nvl(t.ndom,'XXX')=nvl(t2.ext_ndom,'XXX') and nvl(t.nkorp,'XXX')=nvl(t2.ext_nkorp,'XXX')
   left join prep_street t3
     on t3.ext_nylic = t2.ext_nylic
-  left join v_lsk_tp tp2 on tp2.cd='LSK_TP_MAIN'
+  left join v_lsk_tp tp2 on tp2.cd in ('LSK_TP_MAIN','LSK_TP_RSO')
   left join kart k
     on k.nd=t2.nd and k.kul=t3.kul and upper(k.kw)=lpad(upper(t.nkw),7,'0')
     and k.psch not in (8,9)and k.fk_tp=tp2.id and k.sel1=1

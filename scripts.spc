@@ -45,7 +45,6 @@ create or replace package scott.scripts is
   procedure swap_sal_chpay2;
   procedure swap_sal_chpay3;
   procedure create_uk_new(newreu_ in kart.reu%type,
-    lsk_ in kart.lsk%type, -- лиц.счет, если Ќ≈ заполнен - то присоединение к существующему ” 
     p_lsk_tp_src in varchar2, -- ќб€зательно указать, с какого типа счетов перенос!
     p_get_all in number, -- признак какие брать лс (1 - все лс, в т.ч. закрытые, 0-только открытые)
     p_close_src in number, -- закрывать период в лс. источника (mg2='999999') 1-да,0-нет

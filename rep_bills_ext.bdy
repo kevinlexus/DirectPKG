@@ -25,10 +25,10 @@ procedure detail(p_lsk  IN KART.lsk%TYPE, -- лиц.счет
   r_bill_row rec_bill_row;
   l_lsk_tp u_list.cd%type;
   l_cnt number;
-  rec rec_bill_detail := rec_bill_detail(0, null, 0, null, 0,0,0,0,0,0,0,0,0,0,0);
+  rec rec_bill_detail := rec_bill_detail(0, null, 0, null, 0,0,0,0,0,0,0,0,0,0,0,0,0);
 begin
-
   -- если есть запись в иерархии по дому (usl_tree), то строить детализацию по ней
+  begin
   select o.fk_bill_var, k.house_id, nvl(uh.tp,0), tp.cd into l_bill_var, l_house_id, l_tp, l_lsk_tp
       from arch_kart k
       join v_lsk_tp tp on k.fk_tp=tp.id
@@ -37,15 +37,25 @@ begin
       join t_org o on k.reu=o.reu
         and k.lsk=p_lsk
         and k.mg=p_mg;
+  exception when no_data_found then
+    -- случается, если на входе p_lsk is null
+    l_bill_var:=null;
+    l_house_id:=null;
+    l_tp:=null; 
+    l_lsk_tp:=null; 
+  end;      
 
   select rec_bill_row(u.usl, u.parent_usl, nvl(a.vol,0), nvl(a.price,0), nvl(a.summa,0), nvl(sl.deb,0), 
-                             nvl(r.change1,0), nvl(r.change_proc1,0), nvl(r.change2,0), nvl(d.kub,0))
+                             nvl(r.change1,0), nvl(r.change_proc1,0), nvl(r.change2,0), nvl(d.kub,0), nvl(e.pay,0),
+                             decode(u2.bill_col,1,0,nvl(a.summa,0)+nvl(r.change1,0)+nvl(r.change2,0)) -- не включать суммы на общедомовые нужды (ред.28.11.18 - просит Кис.)
+                             )
        bulk collect
        into t_bill_row
      from
       arch_kart k
       join t_org o on k.reu=o.reu
       join usl_tree u on l_tp=0 and u.fk_bill_var=o.fk_bill_var or l_tp=1 and u.fk_house=k.house_id
+      join usl u2 on u.usl=u2.usl
       left join
       (select t.usl, t.mgFrom, t.mgTo,
              sum(t.summa) as summa,  -- сумма
@@ -66,6 +76,10 @@ begin
             from a_vvod t join a_nabor2 a on a.fk_vvod=t.id and p_mg between a.mgFrom and a.mgTo
             and t.mg = p_mg and a.lsk=p_lsk
            group by t.usl) d on u.usl=d.usl
+      left join (select t.usl, sum(t.summa) as pay -- текущая оплата по услугам
+            from scott.a_kwtp_day t
+           where t.mg=p_mg and t.lsk=p_lsk and t.priznak=1
+           group by t.usl) e on u.usl=e.usl
       left join
       (select t.usl as usl, 
               sum(decode(t.type,0,t.summa)) as change1, -- снятия-доборы
@@ -85,7 +99,8 @@ begin
 
   select count(*) into l_cnt from table(tab) t
        where t.price<>0 or t.charge<>0 
-       or t.change1<>0 or t.change2<>0 or t.amnt <>0 or t.deb<>0 or t.kub<>0;
+       or t.change1<>0 or t.change2<>0 or t.amnt <>0 or t.deb<>0 or t.pay<>0;
+       -- or t.kub<>0;
        
   if l_cnt = 0 then 
     tab.extend;
@@ -99,7 +114,8 @@ begin
   else
       open p_rfcur for select t.* from table(tab) t
        where t.price<>0 or t.charge<>0 
-       or t.change1<>0 or t.change2<>0 or t.amnt <>0 or t.deb<>0 or t.kub<>0
+       or t.change1<>0 or t.change2<>0 or t.amnt <>0 or t.deb<>0 or t.pay<>0
+--        or t.kub<>0
         order by t.npp;
   end if;        
 
@@ -116,14 +132,14 @@ function procRow(
                  p_house_id IN number,
                  p_tp IN number
                  ) return rec_bill_row is
-  rec rec_bill_detail := rec_bill_detail(0, null, 0, null, 0,0,0,0,0,0,0,0,0,0,0);
+  rec rec_bill_detail := rec_bill_detail(0, null, 0, null, 0,0,0,0,0,0,0,0,0,0,0,0,0);
   r_bill_row rec_bill_row;
   -- итоговая запись по дочерним
   r_bill_row_amnt rec_bill_row;
   r_bill_row_main rec_bill_row;
   l_last number;
 begin
-  r_bill_row_amnt := rec_bill_row(null, null, 0,0,0,0,0,0,0,0);
+  r_bill_row_amnt := rec_bill_row(null, null, 0,0,0,0,0,0,0,0,0,0);
 
   for c in (select t.usl, t.parent_usl, t.tp, t.npp, trim(u.nm)||','||trim(u.ed_izm) as nm, 
            nvl(t.hide_price,0) as hide_price, nvl(t.hide_vol,0) as hide_vol,
@@ -139,7 +155,7 @@ begin
     r_bill_row_main:=getRow(c.usl, t_bill_row);
     if c.tp in (0) then
       -- простая запись, нет вложенных
-      r_bill_row := rec_bill_row(null, null, 0,0,0,0,0,0,0,0);
+      r_bill_row := rec_bill_row(null, null, 0,0,0,0,0,0,0,0,0,0);
     elsif c.tp in (1,2) then
       -- 1-содержит вложенные
       -- обработать строки вложенных записей
@@ -172,10 +188,12 @@ begin
       tab(l_last).change1:=r_bill_row_main.change1+r_bill_row.change1;
       tab(l_last).change2:=r_bill_row_main.change2+r_bill_row.change2;
       tab(l_last).deb:=r_bill_row_main.deb+r_bill_row.deb;
+      tab(l_last).pay:=r_bill_row_main.pay+r_bill_row.pay;
       tab(l_last).amnt:=tab(l_last).charge+tab(l_last).change1
             +tab(l_last).change2;
       -- с % снятия всё сложно - оставил пока так
       tab(l_last).change_proc1:=r_bill_row_main.change_proc1;
+      tab(l_last).chargeOwn:=r_bill_row_main.chargeOwn+r_bill_row.chargeOwn;
       if c.hide_price = 0 then
         tab(l_last).price:=r_bill_row_main.price+r_bill_row.price;
       else
@@ -203,13 +221,17 @@ begin
     r_bill_row_main.change1:=r_bill_row_main.change1+r_bill_row.change1;
     r_bill_row_main.change2:=r_bill_row_main.change2+r_bill_row.change2;
     r_bill_row_main.deb:=r_bill_row_main.deb+r_bill_row.deb;
+    r_bill_row_main.pay:=r_bill_row_main.pay+r_bill_row.pay;
+    r_bill_row_main.chargeOwn:=r_bill_row_main.chargeOwn+r_bill_row.chargeOwn;
 
     -- добавить к итогу по дочерним записям
     r_bill_row_amnt.charge:=r_bill_row_amnt.charge+r_bill_row_main.charge;
     r_bill_row_amnt.change1:=r_bill_row_amnt.change1+r_bill_row_main.change1;
     r_bill_row_amnt.change2:=r_bill_row_amnt.change2+r_bill_row_main.change2;
     r_bill_row_amnt.deb:=r_bill_row_amnt.deb+r_bill_row_main.deb;
+    r_bill_row_amnt.pay:=r_bill_row_amnt.pay+r_bill_row_main.pay;
     r_bill_row_amnt.price:=r_bill_row_amnt.price+r_bill_row_main.price;
+    r_bill_row_amnt.chargeOwn:=r_bill_row_amnt.chargeOwn+r_bill_row_main.chargeOwn;
     
     -- максимальный объем по дочерним записям
     if abs(r_bill_row_main.vol) > abs(r_bill_row_amnt.vol) then

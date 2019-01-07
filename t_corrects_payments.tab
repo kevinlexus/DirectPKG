@@ -67,11 +67,17 @@ alter table SCOTT.T_CORRECTS_PAYMENTS
   );
 alter table SCOTT.T_CORRECTS_PAYMENTS
   add constraint T_CORRECTS_PAY_FK_ORG foreign key (ORG)
-  references SCOTT.T_ORG (ID);
+  references SCOTT.T_ORG (ID)
+  disable
+  novalidate;
 alter table SCOTT.T_CORRECTS_PAYMENTS
   add constraint T_CORR_PAY_F_LSK foreign key (LSK)
-  references SCOTT.KART (LSK);
+  references SCOTT.KART (LSK)
+  disable
+  novalidate;
 alter table SCOTT.T_CORRECTS_PAYMENTS
   add constraint T_CORR_PAY_F_USL foreign key (USL)
-  references SCOTT.USL (USL);
+  references SCOTT.USL (USL)
+  disable
+  novalidate;
 

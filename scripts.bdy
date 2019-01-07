@@ -3371,7 +3371,6 @@ end swap_sal_chpay3;
 -- перенос лиц.счетов и сальдо
 -- описание здесь https://docs.google.com/document/d/18qo3GBuWkrtsQThg4E7P9MXYmImM0nQrhdtLdKw-mPY/edit
 procedure CREATE_UK_NEW(newreu_ in kart.reu%type,
-  lsk_ in kart.lsk%type, -- лиц.счет, если НЕ заполнен - то присоединение к существующему УК
   p_lsk_tp_src in varchar2, -- Обязательно указать, с какого типа счетов перенос!
   p_get_all in number, -- признак какие брать лс (1 - все лс, в т.ч. закрытые, 0-только открытые)
   p_close_src in number, -- закрывать период в лс. источника (mg2='999999') 1-да,0-нет
@@ -3404,6 +3403,7 @@ procedure CREATE_UK_NEW(newreu_ in kart.reu%type,
   l_ret number;
   l_forced_tp number;
   l_flag number;
+  i number;
 begin
 
 --Raise_application_error(-20000, 'Требуется проверка скрипта');
@@ -3421,20 +3421,21 @@ begin
  l_dt:=gdt(30,0,0); 
 select period into period_ from params p;
 select period3 into mg_close_ from v_params;
-  for c in (select s.name, t.kul, t.nd from c_houses t, spul s
+
+/*  for c in (select s.name, t.kul, t.nd from c_houses t, spul s
     where nvl(t.psch,0)<>1 and t.kul=s.id
     group by s.name,t.kul,t.nd
     having count(*)>1)
   loop
    Raise_application_error(-20000,
      'Отмена, найдено два открытых дома с одним адресом: KUL='||c.kul||', Ул='||c.name||', ND='||c.nd);
-  end loop;
+  end loop;*/
 
 --установка флага переноса, т.е. записи инсертятся через скрипт переноса домов
 c_charges.scr_flag_:=1;
 
 --лицевые
-  if lsk_ is null then
+/*  if lsk_ is null then
   --присоединение к УК
     --проверка
     select max(to_number(t.lsk)) into maxlsk_ from kart t where
@@ -3450,7 +3451,7 @@ c_charges.scr_flag_:=1;
   --новый УК
    maxlsk_:=lsk_;
    --Raise_application_error(-20000, maxlsk_);
-  end if;
+  end if;*/
 
 if l_tp_sal in (1,2,3)  then
 --если требуется перенести 1- дебетовое (или 2-всё) сальдо
@@ -3479,6 +3480,7 @@ end if;
  end if;
 
  l_flag:=0;
+ i:=0;
  for c in (select t.lsk as old_lsk, t.k_lsk_id, t.c_lsk_id,
    t.flag, t.flag1, t.kul, t.nd, t.kw, fio, k_fam, k_im, k_ot, kpr, kpr_wr, kpr_ot,
    kpr_cem, kpr_s, t.opl, ppl, pldop, ki,
@@ -3489,24 +3491,24 @@ end if;
    sch_el, newreu_ as reu, text,
    schel_dt, eksub1, eksub2, kran, t.kran1, el, el1,
    sgku, doppl, subs_cor, subs_cur,
-   x.id as house_id, t.kan_sch, period_ as mg1,
+   t.house_id, t.kan_sch, period_ as mg1,
    case when nvl(p_close_dst,0)=1 then period_
      else '999999' end as mg2, 
    t.fk_tp, t.entr, t.fk_pasp_org
-   from kart t, c_houses x, v_lsk_tp tp 
+   from kart t, v_lsk_tp tp 
    where --t.k_lsk_id=422249 and 
    case when nvl(p_get_all,0)=1 then 0 -- или брать все
    else t.psch end not in (8,9) and -- или брать только открытые
     --###1 Маркер https://docs.google.com/document/d/18qo3GBuWkrtsQThg4E7P9MXYmImM0nQrhdtLdKw-mPY/edit
-    t.house_id in (4475,12981,12171,12125,12138,12156,5967,5661,5663,5669,5671,5676,5672,5662,5664,5680,6931,12301,12962)
+    t.house_id in (10721)
     --and t.reu in ('084')
     --exists (select * from work_houses h where h.id=t.house_id)
     --exists (select * from kmp_lsk h where h.lsk=t.lsk)
-    and t.house_id = x.id
     and t.fk_tp=tp.id 
     and tp.cd in (p_lsk_tp_src) --###3 Маркер - тип лиц.счета, для разделения на РСО применять
     order by t.kul, t.nd, t.kw)
  loop
+   i:=i+1;
     --получить новый, уникальный лс
   maxlsk_:=p_houses.find_unq_lsk(newreu_, null);
   l_lsk_new:=lpad(to_char(maxlsk_),8,'0');
@@ -3584,8 +3586,8 @@ if nvl(p_move_resident,0)=1 then
 
     --переносим ВСЕ статусы проживающего в новые счета...
     insert into c_states_pr
-      (fk_status, fk_kart_pr, dt1, dt2, fk_tp)
-    select p.fk_status, kart_pr_id.currval, p.dt1, p.dt2, p.fk_tp
+      (fk_status, fk_kart_pr, fk_tp, dt1, dt2) -- временно тут ошибка, надо в январе разобраться с полем fk_tp!
+    select p.fk_status, kart_pr_id.currval, p.fk_tp, p.dt1, p.dt2
     from c_states_pr p
     where p.fk_kart_pr=t.id;
 
@@ -3746,17 +3748,19 @@ if l_flag=0 then
   Raise_application_error(-20000, 'Ошибка! Не обработано ни одной записи!');
 end if;
 --пересчет коэфф. прожив и текущего начисления по старым и новым л.с.
-for c in (select r.lsk from kart r,
+/*for c in (select r.lsk from kart r,
               work_houses t where t.kul=r.kul and t.nd=r.nd and t.newreu = newreu_
               )
 loop
   cnt_:=c_charges.gen_charges(c.lsk, c.lsk, null, null, 1, 0);
-end loop;
+end loop;*/
 
 commit;
 
 --снятие флага переноса
 c_charges.scr_flag_:=0;
+
+  Raise_application_error(-20000, 'Перенесено '||i||' лицевых счетов');
 
 end create_uk_new;
 

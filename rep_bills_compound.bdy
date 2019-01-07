@@ -52,7 +52,7 @@ open p_rfcur for
                      when p_sel_obj != 2 then 1
                     else 0 end = 1
               ) a where a.lsk=a.lsk_main) b on k.lsk=b.lsk
-   where k.mg = p_mg 
+   where k.mg = p_mg
    order by k.prn_num;
 
 end;
@@ -61,6 +61,7 @@ end;
 procedure contractors(p_klsk in number, -- klsk помещения
                  p_is_closed in number, -- выводить ли закрытый фонд, если есть долг? (0-нет, 1-да)
                  p_mg in params.period%type, -- период выборки
+                 p_sel_flt_tp in number, -- дополнительный фильтр
                  p_rfcur out ccur
   ) is
 begin
@@ -79,10 +80,6 @@ open p_rfcur for
          nvl(ltrim(k.kw, '0'), '0') as adr2,
         case when stp.cd in ('LSK_TP_ADDIT') then o.r_sch_addit
                     else o3.raschet_schet end as raschet_schet,
-/*        case when stp.cd in ('LSK_TP_ADDIT','LSK_TP_RSO') then o.r_sch_addit
-                    when o3.code_deb is not null then o3.raschet_schet
-                    else o.raschet_schet end
-                    as raschet_schet,*/
         k.k_fam, k.k_im, k.k_ot, k.fio,
         o3.inn, o3.k_schet, o3.kpp, o3.bik, o3.bank, o.full_name, o3.phone, o3.adr as adr_org, o3.name as uk_name,
         o3.adr_www,
@@ -101,33 +98,30 @@ open p_rfcur for
      and case when p_is_closed = 1 and nvl(k.for_bill,0)=1 then 1 -- либо в т.ч.закрытые, с долгом
               when p_is_closed = 0 and k.psch not in (8,9) then 1 -- либо только открытые
               else 0 end = 1
+     and case when p_sel_flt_tp=0 then 1 -- все
+          when p_sel_flt_tp=1 and stp.cd in ('LSK_TP_MAIN','LSK_TP_ADDIT') then 1 -- Основной+капрем.
+          when p_sel_flt_tp=2 and stp.cd in ('LSK_TP_RSO') then 1 -- Только РСО
+          else 0 end = 1
    order by k.prn_num
   ) a;
 
 end;
 
-
-procedure detail(p_klsk in number, -- klsk помещения
+-- получить QR код счета
+procedure getQr(p_klsk in number, -- klsk помещения
                  p_is_closed in number, -- выводить ли закрытый фонд, если есть долг? (0-нет, 1-да)
                  p_mg in params.period%type, -- период выборки
-                 p_sel_tp in number, -- 0 - тип лиц.счетов: Основные и РСО, 1 - кап.рем
+                 p_sel_tp in number, -- 0 - тип лиц.счетов: Основные и РСО, 1 - кап.рем, 3 - основные, 4 - все
+                 p_sel_flt_tp in number, -- дополнительный фильтр: 0 - тип лиц.счетов: Основные и РСО, 1 - кап.рем, 3 - основные, 4 - все
                  p_rfcur out ccur
   ) is
 begin
 
 open p_rfcur for
-  select a.*,
-   /*'ST00012'||'|Name='||a.full_name||'|PersonalAcc='||a.raschet_schet||
-   '|BankName='||a.bank||'|BIC='||a.bik||'|CorrespAcc='||a.k_schet
-   ||'|Sum='||trim(to_char(a.sal_out*100,9999999999))||'|Purpose=Квартплата'
-   ||'|PayeeINN='||a.inn||'|lastName='||a.k_fam||'|firstName='||a.k_im
-   ||'|middleName='||a.k_ot||'|payerAddress='||a.adr2||'|persAcc='||a.lsk||'|PaymPeriod='||p_mg
-   ||'|serviceName=000'
-   ||'|category='||decode(a.psch,8,'43301',9,'43301', '43302') as QR*/
+  select 
    'ST00012'||'|Name='||a.full_name||'|PersonalAcc='||a.raschet_schet||
    '|BankName='||a.bank||'|BIC='||a.bik||'|CorrespAcc='||a.k_schet
-   ||'|Sum='||trim(to_char((nvl(a.sal_out,0)+nvl(a.penya_out,0))*100,9999999999))||'|Purpose=Квартплата'
-   ||'|PayeeINN='||a.inn||'|persAcc='||a.lsk as QR
+   ||'|PayeeINN='||a.inn||'|persAcc='||a.lsk||'|' as QR
   from (
   select k.lsk, k.k_lsk_id, k.opl,
          utils.month_name(SUBSTR(p_mg, 5, 2)) || ' ' || SUBSTR(p_mg, 1, 4) || ' г.' as period,
@@ -140,10 +134,60 @@ open p_rfcur for
          nvl(ltrim(k.kw, '0'), '0') as adr2,
         case when stp.cd in ('LSK_TP_ADDIT') then o.r_sch_addit
                     else o3.raschet_schet end as raschet_schet,
-/*        case when stp.cd in ('LSK_TP_ADDIT','LSK_TP_RSO') then o.r_sch_addit
-                    when o3.code_deb is not null then o3.raschet_schet
-                    else o.raschet_schet end
-                    as raschet_schet,*/
+        k.k_fam, k.k_im, k.k_ot, k.fio,
+        o3.inn, o3.k_schet, o3.kpp, o3.bik, o3.bank, o.full_name, o3.phone, o3.adr as adr_org, o3.name as uk_name,
+        o3.adr_www,
+        k.psch, stp.cd as lsk_tp, stp.npp as lsk_tp_npp, k.prn_num, k.prn_new
+    from scott.arch_kart k
+      join scott.spul s on k.kul = s.id
+      join scott.status t on k.status=t.id
+      join scott.t_org_tp tp on tp.cd='РКЦ'
+      join scott.t_org o on tp.id=o.fk_orgtp
+      join scott.t_org_tp tp2 on tp2.cd='Город'
+      join scott.t_org o2 on tp2.id=o2.fk_orgtp
+      join scott.t_org o3 on k.reu=o3.reu
+      join scott.v_lsk_tp stp on k.fk_tp=stp.id and -- фильтр по типу лиц.счетов
+           case when p_sel_tp=0 and stp.cd not in 'LSK_TP_ADDIT' then 1 -- все, кроме капремонта
+                when p_sel_tp=1 and stp.cd in 'LSK_TP_ADDIT' then 1 -- капрем.
+                when p_sel_tp=3 and stp.cd in 'LSK_TP_MAIN' then 1 -- основные
+                when p_sel_tp=4 then 1 -- вообще все
+                else 0 end = 1
+           and case when p_sel_flt_tp=0 then 1 -- все
+                when p_sel_flt_tp=1 and stp.cd in ('LSK_TP_MAIN','LSK_TP_ADDIT') then 1 -- Основной+капрем.
+                when p_sel_flt_tp=2 and stp.cd in ('LSK_TP_RSO') then 1 -- Только РСО
+                else 0 end = 1
+   where k.mg = p_mg and k.k_lsk_id =p_klsk
+     and case when p_is_closed = 1 and nvl(k.for_bill,0)=1 then 1 -- либо в т.ч.закрытые, с долгом
+              when p_is_closed = 0 and k.psch not in (8,9) then 1 -- либо только открытые
+              else 0 end = 1
+   order by k.prn_num
+  ) a;
+
+end;
+
+procedure detail(p_klsk in number, -- klsk помещения
+                 p_is_closed in number, -- выводить ли закрытый фонд, если есть долг? (0-нет, 1-да)
+                 p_mg in params.period%type, -- период выборки
+                 p_sel_tp in number, -- 0 - тип лиц.счетов: Основные и РСО, 1 - кап.рем, 3 - основные, 4 - все
+                 p_sel_flt_tp in number, -- дополнительный фильтр: 0 - тип лиц.счетов: Основные и РСО, 1 - кап.рем, 3 - основные, 4 - все
+                 p_rfcur out ccur
+  ) is
+begin
+
+open p_rfcur for
+  select a.*
+  from (
+  select k.lsk, k.k_lsk_id, k.opl,
+         utils.month_name(SUBSTR(p_mg, 5, 2)) || ' ' || SUBSTR(p_mg, 1, 4) || ' г.' as period,
+         last_day(to_date(p_mg||'01','YYYYMMDD')) as dt,
+         t.name as st_name,
+         decode(t.cd, 'MUN','Наниматель','Собственник') as pers_tp,
+         s.name || ', ' || nvl(ltrim(k.nd, '0'), '0') || '-' ||
+         nvl(ltrim(k.kw, '0'), '0') as adr,
+         o2.name||', ул.'||s.name || ', д. ' || nvl(ltrim(k.nd, '0'), '0') || ', кв.' ||
+         nvl(ltrim(k.kw, '0'), '0') as adr2,
+        case when stp.cd in ('LSK_TP_ADDIT') then o.r_sch_addit
+                    else o3.raschet_schet end as raschet_schet,
         s1.sal_in,
         s2.sal_out,
         k.k_fam, k.k_im, k.k_ot, k.fio,
@@ -154,7 +198,7 @@ open p_rfcur for
         p4.penya_pay, p5.penya_out, p4.pay,
         p4.last_dtek, nvl(p6.charge,0) +
          case when p_is_closed = 0 and k.psch not in (8,9) or p_is_closed = 1 then nvl(p8.change,0)
-            else 0 end as charge, p7.sum_pay, p7.sum_pen
+            else 0 end as charge
     from scott.arch_kart k
       join scott.spul s on k.kul = s.id
       join scott.status t on k.status=t.id
@@ -164,8 +208,14 @@ open p_rfcur for
       join scott.t_org o2 on tp2.id=o2.fk_orgtp
       join scott.t_org o3 on k.reu=o3.reu
       join scott.v_lsk_tp stp on k.fk_tp=stp.id and -- фильтр по типу лиц.счетов
-           case when p_sel_tp=0 and stp.cd not in 'LSK_TP_ADDIT' then 1 -- основные + РСО
+           case when p_sel_tp=0 and stp.cd not in 'LSK_TP_ADDIT' then 1 -- все, кроме капремонта
                 when p_sel_tp=1 and stp.cd in 'LSK_TP_ADDIT' then 1 -- капрем.
+                when p_sel_tp=3 and stp.cd in 'LSK_TP_MAIN' and k.psch not in (8,9) then 1 -- основные КРОМЕ ЗАКРЫТЫХ ТОЛЬКО в этом p_sel_tp=3!!! (Бред ред.29.12.18)
+                when p_sel_tp=4 then 1 -- вообще все
+                else 0 end = 1 and
+           case when p_sel_flt_tp=0 then 1 -- все
+                when p_sel_flt_tp=1 and stp.cd in ('LSK_TP_MAIN','LSK_TP_ADDIT') then 1 -- Основной+капрем.
+                when p_sel_flt_tp=2 and stp.cd in ('LSK_TP_RSO') then 1 -- Только РСО
                 else 0 end = 1
       left join (select l.lsk, sum(l.summa) as sal_in -- сальдо входящее
             from scott.saldo_usl l
@@ -199,10 +249,6 @@ open p_rfcur for
              group by t.lsk, t.mg1) l
            group by l.lsk
            ) p2 on k.lsk=p2.lsk
-      left join (select l.lsk, sum(l.summa) as sum_pay, sum(l.penya) as sum_pen -- текушая оплата, оплата пени
-            from scott.a_kwtp_mg l
-           where l.mg=p_mg
-           group by l.lsk) p7 on k.lsk=p7.lsk
       left join (select l.lsk, sum(l.penya) as penya_corr -- корректировки по пене текущие
             from scott.a_pen_corr l
            where l.mg=p_mg
@@ -217,13 +263,15 @@ open p_rfcur for
      and case when p_is_closed = 1 and nvl(k.for_bill,0)=1 then 1 -- либо в т.ч.закрытые, с долгом
               when p_is_closed = 0 and k.psch not in (8,9) then 1 -- либо только открытые
               else 0 end = 1
-     and (nvl(p1.penya_in,0)<>0 or nvl(p2.penya_charge,0)<>0 or nvl(p3.penya_corr,0)<>0 or 
-        nvl(p4.penya_pay,0)<>0 or nvl(p5.penya_out,0)<>0 or nvl(p4.pay,0)<>0 
+     and (nvl(p1.penya_in,0)<>0 or nvl(p2.penya_charge,0)<>0 or nvl(p3.penya_corr,0)<>0 or
+        nvl(p4.penya_pay,0)<>0 or nvl(p5.penya_out,0)<>0 or nvl(p4.pay,0)<>0
         or (nvl(p6.charge,0) +
          case when p_is_closed = 0 and k.psch not in (8,9) or p_is_closed = 1 then nvl(p8.change,0)
-            else 0 end) <> 0 
-        or nvl(p7.sum_pay,0)<>0 or nvl(p7.sum_pen,0)<>0)
-   order by k.prn_num
+            else 0 end) <> 0
+        or p_is_closed = 1 and nvl(s2.sal_out,0)<>0
+        or p_is_closed = 1 and nvl(p5.penya_out,0)<>0
+      )
+   order by stp.npp, decode(k.psch,8,999,9,999,0)
   ) a;
 
 end;
@@ -231,7 +279,8 @@ end;
 -- движение средств по klsk
 procedure funds_flow_by_klsk(
                  p_klsk in number, -- klsk помещения
-                 p_sel_tp in number, -- 0 - тип лиц.счетов: Основные и РСО, 1 - кап.рем
+                 p_sel_tp in number, -- 0 - тип лиц.счетов: Основные и РСО, 1 - кап.рем, 3 - основные, 4 - все
+                 p_sel_flt_tp in number, -- дополнительный фильтр: 0 - тип лиц.счетов: Основные и РСО, 1 - кап.рем, 3 - основные, 4 - все
                  p_is_closed in number, -- выводить ли закрытый фонд, если есть долг? (0-нет, 1-да)
                  p_mg in params.period%type, -- период выборки
                  p_rfcur out ccur
@@ -252,7 +301,9 @@ procedure funds_flow_by_klsk(
     deb          NUMBER,  -- сальдо(задолженность)
     bill_col     number, -- в какой колонке выводить сумму (смотреть usl.bill.col)
     bill_col2     number, -- в какой колонке выводить сумму (смотреть usl.bill.col)
-    kub          number  -- объем ОДПУ
+    kub          number,  -- объем ОДПУ
+    pay          number, -- текущая оплата
+    chargeOwn    number -- начисление на индивидуальное потребление (без значений usl.bill_col=1), в т.ч. перерасчеты
     );
   r rec;
   l_last number;
@@ -260,8 +311,14 @@ begin
 
   tab:= tab_bill_detail();
   for c in (select k.lsk, k.psch from arch_kart k join scott.v_lsk_tp stp on k.fk_tp=stp.id and -- фильтр по типу лиц.счетов
-                     case when p_sel_tp=0 and stp.cd not in 'LSK_TP_ADDIT' then 1 -- основные + РСО
+                     case when p_sel_tp=0 and stp.cd not in 'LSK_TP_ADDIT' then 1 -- все, кроме капремонта
                           when p_sel_tp=1 and stp.cd in 'LSK_TP_ADDIT' then 1 -- капрем.
+                          when p_sel_tp=3 and stp.cd in 'LSK_TP_MAIN' then 1 -- основные
+                          when p_sel_tp=4 then 1 -- вообще все
+                          else 0 end = 1
+                     and case when p_sel_flt_tp=0 then 1 -- все
+                          when p_sel_flt_tp=1 and stp.cd in ('LSK_TP_MAIN','LSK_TP_ADDIT') then 1 -- Основной+капрем.
+                          when p_sel_flt_tp=2 and stp.cd in ('LSK_TP_RSO') then 1 -- Только РСО
                           else 0 end = 1
                      where k.k_lsk_id=p_klsk and k.mg=p_mg
                    ) loop
@@ -277,15 +334,21 @@ begin
          l_last:=tab.last;
          tab(l_last):=rec_bill_detail(r.is_amnt_sum, r.usl,
            r.npp, r.name, r.price, r.vol,
-           r.charge, 
-           case when p_is_closed = 0 and c.psch not in (8,9) or p_is_closed = 1 then r.change1 else 0 end, 
-           case when p_is_closed = 0 and c.psch not in (8,9) or p_is_closed = 1 then r.change_proc1 else 0 end, 
-           case when p_is_closed = 0 and c.psch not in (8,9) or p_is_closed = 1 then r.change2 else 0 end, 
-           r.amnt, r.deb, r.bill_col, r.bill_col2, r.kub);
+           r.charge,
+           case when p_is_closed = 0 and c.psch not in (8,9) or p_is_closed = 1 then r.change1 else 0 end,
+           case when p_is_closed = 0 and c.psch not in (8,9) or p_is_closed = 1 then r.change_proc1 else 0 end,
+           case when p_is_closed = 0 and c.psch not in (8,9) or p_is_closed = 1 then r.change2 else 0 end,
+           r.amnt, r.deb, r.bill_col, r.bill_col2, r.kub, r.pay, r.chargeOwn);
        end loop;
   end loop;
 
-  open p_rfcur for select * from table(tab) t;
+  open p_rfcur for select * from table(tab) t
+    where nvl(t.price,0)<>0 or nvl(t.charge,0)<>0
+       or nvl(t.change1,0)<>0
+       or nvl(t.change2,0)<>0
+       --or t.amnt <>0
+       or t.deb<>0 --or t.kub<>0
+       ;
 end;
 
 

@@ -80,8 +80,10 @@ begin
   -- ПЕНЯ РАСПРЕДЕЛИТСЯ СТРОГО НА УСЛУГИ УКАЗАННЫЕ процедурой c_gen_pay.redirect
   if p_lsk is null then
     delete from t_chpenya_for_saldo t; -- текущая, начисленная пеня с учетом корректировок по пене!
+    delete from temp_chpenya;
   else
     delete from t_chpenya_for_saldo t where t.lsk=p_lsk; -- текущая, начисленная пеня с учетом корректировок по пене!
+    delete from temp_chpenya t where t.lsk=p_lsk;
   end if;
   
   for c in (select t.reu, t.lsk, t.tp, t.penya, coalesce(b.deb_summa,0) as deb_summa, coalesce(b.kr_summa,0) as kr_summa, t.pen_sign
@@ -224,16 +226,31 @@ begin
         values (l_usl_dst, l_org_dst, c2.summa);
     end loop;
 
-    -- добавить корректировку, разбитую по услугам    
-    insert into temp_prep(usl, org, summa)
-    select t.usl, t.org, t.penya from c_pen_corr t
-     where t.lsk=c.lsk and t.usl is not null; -- разбитая по услугам!
-    --группируем, иначе удваивается в оборотке
-    insert into t_chpenya_for_saldo (lsk, summa, usl, org)
-      select c.lsk, sum(summa) as summa, t.usl, t.org
-      from temp_prep t
-      group by c.lsk, t.usl, t.org;
+    -- добавляем во временную таблицу
+    insert into temp_chpenya (lsk, usl, org, summa)
+      select c.lsk, t.usl, t.org, summa as summa
+      from temp_prep t;
   end loop;
+
+    -- добавить корректировку, разбитую по услугам    
+  if p_lsk is null then
+    insert into t_chpenya_for_saldo (lsk, usl, org, summa)
+    select lsk, usl, org, sum(penya) from (
+    select t.lsk, t.usl, t.org, t.penya from c_pen_corr t
+     where t.usl is not null -- корректировка разбитая по услугам!
+    union all 
+    select t.lsk, t.usl, t.org, t.summa from temp_chpenya t -- начисленная и распределенная пеня
+    ) group by lsk, usl, org;
+  else
+    insert into t_chpenya_for_saldo (lsk, usl, org, summa)
+    select lsk, usl, org, sum(penya) from (
+    select t.lsk, t.usl, t.org, t.penya from c_pen_corr t
+     where t.lsk=p_lsk and t.usl is not null -- корректировка разбитая по услугам!
+    union all 
+    select t.lsk, t.usl, t.org, t.summa from temp_chpenya t -- начисленная и распределенная пеня
+     where t.lsk=p_lsk
+    ) group by lsk, usl, org;
+  end if;  
 
   commit;
  logger.log_(time_, 'c_penya.gen_charge_pay_pen');

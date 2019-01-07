@@ -14,7 +14,10 @@ CREATE OR REPLACE TYPE SCOTT."REC_BILL_DETAIL" as object
   deb          NUMBER, -- сальдо(задолженность)
   bill_col     number, -- в какой колонке выводить сумму (смотреть usl.bill_col)
   bill_col2    number, -- отнести объем к Доп.инф. (смотреть usl.bill_col2)
-  kub          number  -- объем ОДПУ
+  kub          number,  -- объем ОДПУ
+  pay          number, -- текущая оплата
+  chargeOwn    NUMBER -- начисление на индивидуальное потребление (без значений usl.bill_col=1), в т.ч. перерасчеты
+
   )
 /
 

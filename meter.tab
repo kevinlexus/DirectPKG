@@ -7,7 +7,8 @@ create table SCOTT.METER
   dt1         DATE default to_date('19000101','YYYYMMDD') not null,
   dt2         DATE default to_date('25000101','YYYYMMDD') not null,
   fk_klsk_obj NUMBER not null,
-  n1          NUMBER
+  n1          NUMBER,
+  gis_conn_tp NUMBER
 )
 tablespace USERS
   pctfree 10
@@ -38,6 +39,8 @@ comment on column SCOTT.METER.fk_klsk_obj
   is 'Объект, на котором установлен ПУ';
 comment on column SCOTT.METER.n1
   is 'Последнее показание';
+comment on column SCOTT.METER.gis_conn_tp
+  is 'Тип обмена с ГИС ЖКХ (null, 0 - нет обмена, 1-принимать показания от ГИС, 2-отправлять показания в ГИС, 3-принимать и отправлять показания в ГИС)';
 alter table SCOTT.METER
   add constraint METER_P primary key (ID)
   using index 

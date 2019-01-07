@@ -16,4 +16,8 @@ tablespace USERS
     minextents 1
     maxextents unlimited
   );
+comment on table SCOTT.TEMP_CHPENYA
+  is 'Временная таблица для оборотки: Начисление пени за текущий период по услугам';
+comment on column SCOTT.TEMP_CHPENYA.usl
+  is 'для второго этапа сальдо';
 

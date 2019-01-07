@@ -31,6 +31,12 @@ create or replace package scott.p_meter is
                          p_n1 in number, -- НЕ используется!
                          p_tp in number default 0 -- тип (0-ручной ввод, 1-автоначисление, 2-отмена начисления (здесь не должно использ)
                          ) return number;
+  procedure ins_data_meter(p_met_klsk in number, -- klsk счетчика --либо klsk счетчика
+                          p_n1 in number, -- новое показание
+                          p_ts in date, -- timestamp
+                          p_period in varchar2,
+                          p_ret out number
+                         );
   function getpsch(p_lsk in kart.lsk%type) return number;
   function getElpsch(p_lsk in kart.lsk%type) return number;
   function gen_auto_chrg_all(p_set in number, p_usl in usl.usl%type) return number;

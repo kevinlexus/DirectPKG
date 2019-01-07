@@ -9,6 +9,10 @@ declare
 begin
 
 if inserting then
+  if :new.id is null then
+    select nabor_id.nextval into :new.id from dual;
+  end if;
+
   select trim(nm) into txt_ from usl u where u.usl=:new.usl;
   select trim(o.name) into l_org_name from t_org o where o.id=:new.org;
   aud_text_:='Добавлена услуга '||trim(txt_)||' c коэфф.='||:new.koeff||' и нормативом='||:new.norm

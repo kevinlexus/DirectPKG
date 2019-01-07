@@ -469,6 +469,19 @@ commit;
   
 end;*/
 
+/**
+Установить номер версии обновления базы
+**/
+procedure set_version(p_n1 in number, p_comm in varchar2 default null) is
+begin
+
+  insert into log_version(id,
+                          n1,
+                          comm)
+  select log_version_id.nextval as id, p_n1 as n1, p_comm
+    from dual where not exists (select * from log_version t where t.n1=p_n1);                        
+  
+end;  
 END ADMIN;
 /
 
