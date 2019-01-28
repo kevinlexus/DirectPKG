@@ -101,7 +101,7 @@ procedure set_part_kpr(p_lsk in kart.lsk%type, p_usl in usl.usl%type,
   
   l_status_cd status.cd%type;
   -- отопительный период, для г.в.
-  l_otop number;
+ -- l_otop number;
   -- отопительный период для отопления гкал
   l_otop2 number;
   -- параметр учета проживающих для капремонта
@@ -587,12 +587,13 @@ select to_date(p.period||'01','YYYYMMDD'),
    into l_dt_start, l_mg, l_det, l_hf_dt
    from params p; --параметр подсчета пользующихся соцнормой
 
+/*  странно! l_otop - не используется - закомментировал
 if l_dt_start between utils.get_date_param('MONTH_HEAT1') --обраб.отопит.период
                   and utils.get_date_param('MONTH_HEAT2') then
    l_otop:=1;               
 else
    l_otop:=0;
-end if;
+end if;*/
                            
 if l_dt_start between utils.get_date_param('MONTH_HEAT3') --обраб.отопит.период в домах где c_vvod.dist_tp=4
                   and utils.get_date_param('MONTH_HEAT4') then
@@ -1321,8 +1322,8 @@ if p_var_cnt_kpr = 0 then
       p_days_wrz:=p_days_wrz+1;
       --для расчёта объема для нормативного начисления
       p_days_kpr2:=p_days_kpr2+1;
-    elsif p_usl_type2 in (0) then
-      --услуга коммунальная (х.в.)
+    elsif p_usl_type2 in (0,3) then
+      --услуга коммунальная (х.в., вывоз ТКО - usl_type=3) 
       p_days:=p_days+1;
       p_days_wrz:=p_days_wrz+1;
       --для расчёта объема для нормативного начисления
@@ -1341,8 +1342,8 @@ if p_var_cnt_kpr = 0 then
       p_days_wrz:=p_days_wrz+1;
       --для расчёта объема для нормативного начисления
       p_days_kpr2:=p_days_kpr2+1;
-    elsif p_usl_type2 in (0) then
-      --услуга коммунальная (х.в.)
+    elsif p_usl_type2 in (0,3) then
+      --услуга коммунальная (х.в., вывоз ТКО - usl_type=3) 
       p_days_wrz:=p_days_wrz+1;
       --для расчёта объема для нормативного начисления
       p_days_kpr2:=p_days_kpr2+1;
@@ -1360,8 +1361,8 @@ if p_var_cnt_kpr = 0 then
       p_days:=p_days+1;
       --для расчёта объема для нормативного начисления
       p_days_kpr2:=p_days_kpr2+1;
-    elsif p_usl_type2 in (0) then
-      --услуга коммунальная (х.в.)
+    elsif p_usl_type2 in (0,3) then
+      --услуга коммунальная (х.в., вывоз ТКО - usl_type=3) 
       p_days:=p_days+1;
       --для расчёта объема для нормативного начисления
       p_days_kpr2:=p_days_kpr2+1;
@@ -1376,9 +1377,16 @@ if p_var_cnt_kpr = 0 then
       p_days:=p_days+1;
       p_days_wro:=p_days_wro+1;
     elsif p_usl_type2 in (0) then
-      --услуга коммунальная (х.в.)
+      --услуга коммунальная (х.в.) 
       --p_days:=p_days+1; - кис решили убрать 03.03.2017
       p_days_wro:=p_days_wro+1;
+    elsif p_usl_type2 in (3) then
+      -- вывоз ТКО - usl_type=3
+      p_days_wro:=p_days_wro+1;
+      /* ред. 17.01.19: У нас в программе есть такой параметр как В.О.-врем.отсуст. ставим, чтобы на него считались коммун.услуги (х.в.,г.в.,водоотв.), если норматив и расценка как на пост.проп. С 2017 года этот параметр практически не используется, вот мы хотим, чтобы В.О. считались только на услугу 140(считались на человека), а х.в.,г.в. и водоотв., если норматив, чтобы этого человека не учитывали. Можно так? Или лучше придумать новый параметр?
+      Например Культурная 28-16, сейчас по л.сч. 13002396 считается на 1 человека, как собственника, а хотелось бы на 2(там 2 В.О.) */
+      --для расчёта объема для нормативного начисления
+      p_days_kpr2:=p_days_kpr2+1; 
     elsif p_usl_type2 in (2) then
       --для расчёта макс кол-во прожив
       p_days:=p_days+1;
@@ -1390,8 +1398,8 @@ if p_var_cnt_kpr = 0 then
       p_days:=p_days+1;
       --для расчёта объема для нормативного начисления
       p_days_kpr2:=p_days_kpr2+1;
-    elsif p_usl_type2 in (0) then
-      --услуга коммунальная (х.в.)
+    elsif p_usl_type2 in (0,3) then
+      --услуга коммунальная (х.в., вывоз ТКО - usl_type=3) 
       p_days:=p_days+1;
       --для расчёта объема для нормативного начисления
       p_days_kpr2:=p_days_kpr2+1;
