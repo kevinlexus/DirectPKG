@@ -67,4 +67,13 @@ alter table SCOTT.KWTP_DAY
 alter table SCOTT.KWTP_DAY
   add constraint KWTP_DAY_F_C_KWTP_MG foreign key (KWTP_ID)
   references SCOTT.C_KWTP_MG (ID) on delete cascade;
+alter table SCOTT.KWTP_DAY
+  add constraint KWTP_DAY_F_OPER foreign key (OPER)
+  references SCOTT.OPER (OPER);
+alter table SCOTT.KWTP_DAY
+  add constraint KWTP_DAY_F_ORG foreign key (ORG)
+  references SCOTT.T_ORG (ID);
+alter table SCOTT.KWTP_DAY
+  add constraint KWTP_DAY_F_USL foreign key (USL)
+  references SCOTT.USL (USL);
 

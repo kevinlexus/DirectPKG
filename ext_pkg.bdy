@@ -196,12 +196,14 @@ if var_ = 1 then
   insert into scott.exp_kart t
   (k_lsk_id, lsk, cd_org, kul, nd, kw, phw, mhw, pgw, mgw, pel, mel, psch, cd_lsk_tp, house_id)
   select k.k_lsk_id, k.lsk, o.cd, k.kul,
-   k.nd, k.kw,
-   k.phw, k.mhw, k.pgw, k.mgw, k.pel, k.mel, k.psch, tp.cd as cd_lsk_tp, k.house_id
-   from scott.kart k, scott.t_org o, scott.v_lsk_tp tp where k.reu=o.reu and k.fk_tp=tp.id
-     and exists
-    (select * from scott.t_objxpar x where x.fk_k_lsk=k.k_lsk_id --только там, где установлен параметр login-pass
-     and x.fk_list=l_list);
+   k.nd, k.kw, k2.phw, k2.mhw, k2.pgw, k2.mgw, k2.pel, k2.mel, k.psch, tp.cd as cd_lsk_tp, k.house_id
+   from scott.kart k join scott.t_org o on k.reu=o.reu
+   join scott.v_lsk_tp tp on k.fk_tp=tp.id
+   join scott.v_lsk_tp tp2 on tp2.cd='LSK_TP_MAIN'
+   left join scott.kart k2 on k.k_lsk_id = k2.k_lsk_id and k2.psch not in (8,9) and k2.fk_tp=tp2.id -- показания взять с основного лиц.сч.
+   and exists
+  (select * from scott.t_objxpar x where x.fk_k_lsk=k.k_lsk_id --только там, где установлен параметр login-pass
+   and x.fk_list=l_list);
 
   execute immediate 'delete from imp_kart@apex t';
 
@@ -580,6 +582,18 @@ logger.log_(null, 'Apex_new: экспорт л/с, показаний счетчиков-начало');
 
 delete from scott.exp_kart;
 insert into scott.exp_kart t
+(k_lsk_id, lsk, cd_org, kul, nd, kw, phw, mhw, pgw, mgw, pel, mel, psch, cd_lsk_tp, house_id)
+select k.k_lsk_id, k.lsk, o.cd, k.kul,
+ k.nd, k.kw, k2.phw, k2.mhw, k2.pgw, k2.mgw, k2.pel, k2.mel, k.psch, tp.cd as cd_lsk_tp, k.house_id
+ from scott.kart k join scott.t_org o on k.reu=o.reu
+ join scott.v_lsk_tp tp on k.fk_tp=tp.id
+ join scott.v_lsk_tp tp2 on tp2.cd='LSK_TP_MAIN'
+ left join scott.kart k2 on k.k_lsk_id = k2.k_lsk_id and k2.psch not in (8,9) and k2.fk_tp=tp2.id -- показания взять с основного лиц.сч.
+ and exists
+(select * from scott.t_objxpar x where x.fk_k_lsk=k.k_lsk_id --только там, где установлен параметр login-pass
+ and x.fk_list=l_list);
+
+/*insert into scott.exp_kart t
 (k_lsk_id, lsk, cd_org, kul, nd, kw, phw, mhw, pgw, mgw, pel, mel, psch, cd_lsk_tp)
 select k.k_lsk_id, k.lsk, o.cd, k.kul,
  k.nd, k.kw,
@@ -587,7 +601,7 @@ select k.k_lsk_id, k.lsk, o.cd, k.kul,
  from scott.kart k, scott.t_org o, scott.v_lsk_tp tp where k.reu=o.reu and k.fk_tp=tp.id
    and exists
   (select * from scott.t_objxpar x where x.fk_k_lsk=k.k_lsk_id --только там, где установлен параметр login-pass
-   and x.fk_list=l_list);
+   and x.fk_list=l_list);*/
 
 -- обрабатывать неактивные счетчики 
 if utils.get_int_param('LK_DEACT_METER') = 1 then

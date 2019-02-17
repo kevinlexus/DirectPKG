@@ -1123,7 +1123,8 @@ open p_rfcur for
            (p_sel_obj = 2 and k.reu = p_reu)
            ) */
      and (p_var2 = 1 and k.psch in (8,9) and (nvl(sl.summa,0) <> 0 or nvl(p5.penya_out,0) <> 0) 
-          or k.psch not in (8,9) and (stp.cd='LSK_TP_MAIN' or stp.cd<>'LSK_TP_MAIN' and (nvl(sl.summa,0) <> 0 or nvl(p5.penya_out,0) <> 0)) )
+          or k.psch not in (8,9) and (stp.cd='LSK_TP_MAIN' or stp.cd<>'LSK_TP_MAIN' --and (nvl(sl.summa,0) <> 0 or nvl(p5.penya_out,0) <> 0) ред.10.01.18 закоммент. по просьбе Полыс - не выводил расшифровку(счет) по РСО лс
+          ) )
      and (p_var3 = 0 or p_var3 = 1 and stp.cd='LSK_TP_MAIN')
     order by s.name, scott.utils.f_ord_digit(k.nd), --Внимание! порядок точно такой как и в GEN.upd_arch_kart2
          scott.utils.f_ord3(k.nd) desc,

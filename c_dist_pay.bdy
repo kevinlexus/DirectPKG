@@ -238,7 +238,7 @@ begin
           and t.type=1
         group by n.usl, n.org
         having sum(t.summa) > 0); --только по начислению > 0
-    elsif p_distr in (14,15,18) then
+    elsif p_distr in (14,15,18,19) then
     --по деб сальдо - не проверять!
       l_cnt:=1;
     end if;
@@ -443,6 +443,22 @@ begin
       --нет записей, вернуться
       return 0;
     end if;
+  elsif p_distr in (19) then
+    --по деб сальдо, по уже неработающим организациям в текущем периоде
+    select rec_summ(d.usl, d.org, sum(d.summa), 0) bulk collect
+          into t_summ from
+            (select t.usl, t.org, nvl(t.indebet,0) as summa
+              from xitog3_lsk t, kart k, params p --взять входящее деб сальдо
+              where t.lsk=p_rec.lsk and t.lsk=k.lsk
+              and t.mg=p.period
+              and not exists 
+              (select * from nabor n where n.lsk=t.lsk and n.usl=t.usl and n.org=t.org)) d
+             group by d.usl, d.org
+             having  sum(summa ) > 0;
+    if sql%rowcount =0 then
+      --нет записей, вернуться
+      return 0;
+    end if;
   end if;
   
   else
@@ -466,10 +482,8 @@ begin
 --    ('xxx', 0, -1*p_summa, 0); --сумму для распределения, с обратным знаком
   --обработать
   --c_prep.dist_summa;
-
     l_err := c_prep.dist_summa_full(p_sum  => l_in_summa,
                              t_summ => t_summ);
-
    insert into temp_prep
     (usl, org, summa, tp_cd)
    select t.fk_cd, t.fk_id, t.summa, 3 as tp_cd
@@ -671,6 +685,7 @@ begin
 --16 - распределено по текущему начислению, без коррект проводки
 --17 - распределено по дебетовому сальдо, без коррект проводки и без учета оплаты
 --18 - нетекущий период распределить сперва по списку закрытых услуг и орг (чтобы закрывались сальдо)
+--19 - распределить по дебетовому сальдо тех организаций, которые уже не работают в текущем периоде
 
 --ВНИМАНИЕ!!! СНЯТИЕ ОПЛАТЫ ДЕЛАТЬ В точности по + ОПЛАТЫ (зеркальная обратная операция)
 select rec_redir(t.reu, t.fk_usl_src, t.fk_usl_dst, t.fk_org_src, t.fk_org_dst, t.tp)
@@ -691,10 +706,36 @@ if p_rec.dopl <= l_mg and l_summa > 0 then
 end if;
 
 l_summa_old:=l_summa;
+
+-- блок только для Полыс, для того чтобы сперва закрывалось дебетовое сальдо неработающих уже орг.
+if utils.get_int_param('DIST_PAY_OLD_DEB') = 1 --and p_rec.lsk ='06004135'
+   then
+l_summa_tmp:=0;     
+    loop
+      l_dist:=19; --по деб сальдо уже неработающих организаций
+      if l_summa > 0 then
+        l_summa_tmp:=dist(l_mg, l_summa, 1, l_dist, null);
+      else 
+        exit;  
+      end if;  
+      l_summa:=l_summa-l_summa_tmp;
+      if abs(l_summa_old-l_summa)=0 then 
+        --сумма оплаты не распределяется, выйти
+        exit;
+      else
+        --сумма распределяется
+        l_summa_old:=l_summa;
+      end if;
+    end loop;
+end if;
+  
+
 l_summap_old:=l_summa_p;
 l_flag:=0;
 l_flagp:=0;
 i:=0;
+
+-- ОСНОВНОЕ распределение
 -- продолжить распределение 500 РАЗ!!!
 loop
   if l_flag = 0 then
@@ -1087,8 +1128,9 @@ begin
 --принудительное распределение Авансовых платежей
 --удалить распределение авансовых
 logger.log_(null, 'scott.c_dist_pay.dist_pay_lsk_avnc_force : Начало перераспределения авансовых платежей');
-delete from kwtp_day t where exists (select * from params p where t.dopl>=p.period)
-  and exists (select * from c_kwtp_mg m where m.id=t.kwtp_id and (m.summa > 0 or m.penya >0));
+delete from kwtp_day t where 
+  exists (select * from c_kwtp_mg m, params p
+   where m.id=t.kwtp_id and (m.summa > 0 or m.penya >0) and m.dopl >= p.period);
 
 --распределить
 for c in (select t.* from c_kwtp_mg t where

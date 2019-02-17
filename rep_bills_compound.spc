@@ -13,6 +13,7 @@ procedure main(p_sel_obj in number, -- вариант выборки: 0 - по klsk, 1 - по адре
                p_lastNum in number,  -- конечный номер счета
                p_is_closed in number, -- выводить ли закрытый фонд, если есть долг? (0-нет, 1-да)
                p_mg in params.period%type, -- период выборки
+               p_sel_uk in varchar2, -- список УК
                p_rfcur out ccur -- исх.рефкурсор
   );
 
@@ -20,6 +21,7 @@ procedure contractors(p_klsk in number, -- klsk помещения
                  p_is_closed in number, -- выводить ли закрытый фонд, если есть долг? (0-нет, 1-да)
                  p_mg in params.period%type, -- период выборки
                  p_sel_flt_tp in number, -- дополнительный фильтр
+                 p_sel_uk in varchar2, -- список УК
                  p_rfcur out ccur);
 
 procedure getQr(p_klsk in number, -- klsk помещения
@@ -27,6 +29,7 @@ procedure getQr(p_klsk in number, -- klsk помещения
                  p_mg in params.period%type, -- период выборки
                  p_sel_tp in number, -- 0 - тип лиц.счетов: Основные и РСО, 1 - кап.рем, 3 - вообще все
                  p_sel_flt_tp in number, -- дополнительный фильтр
+                 p_sel_uk in varchar2, -- список УК
                  p_rfcur out ccur
   );
 
@@ -35,6 +38,7 @@ procedure detail(p_klsk in number, -- klsk помещения
                  p_mg in params.period%type, -- период выборки
                  p_sel_tp in number, -- 0 - тип лиц.счетов: Основные и РСО, 1 - кап.рем
                  p_sel_flt_tp in number, -- дополнительный фильтр
+                 p_sel_uk in varchar2, -- список УК
                  p_rfcur out ccur
   );
 procedure funds_flow_by_klsk(
@@ -43,6 +47,7 @@ procedure funds_flow_by_klsk(
                  p_sel_flt_tp in number, -- дополнительный фильтр
                  p_is_closed in number, -- выводить ли закрытый фонд, если есть долг? (0-нет, 1-да)
                  p_mg in params.period%type, -- период выборки
+                 p_sel_uk in varchar2, -- список УК
                  p_rfcur out ccur
   );
 

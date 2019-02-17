@@ -3,6 +3,7 @@ CREATE OR REPLACE TRIGGER SCOTT.t_org_aiud
 declare
 cnt_ number;
 begin
+ -- НЕ УДАЛЯТЬ КОД, он обновляет важные коды в иерархий организаций (для Кис. ред.04.02.2019)
  --предотвращаем повторный вызов себя же
  if nvl(c_charges.trg_t_org_flag,0)=0 then
  --установка иерархии отношений по расценке организаций
@@ -29,6 +30,7 @@ begin
    end;
    c_charges.trg_t_org_flag:=0;
  end if;
+ null;
 
 end t_org_ai;
 /

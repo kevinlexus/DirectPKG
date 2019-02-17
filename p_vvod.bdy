@@ -32,13 +32,26 @@ create or replace package body scott.p_vvod is
     type rec_sch is record(
       kub_sch number,
       cnt     number,
-      kpr     number,
-      opl     number);
+      kpr     number);
     type rec_norm is record(
       kub_norm number,
       cnt_lsk  number,
+      kpr      number
+      );
+
+    type rec_sch_tsj is record(
+      kub_sch number,
+      cnt     number,
+      kpr     number,
+      opl     number);
+      
+    type rec_norm_tsj is record(
+      kub_norm number,
+      cnt_lsk  number,
       kpr      number,
-      opl      number);
+      opl      number
+      );
+
     type rec_ is record(
       kub_sch number,
       cnt     number,
@@ -54,12 +67,14 @@ create or replace package body scott.p_vvod is
 
     type rec_ar_sch is record( --Арендаторы
       kub number,
-      cnt number,
+      --cnt number,
       opl number);
 
     rec_sch_     rec_sch;
     rec_cnt_     rec_cnt;
     rec_norm_    rec_norm;
+    rec_norm_tsj_    rec_norm_tsj;
+    rec_sch_tsj_     rec_sch_tsj;
     rec_ar_sch_  rec_ar_sch;
     kub_rec_     rec_;
     kpr_rec_     rec_norm2;
@@ -252,8 +267,8 @@ create or replace package body scott.p_vvod is
         --подсчет итогов
         select nvl(sum(e.vol), 0) as kub_sch,
                nvl(count(k.lsk), 0) as cnt,
-               nvl(sum(e.kpr2), 0) as kpr_sch,
-               nvl(sum(k.opl), 0) as opl
+               nvl(sum(e.kpr2), 0) as kpr_sch
+--               nvl(sum(k.opl), 0) as opl
           into rec_sch_
           from kart k, nabor n, c_charge_prep e
          where k.lsk = n.lsk
@@ -277,8 +292,8 @@ create or replace package body scott.p_vvod is
         --кол-во кубов, людей по нормативу, кол-во лицевых, площадь
         select nvl(sum(e.vol), 0) as kub_norm,
                nvl(count(k.lsk), 0) as cnt,
-               nvl(sum(e.kpr2), 0) as kpr,
-               nvl(sum(k.opl), 0) as opl
+               nvl(sum(e.kpr2), 0) as kpr
+--               nvl(sum(k.opl), 0) as opl
           into rec_norm_
           from kart k, nabor n, c_charge_prep e
          where k.lsk = n.lsk
@@ -309,7 +324,7 @@ create or replace package body scott.p_vvod is
         --Юр.лица(арендаторы)
 
         select nvl(sum(e.vol), 0) as ar_kub_sch,
-               nvl(count(k.lsk), 0) as ar_cnt,
+               --nvl(count(k.lsk), 0) as ar_cnt,
                nvl(sum(k.opl), 0) as ar_opl
           into rec_ar_sch_
           from kart k, nabor n, c_charge_prep e
@@ -397,7 +412,7 @@ create or replace package body scott.p_vvod is
         ---------------------------------------------------
         --------ОГРАНИЧЕНИЕ ПО ОДН-------------------------
         if nvl(p_wo_limit, 0) = 0 then
-          l_limit_vol := 0;
+          l_limit_vol := 0; -- не используется в dist_tp_ in (1, 2, 3)
           begin
             if all_opl_ > 0 and all_kpr_ > 0 then
               --площадь > 0 и кол-во прожив > 0
@@ -1142,172 +1157,6 @@ create or replace package body scott.p_vvod is
           --РАСПРЕДЕЛЕНИЕ пропорционально объему (Кис) (устаревает)
           raise_application_error(-20000,
                                   'КОД НЕ ИСПОЛЬЗУЕТСЯ!');
-          if p_kub_dist <> 0 then
-            --если расход <> 0, то распределяем коэфф.
-            if use_sch_ = 1 then
-              --распределение на долю норматив, счетчик
-              update nabor k
-                 set k.vol = --доначисление нормативщику
-                      round(p_kub_dist / (all_kub_) * nvl(k.kf_kpr, 0) *
-                            k.norm,
-                            3)
-               where k.usl = p_usl
-                 and exists (select *
-                        from nabor n, kart t
-                       where n.lsk = k.lsk
-                         and n.lsk = t.lsk
-                         and t.psch not in (8, 9)
-                         and n.fk_vvod = p_id
-                         and n.usl = p_usl);
-              update nabor k
-                 set k.vol_add = --доначисление счетчику, где счетчик > 0
-                      round(p_kub_dist / (all_kub_) *
-                            nvl((select decode(tp_, 0, t.mhw, 1, t.mgw, 0)
-                                  from kart t
-                                 where t.lsk = k.lsk
-                                   and nvl(decode(tp_, 0, t.mhw, 1, t.mgw, 0),
-                                           0) > 0),
-                                0),
-                            3)
-               where k.usl = p_usl
-                 and exists (select *
-                        from nabor n, kart t
-                       where n.lsk = k.lsk
-                         and n.lsk = t.lsk
-                         and t.psch not in (8, 9)
-                         and n.fk_vvod = p_id
-                         and n.usl = p_usl)
-                 and exists
-               (select *
-                        from kart t
-                       where t.lsk = k.lsk
-                         and nvl(decode(tp_, 0, t.mhw, 1, t.mgw, 0), 0) > 0);
-
-              --распределение счетчику, если у него снятие ( < 0)
-              update nabor k
-                 set k.vol_add = --распределение счетчику, где счетчик < 0
-                     (select decode(tp_, 0, t.mhw, 1, t.mgw, 0)
-                        from kart t
-                       where t.lsk = k.lsk)
-               where k.usl = p_usl
-                 and exists (select *
-                        from nabor n, kart t
-                       where n.lsk = k.lsk
-                         and n.lsk = t.lsk
-                         and t.psch not in (8, 9)
-                         and n.fk_vvod = p_id
-                         and n.usl = p_usl)
-                 and exists
-               (select *
-                        from kart t
-                       where t.lsk = k.lsk
-                         and nvl(decode(tp_, 0, t.mhw, 1, t.mgw, 0), 0) < 0);
-
-              if rec_norm_.kub_norm <> 0 then
-                --округление на случайного нормативщика
-                update nabor t
-                   set t.vol = t.vol + p_kub_dist -
-                               (select sum(n.vol + case
-                                             when n.vol_add > 0 then
-                                              n.vol_add
-                                             else
-                                              0
-                                           end)
-                                  from nabor n
-                                 where n.fk_vvod = p_id)
-                 where t.fk_vvod = p_id
-                   and t.lsk = (select max(lsk)
-                                  from nabor n
-                                 where n.fk_vvod = p_id
-                                   and n.vol <> 0)
-                   and t.vol <> 0;
-              else
-                --округление на случайного счетчика > 0
-                update nabor t
-                   set t.vol_add = t.vol_add + p_kub_dist -
-                                   (select sum(n.vol + n.vol_add)
-                                      from nabor n
-                                     where n.fk_vvod = p_id
-                                       and exists
-                                     (select *
-                                              from kart t
-                                             where t.lsk = n.lsk
-                                               and nvl(decode(tp_,
-                                                              0,
-                                                              t.mhw,
-                                                              1,
-                                                              t.mgw,
-                                                              0),
-                                                       0) > 0))
-                 where t.fk_vvod = p_id
-                   and t.lsk = (select max(lsk)
-                                  from nabor n
-                                 where n.fk_vvod = p_id
-                                   and n.vol_add > 0)
-                   and t.vol_add > 0;
-                null;
-              end if;
-
-            else
-              --распределение только на долю нормативщиков
-              if rec_norm_.kub_norm <> 0 and
-                 abs(p_kub_dist) > rec_sch_.kub_sch then
-                --Если доля нормативщиков <> 0
-                update nabor k
-                   set k.vol = --доначисление нормативщику
-                        round((p_kub_dist - rec_sch_.kub_sch) /
-                              rec_norm_.kub_norm * nvl(k.kf_kpr, 0) * k.norm,
-                              3)
-                 where k.usl = p_usl
-                   and exists (select *
-                          from nabor n, kart t
-                         where n.lsk = k.lsk
-                           and t.psch not in (8, 9)
-                           and n.fk_vvod = p_id
-                           and n.usl = p_usl);
-                --округление на случайного нормативщика
-                update nabor t
-                   set t.vol = t.vol + p_kub_dist -
-                               (rec_sch_.kub_sch +
-                               (select sum(n.vol)
-                                   from kart k, nabor n
-                                  where n.fk_vvod = p_id
-                                    and k.lsk = n.lsk
-                                    and k.psch not in (8, 9)))
-                 where t.fk_vvod = p_id
-                   and t.vol <> 0
-                   and t.lsk = (select max(k.lsk)
-                                  from kart k, nabor n
-                                 where n.fk_vvod = p_id
-                                   and k.lsk = n.lsk
-                                   and k.psch not in (8, 9)
-                                   and n.vol <> 0);
-              end if;
-            end if;
-            --итоговые выполненные доначисления
-            select sum(n.vol),
-                   sum(case
-                         when n.vol_add > 0 then
-                          n.vol_add
-                         else
-                          0
-                       end)
-              into rec_cnt_
-              from kart k, nabor n
-             where n.fk_vvod = p_id
-               and k.lsk = n.lsk
-               and k.psch not in (8, 9)
-               and n.usl = p_usl;
-            --итоги
-            p_kub_nrm_fact := rec_cnt_.vol;
-            p_kub_sch_fact := rec_cnt_.vol_add;
-            if use_sch_ = 1 then
-              p_kub_fact := p_kub_nrm_fact + p_kub_sch_fact;
-            else
-              p_kub_fact := p_kub_nrm_fact + p_kub_sch_fact +
-                            rec_sch_.kub_sch;
-            end if;
-          end if;
         end if;
 
         ---------------------------------------------------
@@ -1322,36 +1171,36 @@ create or replace package body scott.p_vvod is
              count(*) as cnt,
              nvl(sum(k.kpr - k.kpr_ot), 0) as kpr_sch,
              nvl(sum(k.opl), 0) as opl
-        into rec_sch_
+        into rec_sch_tsj_
         from kart k, nabor n
        where n.fk_vvod = p_id
          and k.sch_el = 1
          and k.lsk = n.lsk
          and k.psch not in (8, 9)
          and n.usl = p_usl;
-      p_kub_sch := rec_sch_.kub_sch;
-      p_sch_cnt := rec_sch_.cnt;
-      p_sch_kpr := rec_sch_.kpr;
+      p_kub_sch := rec_sch_tsj_.kub_sch;
+      p_sch_cnt := rec_sch_tsj_.cnt;
+      p_sch_kpr := rec_sch_tsj_.kpr;
 
       select 0 as kub_norm,
              count(*) as cnt, --да, да 0 по нормативу (нужно сделать kpr * норматив) доделать! ред 21.03.12
              nvl(sum(k.kpr - k.kpr_ot), 0) as kpr_norm,
              nvl(sum(k.opl), 0) as opl
-        into rec_norm_
+        into rec_norm_tsj_
         from kart k, nabor n
        where n.fk_vvod = p_id
          and k.sch_el <> 1
          and k.lsk = n.lsk
          and k.psch not in (8, 9)
          and n.usl = p_usl;
-      p_kub_norm := rec_norm_.kub_norm;
-      p_kpr      := rec_norm_.kpr;
-      p_cnt_lsk  := rec_norm_.cnt_lsk;
+      p_kub_norm := rec_norm_tsj_.kub_norm;
+      p_kpr      := rec_norm_tsj_.kpr;
+      p_cnt_lsk  := rec_norm_tsj_.cnt_lsk;
 
       --суммируем расход по вводу
-      all_kub_ := rec_sch_.kub_sch + rec_norm_.kub_norm;
+      all_kub_ := rec_sch_tsj_.kub_sch + rec_norm_tsj_.kub_norm;
       --суммируем площадь по вводу
-      all_opl_ := rec_sch_.opl + rec_norm_.opl;
+      all_opl_ := rec_sch_tsj_.opl + rec_norm_tsj_.opl;
 
       update nabor k
          set k.vol_add = --доначисление по нормативщику, счетчику небаланс, (+ или -)

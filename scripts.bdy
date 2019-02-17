@@ -3080,32 +3080,37 @@ procedure swap_sal_TO_NOTHING is
   l_dt date;
 begin  
 --период, которым провести изменения
-mgchange_:='201811';
+mgchange_:='201901';
 --период, по которому смотрим сальдо
-l_mg_sal:='201811';
+l_mg_sal:='201901';
 --текущий месяц
-l_mg:='201811';
+l_mg:='201901';
 --месяц назад
-l_mg_back:='201810';
+l_mg_back:='201812';
 --дата, которой провести
-l_dt:=to_date('20181129','YYYYMMDD');
+l_dt:=to_date('20190101','YYYYMMDD');
 --комментарий
-comment_:='Снятие сальдо и пени по 017 УК';
+comment_:='Снятие сальдо и пени по выборочным лиц счетам';
 --Уникальный id переброски
-cd_:='swp_sal_nothing_20181129_1';
+cd_:='swp_sal_nothing_201901_1';
 
 select t.id into user_id_ from t_user t where t.cd='SCOTT';
 select changes_id.nextval into l_id from dual;
 
-delete from c_change_docs t where t.user_id=user_id_ and t.text=cd_;
-
 delete from c_change t where t.user_id=user_id_
  and exists (select * from
  c_change_docs d where d.user_id=user_id_ and d.text=cd_ and d.id=t.doc_id);
+ 
+delete from t_corrects_payments t where t.user_id=user_id_
+ and exists (select * from
+ c_change_docs d where d.user_id=user_id_ and d.text=cd_ and d.id=t.fk_doc);
 
 delete from c_pen_corr t where 
  exists (select * from
    c_change_docs d where d.user_id=user_id_ and d.text=cd_ and d.id=t.fk_doc);
+
+delete from c_change_docs t where t.user_id=user_id_ and t.text=cd_;
+
 
 insert into c_change_docs (id, mgchange, dtek, ts, user_id, text)
 select l_id as id, mgchange_, trunc(sysdate), sysdate, user_id_, cd_
@@ -3115,7 +3120,7 @@ insert into c_pen_corr
   (lsk, penya, dopl, dtek, ts, fk_user, fk_doc)
 select s.lsk, s.penya*-1, s.mg1, l_dt, sysdate, user_id_, l_id
  from a_penya s, kart k where
-   s.lsk=k.lsk and k.reu in ('017')
+   s.lsk=k.lsk and k.lsk in (select lsk from kmp_lsk)
     and s.mg=l_mg_back; 
 
 insert into c_change (lsk, usl, org, summa, mgchange, type, dtek, ts,
@@ -3123,9 +3128,17 @@ user_id, doc_id)
 select s.lsk, s.usl, s.org, -1*s.summa as summa,
  mgchange_, 1, l_dt, sysdate, user_id_, l_id
  from saldo_usl s, kart k where
-   s.lsk=k.lsk and k.reu in ('017') 
+   s.lsk=k.lsk and k.lsk in (select lsk from kmp_lsk)
    and s.mg=l_mg_sal;
 
+/*insert into t_corrects_payments
+  (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc)
+select s.lsk, s.usl, s.org, -1*s.summa as summa, user_id_, l_dt, 
+ mgchange_, mgchange_, l_id
+ from saldo_usl s, kart k where
+   s.lsk=k.lsk and k.lsk in (select lsk from kmp_lsk)
+   and s.mg=l_mg_sal;
+*/
 commit;
 
 end swap_sal_TO_NOTHING;
@@ -3586,8 +3599,8 @@ if nvl(p_move_resident,0)=1 then
 
     --переносим ВСЕ статусы проживающего в новые счета...
     insert into c_states_pr
-      (fk_status, fk_kart_pr, fk_tp, dt1, dt2) -- временно тут ошибка, надо в январе разобраться с полем fk_tp!
-    select p.fk_status, kart_pr_id.currval, p.fk_tp, p.dt1, p.dt2
+      (fk_status, fk_kart_pr, dt1, dt2) -- временно тут ошибка, надо в январе разобраться с полем fk_tp!
+    select p.fk_status, kart_pr_id.currval, p.dt1, p.dt2
     from c_states_pr p
     where p.fk_kart_pr=t.id;
 

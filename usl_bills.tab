@@ -43,5 +43,5 @@ comment on column SCOTT.USL_BILLS.bill_agg
   is 'По одной услуге USLM и разным норм и свыше, ставить одинаковые, любые цифры, например 1,1 чтобы они не суммировались потом, и наоборот, чтобы разделить услуги в расценках - установить разные цифры ';
 alter table SCOTT.USL_BILLS
   add constraint USL_BILLS_F foreign key (USL_ID)
-  references SCOTT.USL (USL);
+  references SCOTT.USL (USL) on delete cascade;
 

@@ -42,6 +42,7 @@ create or replace package scott.scripts2 is
          ) return kart.lsk%type ;
 procedure swap_sal_PEN;   
 procedure swap_sal_from_main_to_rso;      
+procedure swap_sal_from_main_to_rso2;      
 end scripts2;
 /
 

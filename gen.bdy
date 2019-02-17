@@ -2648,10 +2648,11 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
                    from arch_kart t, v_lsk_tp tp,
                         (select k.k_lsk_id, count(distinct a.mg1) as cnt_month,
                         sum(a.summa) as dolg, sum(penya) as penya
-                            from kart k, a_penya a
+                            from kart k, a_penya a, v_lsk_tp tp
                            where k.lsk=a.lsk and a.mg = mg_
                            and nvl(a.summa,0) <> 0
                            and a.mg1 <= mg3_ --бред
+                           and k.fk_tp=tp.id --and tp.cd<>'LSK_TP_ADDIT' -- кроме счетов капремонта ред.06.02.19 закомментировал по просьбе Полыс.
                            group by k.k_lsk_id) e
                   where t.mg = mg_
                     and t.k_lsk_id = e.k_lsk_id(+)

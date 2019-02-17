@@ -115,7 +115,7 @@ begin
       open p_rfcur for select t.* from table(tab) t
        where t.price<>0 or t.charge<>0 
        or t.change1<>0 or t.change2<>0 or t.amnt <>0 or t.deb<>0 or t.pay<>0
---        or t.kub<>0
+       or t.kub<>0
         order by t.npp;
   end if;        
 

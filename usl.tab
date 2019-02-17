@@ -191,10 +191,10 @@ alter table SCOTT.USL
   add constraint USL_F_USLM foreign key (USLM)
   references SCOTT.USLM (USLM);
 alter table SCOTT.USL
-  add constraint USL_F_USL_E foreign key (USL_EMPT)
+  add constraint USL_F_USL_CHLD foreign key (FK_USL_CHLD)
   references SCOTT.USL (USL);
 alter table SCOTT.USL
-  add constraint USL_F_USL_MAIN foreign key (FK_USL_CHLD)
+  add constraint USL_F_USL_E foreign key (USL_EMPT)
   references SCOTT.USL (USL);
 alter table SCOTT.USL
   add constraint USL_F_USL_P foreign key (USL_P)

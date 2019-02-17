@@ -14,7 +14,8 @@ create table SCOTT.C_CHARGE_PREP
   opl        NUMBER,
   dt1        DATE,
   dt2        DATE,
-  fk_spk     NUMBER
+  fk_spk     NUMBER,
+  id         NUMBER
 )
 tablespace USERS
   pctfree 10
@@ -67,6 +68,8 @@ comment on column SCOTT.C_CHARGE_PREP.dt2
   is 'Дата конца периода';
 comment on column SCOTT.C_CHARGE_PREP.fk_spk
   is 'FK на справочник льгот';
+comment on column SCOTT.C_CHARGE_PREP.id
+  is 'ID';
 create index SCOTT.C_CHARGE_PREP_I on SCOTT.C_CHARGE_PREP (LSK, TP)
   tablespace USERS
   pctfree 10

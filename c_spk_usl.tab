@@ -54,5 +54,5 @@ alter table SCOTT.C_SPK_USL
   references SCOTT.SPK (ID) on delete cascade;
 alter table SCOTT.C_SPK_USL
   add constraint C_SPK_USL_F foreign key (USL_ID)
-  references SCOTT.USL (USL);
+  references SCOTT.USL (USL) on delete cascade;
 

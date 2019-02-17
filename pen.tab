@@ -84,5 +84,5 @@ alter table SCOTT.PEN
   references SCOTT.T_ORG (ID);
 alter table SCOTT.PEN
   add constraint PEN_F_USL foreign key (USL)
-  references SCOTT.USL (USL);
+  references SCOTT.USL (USL) on delete cascade;
 

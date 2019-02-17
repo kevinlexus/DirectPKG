@@ -1,7 +1,7 @@
 create sequence SCOTT.PRICES_ID
 minvalue 1
 maxvalue 999999999999999999999999999
-start with 61
+start with 121
 increment by 1
 cache 20
 order;

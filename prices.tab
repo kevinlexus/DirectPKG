@@ -36,5 +36,5 @@ alter table SCOTT.PRICES
   references SCOTT.T_ORG (ID);
 alter table SCOTT.PRICES
   add constraint PRICES_FK_USL foreign key (USL)
-  references SCOTT.USL (USL);
+  references SCOTT.USL (USL) on delete cascade;
 

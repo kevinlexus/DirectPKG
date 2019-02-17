@@ -716,6 +716,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
       AND    n.usl = u.usl
       AND    n.usl = nvl(p_usl, usl_);
     rec_wo_peop cur_wo_peop%ROWTYPE;
+    rec_wo_peop2 cur_wo_peop%ROWTYPE;
 
     --курсор для расчета по упрощенной схеме (без учета льгот) для горячей воды! ред.18.01.2018
     CURSOR cur_wo_peop_gw(p_usl in usl.usl%type) IS
@@ -2138,7 +2139,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
 
           -- холодная вода - доначисление по 354 ДЛЯ ТСЖ /ревизия для УК, где услуга ОДН отдельной строкой/
            IF (rec_nabor.chrg1 <> 0 OR rec_nabor.chrg2 <> 0) AND
-             rec_nabor.fk_calc_tp IN (41) THEN --#20#
+             rec_nabor.fk_calc_tp IN (41) THEN --#41#
             OPEN cur_wo_peop(null);
             FETCH cur_wo_peop
               INTO rec_wo_peop;
@@ -2228,12 +2229,27 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
             FETCH cur_wo_peop
               INTO rec_wo_peop;
             CLOSE cur_wo_peop;
+
             for c in cur_charge_prep(rec_nabor.parent_usl, null)
             loop
-              if c.sch = 0 then
-                --интересует только ОТСУТСТВИЕ счетчика 
-                --ВНИМАНИЕ! по этой услуге, в nabor.norm находится КОЭФФ к потреблённому расходу родительской услуги!
+              --интересует только ОТСУТСТВИЕ счетчика 
+              --ВНИМАНИЕ! по этой услуге, в nabor.norm находится КОЭФФ к потреблённому расходу родительской услуги!
+              if c.sch = 0 and c.empty = 0 then
+                -- есть проживающие
                 ins_chrg2(c.vol_nrm * rec_wo_peop.tarnorm, rec_wo_peop.cena, null, usl_, c.sch, c.kpr, c.kprz, c.kpro, null);
+              elsif c.sch = 0 and c.empty = 1 then
+                -- нет проживающих - ред. 31.01.19
+                OPEN cur_wo_peop(rec_nabor.usl_empt);
+                FETCH cur_wo_peop
+                  INTO rec_wo_peop2;
+                if cur_wo_peop%NOTFOUND then
+                  --нет выделенной услуги "без проживающих", ставим на ту же услугу
+                  ins_chrg2(c.vol_nrm * rec_wo_peop.tarnorm, rec_wo_peop.cena, null, usl_, c.sch, c.kpr, c.kprz, c.kpro, null);
+                else 
+                  --есть выделенная услуга "без проживающих"
+                  ins_chrg2(c.vol_nrm * rec_wo_peop2.tarnorm, rec_wo_peop2.cena, null, rec_nabor.usl_empt, c.sch, c.kpr, c.kprz, c.kpro, null);
+                end if;  
+                CLOSE cur_wo_peop;
               end if;
             end loop;
           END IF;

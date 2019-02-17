@@ -1965,7 +1965,7 @@ select t.trest||'' ''||t.name_reu as predp,
     open prep_refcursor for
       select k.lsk,
       '' as fio,
-       substr(o.name||','||l.name||', '||NVL(LTRIM(k.nd,'0'),'0')||'-'||NVL(LTRIM(k.kw,'0'),'0') ,1,32)  as adr,
+       substr(o.name||','||l.name||', '||NVL(LTRIM(k.nd,'0'),'0')||'-'||NVL(LTRIM(k.kw,'0'),'0') ,1,52)  as adr,
         1 as type, s.nm as type_name,
        mg_ as period, null as empty_field, nvl(sum(s.summa),0)*100 as summa
        from kart k, t_org o, t_org_tp tp,
@@ -1975,11 +1975,11 @@ select t.trest||'' ''||t.name_reu as predp,
         where k.psch not in (8,9) and k.lsk=s.lsk and k.kul=l.id
         and tp.cd='Город' and o.fk_orgtp=tp.id
         group by k.lsk, substr(trim(k.fio),1,25), s.nm,
-        substr(o.name||','||l.name||', '||NVL(LTRIM(k.nd,'0'),'0')||'-'||NVL(LTRIM(k.kw,'0'),'0') ,1,32)
+        substr(o.name||','||l.name||', '||NVL(LTRIM(k.nd,'0'),'0')||'-'||NVL(LTRIM(k.kw,'0'),'0') ,1,52)
         union all
       select k.lsk,
       '' as fio,
-       substr(o.name||','||l.name||', '||NVL(LTRIM(k.nd,'0'),'0')||'-'||NVL(LTRIM(k.kw,'0'),'0') ,1,32)  as adr,
+       substr(o.name||','||l.name||', '||NVL(LTRIM(k.nd,'0'),'0')||'-'||NVL(LTRIM(k.kw,'0'),'0') ,1,52)  as adr,
         1 as type, u.nm as type_name,
        mg_ as period, null as empty_field, 0 as summa
        from kart k, t_org o, t_org_tp tp, nabor n, spul l, usl u --лицевые по которым нет сальдо
@@ -1994,7 +1994,7 @@ select t.trest||'' ''||t.name_reu as predp,
          and t.lsk=k.lsk
          )
         group by k.lsk, substr(trim(k.fio),1,25), u.nm,
-        substr(o.name||','||l.name||', '||NVL(LTRIM(k.nd,'0'),'0')||'-'||NVL(LTRIM(k.kw,'0'),'0') ,1,32);
+        substr(o.name||','||l.name||', '||NVL(LTRIM(k.nd,'0'),'0')||'-'||NVL(LTRIM(k.kw,'0'),'0') ,1,52);
 --       having sum(summa) > 0; ред 03.10.2011
  elsif сd_ in  ('68') then
     open prep_refcursor for
