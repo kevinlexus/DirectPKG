@@ -3080,19 +3080,19 @@ procedure swap_sal_TO_NOTHING is
   l_dt date;
 begin  
 --период, которым провести изменени€
-mgchange_:='201901';
+mgchange_:='201902';
 --период, по которому смотрим сальдо
-l_mg_sal:='201901';
+l_mg_sal:='201902';
 --текущий мес€ц
-l_mg:='201901';
+l_mg:='201902';
 --мес€ц назад
-l_mg_back:='201812';
+l_mg_back:='201901';
 --дата, которой провести
-l_dt:=to_date('20190101','YYYYMMDD');
+l_dt:=to_date('20190201','YYYYMMDD');
 --комментарий
 comment_:='—н€тие сальдо и пени по выборочным лиц счетам';
 --”никальный id переброски
-cd_:='swp_sal_nothing_201901_1';
+cd_:='swp_sal_nothing_201902_1';
 
 select t.id into user_id_ from t_user t where t.cd='SCOTT';
 select changes_id.nextval into l_id from dual;

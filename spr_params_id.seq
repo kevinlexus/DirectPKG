@@ -1,7 +1,7 @@
 create sequence SCOTT.SPR_PARAMS_ID
 minvalue 1
 maxvalue 999999999999999999999999999
-start with 1903
+start with 1943
 increment by 1
 cache 20;
 

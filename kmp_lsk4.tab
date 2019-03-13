@@ -1,6 +1,6 @@
 create table SCOTT.KMP_LSK4
 (
-  name1  VARCHAR2(40),
+  name1  VARCHAR2(240),
   area   VARCHAR2(40),
   kul    VARCHAR2(40),
   street VARCHAR2(40),

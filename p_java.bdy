@@ -42,20 +42,33 @@ procedure gen(
   p_tp in number, 
   p_house_id in number,
   p_vvod_id in number,
+  p_reu_id in varchar2,
+  p_usl_id in usl.usl%type,
   p_klsk_id in number,
   p_debug_lvl in number,
   p_gen_dt in date, 
   p_stop in number
   ) is
   l_ret varchar2(1000);
+  l_req varchar2(1000); 
 begin
   utl_http.set_transfer_timeout(50000);
+  l_req:='gen?tp='||p_tp;
+  if p_house_id is not null then
+    l_req:=l_req||'&houseId='||p_house_id;
+  end if;
+  if p_vvod_id is not null then
+    l_req:=l_req||'&vvodId='||p_vvod_id;
+  end if;
+  if p_klsk_id is not null then
+    l_req:=l_req||'&klskId='||p_klsk_id;
+  end if;
+  if p_usl_id is not null then
+    l_req:=l_req||'&uslId='||p_usl_id;
+  end if;
+  
   l_ret:=p_java.http_req(
-      'gen?tp='||p_tp
-    ||'&houseId='||p_house_id
-    ||'&vvodId='||p_vvod_id
-    ||'&klskId='||p_klsk_id
-    ||'&debugLvl='||p_debug_lvl
+    l_req||'&debugLvl='||p_debug_lvl
     ||'&genDt='||to_char(p_gen_dt,'DD.MM.YYYY')
     ||'&stop='||p_stop
     );

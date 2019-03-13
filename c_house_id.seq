@@ -1,7 +1,7 @@
 create sequence SCOTT.C_HOUSE_ID
 minvalue 1
 maxvalue 999999999999999999999999999
-start with 38945
+start with 39045
 increment by 1
 cache 20
 order;

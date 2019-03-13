@@ -3295,6 +3295,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
          kub_fact_upnorm,
          ishotpipeinsulated,
          istowelheatexist,
+         wo_limit,
          mg)
         select c.house_id,
                c.id,
@@ -3327,6 +3328,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
                c.kub_fact_upnorm,
                c.ishotpipeinsulated,
                c.istowelheatexist,
+               c.wo_limit,
                p.period
           from c_vvod c, params p;
     elsif lsk_ is not null then
@@ -3790,7 +3792,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
       subs_cur, k_fam, k_im, k_ot, memo, fk_distr,
       law_doc, law_doc_dt, prvt_doc, prvt_doc_dt,
       fk_pasp_org, fk_err, mg, dolg, cpn, penya,
-      kpr_wrp, pn_dt, fk_tp, for_bill, sel1, vvod_ot, entr, pot, mot)
+      kpr_wrp, pn_dt, fk_tp, for_bill, sel1, vvod_ot, entr, pot, mot, parent_lsk)
       select
       k.lsk, k.kul, k.nd, k.kw, k.fio, k.kpr, k.kpr_wr, k.kpr_ot,
       k.kpr_cem, k.kpr_s, k.opl, k.ppl, k.pldop, k.ki, k.psch,
@@ -3808,7 +3810,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
       nvl(d.penya,0)-nvl(b.penya,0) as penya,
       k.kpr_wrp, pn_dt, k.fk_tp,
       case when nvl(e.summa,0) <> 0 or nvl(b.penya,0) <> 0 or nvl(b.dolg/*b.penya*/,0) <> 0 then 1 --добавил пеню 09.03.2016, счет будет выбираться для печати если есть долг или текущ начисление))
-        else 0 end as for_bill, k.sel1, k.vvod_ot, k.entr, k.pot, k.mot
+        else 0 end as for_bill, k.sel1, k.vvod_ot, k.entr, k.pot, k.mot, k.parent_lsk
       from kart k, params p,
       (select t.k_lsk_id, nvl(sum(summa),0) as dolg from saldo_usl s, kart t where
         t.lsk=s.lsk and s.mg=mg1_

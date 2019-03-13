@@ -786,7 +786,8 @@ init_arr_usl;
 
         if l_var_cnt_kpr = 0 then
           --ВАРИАНТ Кис.
-          if p_tp in ('LSK_TP_RSO') and nvl(l_kpr_wro,0) = 0 --если нет временно отсутств.
+          if --p_tp in ('LSK_TP_RSO') and - ред.26.02.2019 - Кис. убрал только для РСО, по просьбе Алёны
+            nvl(l_kpr_wro,0) = 0 --если нет временно отсутств.
             -- счет РСО
             and l_kpr2 = 0 and l_status_cd not in ('MUN') then
             -- поставить хоть одного проживающего для определения объема

@@ -197,6 +197,8 @@ create or replace package body scott.p_vvod is
                   and e.tp = 6 --итог без ОДН
                   and e.kpr2 <> 0));
     rec cur1%rowtype;
+    -- распределение на Java?
+    l_Java_Charge number;
   begin
 
     --распределение воды по вводу с поддержкой последней редакции 307 постановления от 06.05.11
@@ -209,6 +211,23 @@ create or replace package body scott.p_vvod is
     --(пока не реализовано)
     --TO DO: Внести зависимость от обновления параметра площади общего имущества по дому (выполнять перерасчет)
     --сделать, начиная с 01.07.2013
+
+
+    l_Java_Charge := utils.get_int_param('JAVA_CHARGE');
+    if l_Java_Charge=1 then 
+      -- вызов Java распределения
+      p_java.gen(p_tp        => 2,
+                 p_house_id  => null,
+                 p_vvod_id   => p_id,
+                 p_reu_id    => null,
+                 p_usl_id    => null,
+                 p_klsk_id   => null,
+                 p_debug_lvl => 0,
+                 p_gen_dt    => init.get_date,
+                 p_stop      => 0);
+      return;
+    end if;
+
 
     l_time:=sysdate;
     p_kub_dist := p_kub;

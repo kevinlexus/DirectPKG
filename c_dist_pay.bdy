@@ -948,7 +948,7 @@ if l_summa <> 0 then --если и по конкретному периоду (без корректир.) не распр.,
     end if;
 end if;
 
-if l_summa <> 0 then --если и по nabor не распр, кинуть на РКЦ, тек содерж
+if l_summa <> 0 then --если и по nabor не распр, кинуть на УК, тек содерж
   insert into kwtp_day
     (fk_distr, kwtp_id, lsk, usl, org, summa, oper, dopl, nkom, nink, dat_ink, priznak, dtek)
   select
@@ -972,7 +972,7 @@ if l_summa_p <> 0 then
 end if;
 
 
-if l_summa <> 0 then --если и по деб сальдо не распр, кинуть всю сумму на 1 ую услугу из nabor
+if l_summa_p <> 0 then --если и по деб сальдо не распр, кинуть всю сумму на 1 ую услугу из nabor
   insert into kwtp_day
     (fk_distr, kwtp_id, lsk, usl, org, summa, oper, dopl, nkom, nink, dat_ink, priznak, dtek)
   select
@@ -983,7 +983,7 @@ if l_summa <> 0 then --если и по деб сальдо не распр, кинуть всю сумму на 1 ую у
   l_summa_p:=0;   
 end if;
 
-if l_summa_p > 0 then --если и по nabor не распр, кинуть на РКЦ, тек содерж
+if l_summa_p > 0 then --если и по nabor не распр, кинуть на УК, тек содерж
   insert into kwtp_day
     (fk_distr, kwtp_id, lsk, usl, org, summa, oper, dopl, nkom, nink, dat_ink, priznak, dtek)
   select

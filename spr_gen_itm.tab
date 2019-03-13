@@ -10,7 +10,8 @@ create table SCOTT.SPR_GEN_ITM
   err   NUMBER,
   npp2  NUMBER,
   dt1   DATE,
-  dt2   DATE
+  dt2   DATE,
+  v     NUMBER default 1
 )
 tablespace USERS
   pctfree 10
@@ -47,6 +48,8 @@ comment on column SCOTT.SPR_GEN_ITM.dt1
   is 'Дата, время начала формирования';
 comment on column SCOTT.SPR_GEN_ITM.dt2
   is 'Дата, время окончания формирования';
+comment on column SCOTT.SPR_GEN_ITM.v
+  is 'Отображать для выбора? (1-да, 0, null - нет)';
 alter table SCOTT.SPR_GEN_ITM
   add constraint SPR_GEN_ITM primary key (ID)
   using index 

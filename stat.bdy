@@ -289,7 +289,8 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
       (kub, kub_dist, kub_fact_upnorm, kub_fact, usl, mg, reu, kul, nd, dist_tp, 
        odpu_ex, ishotpipeinsulated, istowelheatexist)
       select --для отображения объемов по ОДПУ
-                        distinct d.kub, d.kub_dist, d.kub_fact_upnorm, d.kub_fact,
+                        distinct d.kub, d.kub_dist, d.kub_fact_upnorm, 
+                        decode(d.dist_tp, 4, null, d.kub_fact) as kub_fact, -- не показывать объем, если 4 (нет ОДПУ) ред.05.03.2017
                         d.usl, d.mg, h.reu, h.kul, h.nd, d.dist_tp as dist_tp,
                         case when d.dist_tp<>4 and nvl(d.kub,0) = 0 then 'есть, нет объема'
                         when d.dist_tp<>4 and nvl(d.kub,0) <> 0 then 'есть'
@@ -3185,6 +3186,8 @@ elsif сd_ in  ('88') then
 
     if var_ = 0 then
     --по Городу
+      if utils.get_int_param('GEN_CHK_C_DEB_USL') = 0 then
+          -- версия для остальных
           open prep_refcursor for
                     select * from 
                     (select 
@@ -3258,92 +3261,92 @@ elsif сd_ in  ('88') then
                     scott.utils.f_ord_digit(k.kw), scott.utils.f_ord3(k.kw)
                     ) xx1 ) xx2 
                     where rn1 between 0 and 2000000; --сделал ограничение до 2 млн, чтоб можно было если что постранично выгружать
-/* до изменений 14.09.18
-          open prep_refcursor for
-                    select * from 
-                    (select 
-                    rownum as rn1, xx1.* from 
-                    (select \*+ USE_HASH(k, o2, tp, o, s, d, tp2, t, p1, p5, sl, sp, g)*\ 
-                    scott.utils.month_name(substr(mg_, 5, 2)) as mon,
-                 substr(mg_, 1, 4) as year, k.lsk as ls, o.name as np, s.name as ul,
-                 ltrim(k.nd, '0') as dom, ltrim(k.kw, '0') as kv, d.name_kp as st,
-                 d.tp as naz, k.k_fam as sur, k.k_im as nam, k.k_ot as mid,
-                  --сведения о льготах
-                 g.name as lg,
-                   --площадь
-                 k.opl as pl,
-                  --сальдо начальное
-                 nvl(t.indebet, 0) + nvl(t.inkredit, 0)+nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p1.penya_in, 0),0) as sn,
-                  --проценты в сальдо начисленной пени
-                 nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p1.penya_in, 0),0) as pensn,
-                  --начислено, в т.ч. пеня
-                 nvl(t.charges, 0) + nvl(t.poutsal, 0)
-                   --+ nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p2.penya_chrg, 0),0)
-                   --+ nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p3.penya_corr, 0),0)
-                    as bil,
-                  --начисленная пеня
-                 nvl(t.poutsal,0)
-                   --+ nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p2.penya_chrg, 0),0)
-                   --+ nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p3.penya_corr, 0),0)
-                    as penbil,
-                  --платеж, в т.ч. пеня
-                 nvl(t.payment, 0) + nvl(t.pn, 0) as pay,
-                 --nvl(t.payment, 0) + nvl(t.pn, 0)+ nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p4.penya_pay, 0),0) as pay,
-                  --оплаченная пеня
-                 t.pn as penpay,
-                 --nvl(t.pn,0)+ nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p4.penya_pay, 0),0) as penpay,
-                  --сальдо конечное
-                 nvl(t.outdebet, 0) + nvl(t.outkredit, 0)+nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p5.penya_out, 0),0) as sk,
-                  --проценты в сальдо уплаченной пени
-                 nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p5.penya_out, 0),0) as pensk,
-                  --перерасчет
-                 nvl(t.changes,0) as corr
-            from scott.arch_kart k
-            join scott.t_org o2 on o2.cd = 'Фонд Капремонта МКД'
-            join scott.t_org_tp tp on tp.cd = 'Город'
-            join scott.t_org o on o.fk_orgtp = tp.id
-            join scott.spul s on k.kul = s.id
-            join scott.status d on k.status = d.id
-            join v_lsk_tp tp2 on k.fk_tp=tp2.id
-            left join (select t.lsk, t.org,  sum(t.charges) as charges, sum(t.changes) as changes, sum(t.poutsal) as poutsal, sum(t.indebet) as indebet, sum(t.inkredit) as inkredit, 
-                     sum(t.outdebet) as outdebet, sum(t.outkredit) as outkredit, sum(t.payment) as payment, sum(t.pn) as pn from 
-                     scott.xitog3_lsk t 
-                     join usl us2 on us2.cd in ('кап.','кап/св.нор') and t.usl=us2.usl and t.mg=mg_
-                     group by t.lsk, t.org) t on k.lsk = t.lsk and t.org = o2.id
-            left join (select l.lsk, sum(l.penya) as penya_in --сальдо по пене входящее
-                  from scott.a_penya l
-                 where l.mg=scott.utils.add_months_pr(mg_, -1)
-                 group by l.lsk) p1 on k.lsk=p1.lsk
-            left join (select l.lsk, sum(l.penya) as penya_out --сальдо по пене исходящее
-                  from scott.a_penya l
-                 where l.mg=mg_
-                 group by l.lsk) p5 on k.lsk=p5.lsk 
+  else
+    -- версия для Кис                    
+    open prep_refcursor for
+                        select * from 
+                        (select 
+                        rownum as rn1, xx1.* from 
+                        (select 
+                        scott.utils.month_name(substr(mg_, 5, 2)) as mon,
+                     substr(mg_, 1, 4) as year, k.lsk as ls, o.name as np, s.name as ul,
+                     ltrim(k.nd, '0') as dom, ltrim(k.kw, '0') as kv, d.name_kp as st,
+                     d.tp as naz, k.k_fam as sur, k.k_im as nam, k.k_ot as mid,
+                      --сведения о льготах
+                     g.name as lg,
+                       --площадь
+                     k.opl as pl,
+                      --сальдо начальное
+                     nvl(t.indebet, 0) + nvl(t.inkredit, 0)+nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p1.penya_in, 0),0) as sn,
+                      --проценты в сальдо начисленной пени
+                     nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p1.penya_in, 0),0) as pensn,
+                      --начислено, в т.ч. пеня
+                     nvl(t.charges, 0) + nvl(t.poutsal, 0)
+                       --+ nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p2.penya_chrg, 0),0)
+                       --+ nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p3.penya_corr, 0),0)
+                        as bil,
+                      --начисленная пеня
+                     nvl(t.poutsal,0)
+                       --+ nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p2.penya_chrg, 0),0)
+                       --+ nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p3.penya_corr, 0),0)
+                        as penbil,
+                      --платеж, в т.ч. пеня
+                     nvl(t.payment, 0) + nvl(t.pn, 0) as pay,
+                     --nvl(t.payment, 0) + nvl(t.pn, 0)+ nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p4.penya_pay, 0),0) as pay,
+                      --оплаченная пеня
+                     t.pn as penpay,
+                     --nvl(t.pn,0)+ nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p4.penya_pay, 0),0) as penpay,
+                      --сальдо конечное
+                     nvl(t.outdebet, 0) + nvl(t.outkredit, 0)+nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p5.penya_out, 0),0) as sk,
+                      --проценты в сальдо уплаченной пени
+                     nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p5.penya_out, 0),0) as pensk,
+                      --перерасчет
+                     nvl(t.changes,0) as corr
+                from scott.arch_kart k
+                join scott.t_org o2 on o2.cd = 'Фонд Капремонта МКД'
+                join scott.t_org_tp tp on tp.cd = 'Город'
+                join scott.t_org o on o.fk_orgtp = tp.id
+                join scott.spul s on k.kul = s.id
+                join scott.status d on k.status = d.id
+                join v_lsk_tp tp2 on k.fk_tp=tp2.id
+                left join (select t.lsk, t.org,  sum(t.charges) as charges, sum(t.changes) as changes, sum(t.poutsal) as poutsal, sum(t.indebet) as indebet, sum(t.inkredit) as inkredit, 
+                         sum(t.outdebet) as outdebet, sum(t.outkredit) as outkredit, sum(t.payment) as payment, sum(t.pn) as pn from 
+                         scott.xitog3_lsk t 
+                         join usl us2 on us2.cd in ('кап.','кап/св.нор') and t.usl=us2.usl and t.mg=mg_
+                         group by t.lsk, t.org) t on k.lsk = t.lsk and t.org = o2.id
+                left join (select l.lsk, sum(l.penya) as penya_in --сальдо по пене входящее
+                      from scott.a_penya l
+                     where l.mg=scott.utils.add_months_pr(mg_, -1)
+                     group by l.lsk) p1 on k.lsk=p1.lsk
+                left join (select l.lsk, sum(l.penya) as penya_out --сальдо по пене исходящее
+                      from scott.a_penya l
+                     where l.mg=mg_
+                     group by l.lsk) p5 on k.lsk=p5.lsk 
 
-            left join (select p.lsk, max(p.fk_spk) as fk_spk
-                         from scott.a_charge_prep2 p
-                        where mg_ between p.mgFrom and p.mgTo
-                          and p.tp = 9
-                        group by p.lsk) sl on k.lsk = sl.lsk
-            left join scott.spk sp on sl.fk_spk = sp.id
-            left join scott.spk_gr g on sp.gr_id = g.id
-             where k.mg = mg_
-             and (k.status not in (1,9) and k.psch not in (8,9) and tp2.cd='LSK_TP_ADDIT' or
-             (
-             nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p1.penya_in, 0),0) <> 0
-             or nvl(t.charges, 0) + nvl(t.poutsal, 0) <> 0
-             or nvl(t.poutsal,0) <> 0 
-             or nvl(t.payment, 0) + nvl(t.pn, 0) <> 0
-             or t.pn <> 0
-             or nvl(t.outdebet, 0) + nvl(t.outkredit, 0)+nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p5.penya_out, 0),0) <> 0
-             or nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p5.penya_out, 0),0) <> 0
-             or nvl(t.changes,0)<>0
-                 ))
-           order by scott.utils.f_ord_digit(k.nd), scott.utils.f_ord3(k.nd),
-                    scott.utils.f_ord_digit(k.kw), scott.utils.f_ord3(k.kw)
-                    ) xx1 ) xx2 
-                    where rn1 between 0 and 2000000; --сделал ограничение до 2 млн, чтоб можно было если что постранично выгружать
-*/
-       --  end if;
+                left join (select p.lsk, max(p.fk_spk) as fk_spk
+                             from scott.a_charge_prep2 p
+                            where mg_ between p.mgFrom and p.mgTo
+                              and p.tp = 9
+                            group by p.lsk) sl on k.lsk = sl.lsk
+                left join scott.spk sp on sl.fk_spk = sp.id
+                left join scott.spk_gr g on sp.gr_id = g.id
+                 where k.mg = mg_
+                 and (k.status not in (1,9) and k.psch not in (8,9) and tp2.cd='LSK_TP_ADDIT' or
+                 (
+                 nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p1.penya_in, 0),0) <> 0
+                 or nvl(t.charges, 0) + nvl(t.poutsal, 0) <> 0
+                 or nvl(t.poutsal,0) <> 0 
+                 or nvl(t.payment, 0) + nvl(t.pn, 0) <> 0
+                 or t.pn <> 0
+                 or nvl(t.outdebet, 0) + nvl(t.outkredit, 0)+nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p5.penya_out, 0),0) <> 0
+                 or nvl(decode(tp2.cd, 'LSK_TP_ADDIT', p5.penya_out, 0),0) <> 0
+                 or nvl(t.changes,0)<>0
+                     ))
+               order by scott.utils.f_ord_digit(k.nd), scott.utils.f_ord3(k.nd),
+                        scott.utils.f_ord_digit(k.kw), scott.utils.f_ord3(k.kw)
+                        ) xx1 ) xx2 
+                        where rn1 between 0 and 200000000;
+    end if;                    
     end if;
 
  elsif сd_ in  ('89') then
@@ -4161,14 +4164,12 @@ elsif сd_ in  ('88') then
     l_dt1:=gdt(0,0,0);
     OPEN prep_refcursor FOR select k.house_id, k.reu, 
        ltrim(k.kw,'0') as kw, decode(s.cd, 'MUN', 'Да', 'PRV', 'Нет', 'Да') as status,
-       
        k.lsk,
        k2.elsk,
-       decode(tp.cd, 'LSK_TP_MAIN', 'ЛС УО', 'ЛС КР') as tp,
+       tp.cd as tp,
        k2.lsk as lsk2,
        k2.elsk as elsk2,
        decode(tp2.cd, 'LSK_TP_MAIN', 'ЛС УО', 'ЛС КР') as tp2,
-
        s.cd as stat_cd,
        k.k_fam, k.k_im, k.k_ot, 
        to_char(k.opl, '999999.99') as opl, 
@@ -4189,8 +4190,8 @@ elsif сd_ in  ('88') then
        join bs.addr_tp atp on atp.cd='Квартира'
        left join exs.eolink e on k.lsk=e.lsk -- лиц.счет
        left join exs.eolink e2 on e2.id=e.parent_id and e2.fk_objtp=atp.id -- помещение
-       join u_list tp on k.fk_tp=tp.id and tp.cd='LSK_TP_MAIN' and k.psch not in (8,9) --основной лиц.счет
-       join u_list tp2 on tp2.cd='LSK_TP_MAIN' --счет по капремонту
+       join u_list tp on k.fk_tp=tp.id and k.psch not in (8,9) --тип лиц.счета, не закрытый
+       join u_list tp2 on tp2.cd='LSK_TP_MAIN' --для счета по капремонту
        left join kart k2 on k.k_lsk_id=k2.k_lsk_id and k2.fk_tp=tp2.id and k2.psch not in (8,9) -- счет по капремонту
        join status s on k.status=s.id
        join prep_house_fias p on k.house_id=p.fk_house

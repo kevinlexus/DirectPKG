@@ -530,7 +530,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
     t_nabor tab_nabor; 
 
     CURSOR cur_krt IS
-      SELECT k.k_lsk_id, k.lsk, k.reu, k.psch, nvl(k.sch_el, 0) AS sch_el, k.schel_dt, k.schel_end, nvl(k.opl,
+      SELECT k.k_lsk_id, k.lsk, k.house_id, k.reu, k.psch, nvl(k.sch_el, 0) AS sch_el, k.schel_dt, k.schel_end, nvl(k.opl,
                   0) AS opl, nvl(k.mhw, 0) AS mhw, nvl(k.mgw, 0) AS mgw, nvl(k.mel,
                   0) AS mel, k.kran, k.kran1, k.kan_sch, k.el, k.el1, k.subs_cor, k.subs_cur, k.subs_inf, k.eksub1, k.eksub2, k.sgku, k.doppl, k.status, decode(k.komn,
                      NULL,
@@ -543,7 +543,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
       WHERE  k.fk_tp=u.id and k.lsk BETWEEN '' || lsk_ || '' AND '' || lsk_end_ || '';
 
     CURSOR cur_krt2 IS
-      SELECT k.k_lsk_id, k.lsk, k.reu, k.psch, nvl(k.sch_el, 0) AS sch_el, k.schel_dt, k.schel_end, nvl(k.opl,
+      SELECT k.k_lsk_id, k.lsk, k.house_id, k.reu, k.psch, nvl(k.sch_el, 0) AS sch_el, k.schel_dt, k.schel_end, nvl(k.opl,
                   0) AS opl, nvl(k.mhw, 0) AS mhw, nvl(k.mgw, 0) AS mgw, nvl(k.mel,
                   0) AS mel, k.kran, k.kran1, k.kan_sch, k.el, k.el1, k.subs_cor, k.subs_cur, k.subs_inf, k.eksub1, k.eksub2, k.sgku, k.doppl, k.status, decode(k.komn,
                      NULL,
@@ -557,7 +557,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
 
 
     CURSOR cur_krt3 IS
-      SELECT k.k_lsk_id, k.lsk, k.reu, k.psch, nvl(k.sch_el, 0) AS sch_el, k.schel_dt, k.schel_end, nvl(k.opl,
+      SELECT k.k_lsk_id, k.lsk, k.house_id, k.reu, k.psch, nvl(k.sch_el, 0) AS sch_el, k.schel_dt, k.schel_end, nvl(k.opl,
                   0) AS opl, nvl(k.mhw, 0) AS mhw, nvl(k.mgw, 0) AS mgw, nvl(k.mel,
                   0) AS mel, k.kran, k.kran1, k.kan_sch, k.el, k.el1, k.subs_cor, k.subs_cur, k.subs_inf, k.eksub1, k.eksub2, k.sgku, k.doppl, k.status, decode(k.komn,
                      NULL,
@@ -571,7 +571,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
 
 
     CURSOR cur_krt4 IS
-      SELECT k.k_lsk_id, k.lsk, k.reu, k.psch, nvl(k.sch_el, 0) AS sch_el, k.schel_dt, k.schel_end, nvl(k.opl,
+      SELECT k.k_lsk_id, k.lsk, k.house_id, k.reu, k.psch, nvl(k.sch_el, 0) AS sch_el, k.schel_dt, k.schel_end, nvl(k.opl,
                   0) AS opl, nvl(k.mhw, 0) AS mhw, nvl(k.mgw, 0) AS mgw, nvl(k.mel,
                   0) AS mel, k.kran, k.kran1, k.kan_sch, k.el, k.el1, k.subs_cor, k.subs_cur, k.subs_inf, k.eksub1, k.eksub2, k.sgku, k.doppl, k.status, decode(k.komn,
                      NULL,
@@ -584,7 +584,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
        where k.fk_tp=u.id;
 
     CURSOR cur_krt5 IS
-      SELECT k.k_lsk_id, k.lsk, k.reu, k.psch, nvl(k.sch_el, 0) AS sch_el, k.schel_dt, k.schel_end, nvl(k.opl,
+      SELECT k.k_lsk_id, k.lsk, k.house_id, k.reu, k.psch, nvl(k.sch_el, 0) AS sch_el, k.schel_dt, k.schel_end, nvl(k.opl,
                   0) AS opl, nvl(k.mhw, 0) AS mhw, nvl(k.mgw, 0) AS mgw, nvl(k.mel,
                   0) AS mel, k.kran, k.kran1, k.kan_sch, k.el, k.el1, k.subs_cor, k.subs_cur, k.subs_inf, k.eksub1, k.eksub2, k.sgku, k.doppl, k.status, decode(k.komn,
                      NULL,
@@ -821,6 +821,11 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
         where d.id=n.fk_vvod and u.cd=p_usl_cd
         and n.lsk=rec_krt.lsk and n.usl=u.usl;
 
+    --вернуть тип распределения по вводу, по услуге
+    cursor cur_vvod_tp2(p_usl_cd in varchar2) is
+      select d.dist_tp from c_vvod d, usl u   
+        where d.usl=u.usl and u.cd=p_usl_cd and d.house_id=rec_krt.house_id;
+
     --кол-во прожив. для расчета соцнормы,
     --объем по нормативу,
     --объем по счетчику,
@@ -1038,10 +1043,9 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
     l_tmp_vol number;    
     -- доля наличия норматива по услуге (для повыш коэфф)
     l_proc_nrm number;
-    
-    -- коллекция для округления по текущему содержанию для ГИС ЖКХ
-    --t_usl_round tab_usl_round;
-    
+    -- начисление на Java?
+    l_Java_Charge number;
+    l_klsk_id number;
 
   PROCEDURE ins_chrg2(p_vol   IN NUMBER,   --объем
                       p_cena     IN NUMBER,--цена
@@ -1130,11 +1134,25 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
     END IF;
   END ins_chrg;
 
-
   BEGIN
     -- НАЧАЛО расчета
-    --t_usl_round := tab_usl_round();
-    
+    l_Java_Charge := utils.get_int_param('JAVA_CHARGE');
+    if l_Java_Charge=1 then 
+      -- вызов Java начисления
+      if lsk_ is not null then
+        select k.k_lsk_id into l_klsk_id from kart k where k.lsk=lsk_;
+      end if;
+      p_java.gen(p_tp        => 0,
+                 p_house_id  => house_id_,
+                 p_vvod_id   => p_vvod,
+                 p_reu_id    => null,
+                 p_usl_id    => null,
+                 p_klsk_id   => l_klsk_id,
+                 p_debug_lvl => 0,
+                 p_gen_dt    => init.get_date,
+                 p_stop      => 0);
+      return 0;  
+    end if;
     is_round_charge_ := utils.get_int_param('IS_ROUND_CHARGE');
     OPEN cur_memof;
     FETCH cur_memof
@@ -2276,6 +2294,26 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
                   ins_chrg2(c.vol_nrm * rec_wo_peop.tarnorm, rec_wo_peop.cena, null, usl_, c.sch, c.kpr, c.kprz, c.kpro, null);
                 end if;
               end loop;
+            end loop;
+          END IF;
+          --||||||||||||||||||||||||||||||||||||||--
+          --||||||||||||||||||||||||||||||||||||||--
+          --УСЛУГА ПО ПОВЫШАЮЩИМ КОЭФФ. К НОРМАТИВАМ ПО П.344. (Общая площадь * коэфф, там где c_vvod.dist_tp=4) с 01.02.2019 (Кис.)
+          IF rec_nabor.chrg1 <> 0 AND rec_nabor.fk_calc_tp IN (50) THEN --#50#
+            OPEN cur_wo_peop(null);
+            FETCH cur_wo_peop
+              INTO rec_wo_peop;
+            CLOSE cur_wo_peop;
+          --интересует только ОТСУТСТВИЕ счетчика на ДОМЕ с возможностью его установки
+          --ВНИМАНИЕ! по этой услуге, в nabor.norm находится КОЭФФ к потреблённому расходу родительской услуги!
+            select decode(rec_nabor.usl_cd, 'ХВС_одн_доб', 'х.вода', 'ГВС_одн_доб', 'г.вода', 'ЭЛ_одн_доб', 'эл.энерг.2', 'эл.эн.учет УО', null) into l_str from dual;
+            for c2 in cur_vvod_tp2(l_str)
+            loop
+            if rec_nabor.usl_cd = 'ХВС_одн_доб' and c2.dist_tp=4 or 
+               rec_nabor.usl_cd = 'ГВС_одн_доб' and c2.dist_tp=4 or
+               rec_nabor.usl_cd = 'ЭЛ_одн_доб' and c2.dist_tp=4 then
+              ins_chrg2(rec_krt.opl * rec_wo_peop.tarnorm, rec_wo_peop.cena, null, usl_, 0, 0, 0, 0, null);
+            end if;
             end loop;
           END IF;
           --||||||||||||||||||||||||||||||||||||||--

@@ -1,10 +1,10 @@
---------------------------------------------
--- Export file for user SCOTT@ORCL        --
--- Created by Leo on 20.07.2018, 11:27:22 --
---------------------------------------------
+-------------------------------------------
+-- Export file for user SCOTT@ORCL       --
+-- Created by Leo on 13.03.2019, 9:58:51 --
+-------------------------------------------
 
 set define off
-spool test.log
+spool 1.log
 
 prompt
 prompt Creating table ARCH_CHANGES
@@ -557,15 +557,25 @@ prompt =========================
 prompt
 @@kmp_houses.tab
 prompt
+prompt Creating table KMP_KART
+prompt =======================
+prompt
+@@kmp_kart.tab
+prompt
 prompt Creating table KMP_LSK
 prompt ======================
 prompt
 @@kmp_lsk.tab
 prompt
-prompt Creating table KWTP
-prompt ===================
+prompt Creating table KMP_LSK3
+prompt =======================
 prompt
-@@kwtp.tab
+@@kmp_lsk3.tab
+prompt
+prompt Creating table KMP_LSK4
+prompt =======================
+prompt
+@@kmp_lsk4.tab
 prompt
 prompt Creating table KWTP_DAY
 prompt =======================
@@ -711,6 +721,11 @@ prompt Creating table LOG_ERR
 prompt ======================
 prompt
 @@log_err.tab
+prompt
+prompt Creating table LOG_VERSION
+prompt ==========================
+prompt
+@@log_version.tab
 prompt
 prompt Creating table LONG_TABLE
 prompt =========================
@@ -1052,6 +1067,21 @@ prompt ==================
 prompt
 @@swx.tab
 prompt
+prompt Creating table SYS_IMPORT_FULL_01
+prompt =================================
+prompt
+@@sys_import_full_01.tab
+prompt
+prompt Creating table SYS_IMPORT_FULL_02
+prompt =================================
+prompt
+@@sys_import_full_02.tab
+prompt
+prompt Creating table SYS_IMPORT_TABLE_01
+prompt ==================================
+prompt
+@@sys_import_table_01.tab
+prompt
 prompt Creating table S_TREST2
 prompt =======================
 prompt
@@ -1151,6 +1181,11 @@ prompt Creating table TEMP_STAT3
 prompt =========================
 prompt
 @@temp_stat3.tab
+prompt
+prompt Creating table TEXT_IMPORT
+prompt ==========================
+prompt
+@@text_import.tab
 prompt
 prompt Creating table TMP
 prompt ==================
@@ -1331,6 +1366,11 @@ prompt Creating table USL_ROUND
 prompt ========================
 prompt
 @@usl_round.tab
+prompt
+prompt Creating table USL_TREE
+prompt =======================
+prompt
+@@usl_tree.tab
 prompt
 prompt Creating table VARIANT_XXITO10
 prompt ==============================
@@ -1607,6 +1647,11 @@ prompt ========================
 prompt
 @@log_id.seq
 prompt
+prompt Creating sequence LOG_VERSION_ID
+prompt ================================
+prompt
+@@log_version_id.seq
+prompt
 prompt Creating sequence MESSAGES_ID
 prompt =============================
 prompt
@@ -1661,6 +1706,11 @@ prompt Creating sequence PREP_SAL_ID
 prompt =============================
 prompt
 @@prep_sal_id.seq
+prompt
+prompt Creating sequence PRICES_ID
+prompt ===========================
+prompt
+@@prices_id.seq
 prompt
 prompt Creating sequence REDIR_PAY_ID
 prompt ==============================
@@ -2097,6 +2147,11 @@ prompt ====================
 prompt
 @@v_kart.vw
 prompt
+prompt Creating view V_KART2
+prompt =====================
+prompt
+@@v_kart2.vw
+prompt
 prompt Creating view V_KART_SUBS
 prompt =========================
 prompt
@@ -2272,11 +2327,6 @@ prompt ===========================
 prompt
 @@c_dist_pay.spc
 prompt
-prompt Creating package C_DIST_PAY2
-prompt ============================
-prompt
-@@c_dist_pay2.spc
-prompt
 prompt Creating package C_EXP_LIST
 prompt ===========================
 prompt
@@ -2286,11 +2336,6 @@ prompt Creating package C_GEN_PAY
 prompt ==========================
 prompt
 @@c_gen_pay.spc
-prompt
-prompt Creating package C_GEN_PAY2
-prompt ===========================
-prompt
-@@c_gen_pay2.spc
 prompt
 prompt Creating package C_GET_PAY
 prompt ==========================
@@ -2352,6 +2397,11 @@ prompt ====================
 prompt
 @@gen.spc
 prompt
+prompt Creating package GEN2
+prompt =====================
+prompt
+@@gen2.spc
+prompt
 prompt Creating package GENERATOR
 prompt ==========================
 prompt
@@ -2366,6 +2416,11 @@ prompt Creating package GEN_STAT
 prompt =========================
 prompt
 @@gen_stat.spc
+prompt
+prompt Creating package GEN_STAT2
+prompt ==========================
+prompt
+@@gen_stat2.spc
 prompt
 prompt Creating package LOGGER
 prompt =======================
@@ -2396,6 +2451,41 @@ prompt Creating package REP_BILLS
 prompt ==========================
 prompt
 @@rep_bills.spc
+prompt
+prompt Creating type REC_BILL_DETAIL
+prompt =============================
+prompt
+@@rec_bill_detail.tps
+prompt
+prompt Creating type TAB_BILL_DETAIL
+prompt =============================
+prompt
+@@tab_bill_detail.tps
+prompt
+prompt Creating package REP_BILLS_COMPOUND
+prompt ===================================
+prompt
+@@rep_bills_compound.spc
+prompt
+prompt Creating package REP_BILLS_COMPOUND2
+prompt ====================================
+prompt
+@@rep_bills_compound2.spc
+prompt
+prompt Creating type REC_BILL_ROW
+prompt ==========================
+prompt
+@@rec_bill_row.tps
+prompt
+prompt Creating type TAB_BILL_ROW
+prompt ==========================
+prompt
+@@tab_bill_row.tps
+prompt
+prompt Creating package REP_BILLS_EXT
+prompt ==============================
+prompt
+@@rep_bills_ext.spc
 prompt
 prompt Creating package REP_CHARGES
 prompt ============================
@@ -2442,6 +2532,11 @@ prompt =========================
 prompt
 @@scripts2.spc
 prompt
+prompt Creating package SCRIPTS3
+prompt =========================
+prompt
+@@scripts3.spc
+prompt
 prompt Creating package SCRIPTS_MIGRATION
 prompt ==================================
 prompt
@@ -2461,6 +2556,11 @@ prompt Creating package UTILS
 prompt ======================
 prompt
 @@utils.spc
+prompt
+prompt Creating package UTILS2
+prompt =======================
+prompt
+@@utils2.spc
 prompt
 prompt Creating type REC_BILLS
 prompt =======================
@@ -3237,11 +3337,6 @@ prompt ================================
 prompt
 @@c_dist_pay.bdy
 prompt
-prompt Creating package body C_DIST_PAY2
-prompt =================================
-prompt
-@@c_dist_pay2.bdy
-prompt
 prompt Creating package body C_EXP_LIST
 prompt ================================
 prompt
@@ -3251,11 +3346,6 @@ prompt Creating package body C_GEN_PAY
 prompt ===============================
 prompt
 @@c_gen_pay.bdy
-prompt
-prompt Creating package body C_GEN_PAY2
-prompt ================================
-prompt
-@@c_gen_pay2.bdy
 prompt
 prompt Creating package body C_GET_PAY
 prompt ===============================
@@ -3307,6 +3397,11 @@ prompt =========================
 prompt
 @@gen.bdy
 prompt
+prompt Creating package body GEN2
+prompt ==========================
+prompt
+@@gen2.bdy
+prompt
 prompt Creating package body GENERATOR
 prompt ===============================
 prompt
@@ -3316,6 +3411,11 @@ prompt Creating package body GEN_STAT
 prompt ==============================
 prompt
 @@gen_stat.bdy
+prompt
+prompt Creating package body GEN_STAT2
+prompt ===============================
+prompt
+@@gen_stat2.bdy
 prompt
 prompt Creating package body INIT
 prompt ==========================
@@ -3357,6 +3457,21 @@ prompt ===============================
 prompt
 @@rep_bills.bdy
 prompt
+prompt Creating package body REP_BILLS_COMPOUND
+prompt ========================================
+prompt
+@@rep_bills_compound.bdy
+prompt
+prompt Creating package body REP_BILLS_COMPOUND2
+prompt =========================================
+prompt
+@@rep_bills_compound2.bdy
+prompt
+prompt Creating package body REP_BILLS_EXT
+prompt ===================================
+prompt
+@@rep_bills_ext.bdy
+prompt
 prompt Creating package body REP_CHARGES
 prompt =================================
 prompt
@@ -3392,6 +3507,11 @@ prompt ==============================
 prompt
 @@scripts2.bdy
 prompt
+prompt Creating package body SCRIPTS3
+prompt ==============================
+prompt
+@@scripts3.bdy
+prompt
 prompt Creating package body SCRIPTS_MIGRATION
 prompt =======================================
 prompt
@@ -3411,6 +3531,11 @@ prompt Creating package body UTILS
 prompt ===========================
 prompt
 @@utils.bdy
+prompt
+prompt Creating package body UTILS2
+prompt ============================
+prompt
+@@utils2.bdy
 prompt
 prompt Creating trigger A_CHARGE2_BIE
 prompt ==============================
@@ -3451,6 +3576,11 @@ prompt Creating trigger C_CHARGE_BI
 prompt ============================
 prompt
 @@c_charge_bi.trg
+prompt
+prompt Creating trigger C_CHARGE_PREP_BIE
+prompt ==================================
+prompt
+@@c_charge_prep_bie.trg
 prompt
 prompt Creating trigger C_DEB_OPER_BIE
 prompt ===============================
@@ -3821,6 +3951,11 @@ prompt Creating trigger PREP_SAL_BIE
 prompt =============================
 prompt
 @@prep_sal_bie.trg
+prompt
+prompt Creating trigger PRICES_BI_E
+prompt ============================
+prompt
+@@prices_bi_e.trg
 prompt
 prompt Creating trigger REDIR_PAY_BIUD_E
 prompt =================================

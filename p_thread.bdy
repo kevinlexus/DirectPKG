@@ -133,8 +133,8 @@ function smpl_chk (p_var in number) return number is
          having count(*)>1
          group by a.house_id);
   elsif p_var=5 then
-    --список домов в разных УК, по которым обнаружены открытые лицевые счета      
-      insert into prep_err (lsk, text)           
+    --список домов в разных УК, по которым обнаружены открытые лицевые счета - ред.19.02.2019 - отменил проверку, дом может быть в разных УК      
+     /* insert into prep_err (lsk, text)           
       select null as lsk, 'kul='||t.kul||' nd='||t.nd||' cnt='||count(*)
       ||' Дом в разных УК, по которому обнаружены открытые лицевые счета' from (
       select k.reu, k.kul, k.nd from kart k, v_lsk_tp tp
@@ -152,7 +152,8 @@ function smpl_chk (p_var in number) return number is
       ) t 
       group by t.kul,t.nd
       having count(*)>1
-      ;
+      ;*/
+      null;
   end if;
   if sql%rowcount > 0 then
     return 1; --есть ошибки

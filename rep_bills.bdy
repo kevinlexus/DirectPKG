@@ -1340,7 +1340,7 @@ begin
     --старый вариант, здесь по p_k_lsk_id
     open p_rfcur for
       select * from (
-      select k.lsk, k.psch, s.name||', '||ltrim(k.nd,'0')||', '||ltrim(k.kw,'0') as adr, k.fio, s.name, k.mg,
+      select substr(tp.name,1,3)||'-'||k.lsk as lsk, k.psch, s.name||', '||ltrim(k.nd,'0')||', '||ltrim(k.kw,'0') as adr, k.fio, s.name, k.mg,
        substr(k.mg,1,4)||'-'||substr(k.mg,5,2) as mg2,
        scott.utils.MONTH_NAME(substr(k.mg,5,2))||' '||substr(k.mg,1,4)||' г.' as mg_name,
                b.summa as charge,
@@ -1359,19 +1359,21 @@ begin
                d.days,
                p.period,
         scott.init.get_fio as fio_kass
-          from (select k1.psch, k1.lsk, k1.c_lsk_id, k1.k_lsk_id, k1.kul, k1.nd, k1.kw, first_value(k1.fio)
+          from (select k1.psch, k1.fk_tp, k1.lsk, k1.c_lsk_id, k1.k_lsk_id, k1.kul, k1.nd, k1.kw, first_value(k1.fio)
              over (order by decode(psch,8,0,1) desc) as fio, a.mg
                 from scott.kart k1, scott.long_table a
-                where k1.k_lsk_id=p_k_lsk_id) k, scott.spul s,  scott.params p,
+                where k1.k_lsk_id=p_k_lsk_id) k, scott.spul s, scott.params p,
                (select c.lsk, c.mg, sum(c.summa) as summa
                   from scott.c_chargepay c, scott.kart k2
                  where period = (select period from scott.params)
-                   and type = 0 and k2.lsk=c.lsk and  k2.k_lsk_id=p_k_lsk_id
+                   and type = 0 and k2.lsk=c.lsk and k2.k_lsk_id=p_k_lsk_id
                  group by c.lsk, c.mg) b,
-                 scott.c_penya d
+                 v_lsk_tp tp,
+                 c_penya d
          where k.lsk=d.lsk(+) and k.mg=d.mg1(+)
             and k.lsk=b.lsk(+) and k.mg=b.mg(+)
         and k.kul=s.id
+        and k.fk_tp=tp.id
       ) t where t.dolg <> 0 or t.penya >0 or (t.mg = t.period and t.dolg <>0 and t.psch <> 8)
       order by t.mg;
   end if;
