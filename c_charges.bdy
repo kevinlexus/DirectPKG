@@ -1026,6 +1026,8 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
     l_sign number;
     --временна€ переменна€
     l_str varchar2(128);
+    -- дл€ хранени€ ненужных данных)))
+    l_dummy number;
     
     --дл€ сохранени€ признака распределени€ c_vvod.dist_tp по родительской услуге, дл€ использовани€ в доначислении по ќƒЌ
 /*    l_hw_dist_tp c_vvod.dist_tp%type;
@@ -1142,7 +1144,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
       if lsk_ is not null then
         select k.k_lsk_id into l_klsk_id from kart k where k.lsk=lsk_;
       end if;
-      p_java.gen(p_tp        => 0,
+      l_dummy:=p_java.gen(p_tp        => 0,
                  p_house_id  => house_id_,
                  p_vvod_id   => p_vvod,
                  p_reu_id    => null,

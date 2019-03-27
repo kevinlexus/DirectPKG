@@ -29,14 +29,4 @@ create index SCOTT.DEB_KW_REU_KUL_ND on SCOTT.DEBITS_KW (DAT, REU, KUL, ND)
     initial 64K
   )
   nologging;
-create index SCOTT.TEST on SCOTT.DEBITS_KW (LSK)
-  tablespace USERS
-  pctfree 10
-  initrans 2
-  maxtrans 255
-  storage
-  (
-    initial 64K
-  )
-  nologging;
 

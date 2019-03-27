@@ -199,6 +199,7 @@ create or replace package body scott.p_vvod is
     rec cur1%rowtype;
     -- распределение на Java?
     l_Java_Charge number;
+    l_dummy number;
   begin
 
     --распределение воды по вводу с поддержкой последней редакции 307 постановления от 06.05.11
@@ -216,7 +217,7 @@ create or replace package body scott.p_vvod is
     l_Java_Charge := utils.get_int_param('JAVA_CHARGE');
     if l_Java_Charge=1 then 
       -- вызов Java распределения
-      p_java.gen(p_tp        => 2,
+      l_dummy:=p_java.gen(p_tp        => 2,
                  p_house_id  => null,
                  p_vvod_id   => p_id,
                  p_reu_id    => null,

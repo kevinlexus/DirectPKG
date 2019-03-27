@@ -14,10 +14,7 @@ declare
   l_id number;
   l_cnt number;
   l_tp_cd u_list.cd%type;
-  l_write_for_trg number;
 begin
-
-   l_write_for_trg:=0;
 
    aud_text_:='';
 
@@ -43,7 +40,6 @@ begin
    --Аудит по прочим параметрам
    --общ.пл.
    if nvl(:new.opl,0) <> nvl(:old.opl,0) then
-    l_write_for_trg:=1;
     aud_text_:=aud_text_||logger.log_text('Общ.площадь.', :old.opl, :new.opl);
    end if;
    --Этаж
@@ -150,17 +146,14 @@ begin
 */
   --Аудит
   if :new.kw <> :old.kw then
-    l_write_for_trg:=1;
     aud_text_:=aud_text_||logger.log_text('№ квартиры', :old.kw, :new.kw);
   end if;
   if :new.kul <> :old.kul then
-    l_write_for_trg:=1;
     select s.name into street_txt_ from spul s where s.id=:old.kul;
     select s.name into street_txt2_ from spul s where s.id=:new.kul;
     aud_text_:=aud_text_||logger.log_text('Улица', street_txt_, street_txt2_);
   end if;
   if :new.nd <> :old.nd then
-    l_write_for_trg:=1;
     aud_text_:=aud_text_||logger.log_text('№ дома', :old.nd, :new.nd);
   end if;
 
@@ -182,8 +175,6 @@ begin
 */
    if :new.status <> :old.status then
     --записать лиц. для обновления статуса, в "дополнительном л/c"
-    l_write_for_trg:=1;
-
     select s.name into status_txt_ from status s where s.id=:old.status;
     select s.name into status_txt2_ from status s where s.id=:new.status;
     aud_text_:=aud_text_||logger.log_text('Статус', status_txt_, status_txt2_);
@@ -419,14 +410,6 @@ end if;
   if nvl(:new.k_fam,'x') <> nvl(:old.k_fam,'x') or nvl(:new.k_im,'x') <> nvl(:old.k_im,'x') or
     nvl(:new.k_ot,'x') <> nvl(:old.k_ot,'x') then
 
-    --записать лиц. для обновления ФИО, в "дополнительном л/c"
-    l_write_for_trg:=1;
-/*    select tp.cd into l_tp_cd from v_lsk_tp tp where tp.id=:new.fk_tp;
-    if l_tp_cd='LSK_TP_MAIN' and nvl(c_charges.trg_klsk_flag,0)=0 then
-      c_charges.trg_tab_klsk.extend;
-      c_charges.trg_tab_klsk(c_charges.trg_tab_klsk.last):= :new.k_lsk_id;
-    end if;  */
-
     aud_text_:=logger.log_text('Обновление Ф.И.О. квартиросъемщика:', :old.k_fam||' '||:old.k_im||' '||:old.k_ot,
      :new.k_fam||' '||:new.k_im||' '||:new.k_ot);
     logger.log_act(:new.lsk, 'Обновление л/c: '||:new.lsk||' '||aud_text_, 2);
@@ -436,14 +419,12 @@ end if;
   :new.k_ot:=initcap(:new.k_ot);
   :new.fio:=:new.k_fam||' '||:new.k_im||' '||:new.k_ot;
 
-  if l_write_for_trg=1 then
-    select tp.cd into l_tp_cd from v_lsk_tp tp where tp.id=:new.fk_tp;
-    if l_tp_cd='LSK_TP_MAIN' and nvl(c_charges.trg_klsk_flag,0)=0 then
-      c_charges.trg_tab_klsk.extend;
-      c_charges.trg_tab_klsk(c_charges.trg_tab_klsk.last):= :new.k_lsk_id;
-    end if;
+  --записать лиц. для обновления ФИО собственника, в "дополнительном л/c"
+  select tp.cd into l_tp_cd from v_lsk_tp tp where tp.id=:new.fk_tp;
+  if l_tp_cd='LSK_TP_MAIN' and nvl(c_charges.trg_klsk_flag,0)=0 then
+    c_charges.trg_tab_klsk.extend;
+    c_charges.trg_tab_klsk(c_charges.trg_tab_klsk.last):= :new.k_lsk_id;
   end if;
-
 
 end;
 /

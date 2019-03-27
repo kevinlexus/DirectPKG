@@ -586,19 +586,19 @@ procedure prep_users_tree is
  insert into t_sess(dat_create, fk_ses)
   values (sysdate, fk_ses_)
   returning id into init.g_session_id;
-  
+
  --подготовка домов для выбора пользователями
  -- удалить объекты сессии, старше 3 дней
  delete from tree_objects t
  where exists
   (select * from t_sess s where
     s.fk_ses=t.fk_user and s.dat_create < (sysdate-3));
- --удалить объекты, по которым нет сессий (бывает такое почему то)   
+ --удалить объекты, по которым нет сессий (бывает такое почему то)
  delete from tree_objects t
  where not exists
   (select * from t_sess s where
     s.fk_ses=t.fk_user);
- -- удалить сессии, старше 3 дней    
+ -- удалить сессии, старше 3 дней
  delete from t_sess t
  where t.dat_create < (sysdate-3);
 
@@ -725,7 +725,7 @@ if org_var_ = 0 and l_cd='LSK_TP_MAIN' then
      exception
        when no_data_found then
         if var_=1 then
-          update kart k set k.fk_err=1 where k.lsk=lsk_;
+          update kart k set k.fk_err=1 where k.lsk=lsk_ and k.psch not in (8,9);
         end if;
         return 'Отсутствуют периоды статусов счетчиков!';
      end;
@@ -735,7 +735,7 @@ if org_var_ = 0 and l_cd='LSK_TP_MAIN' then
    if cnt_ > 0 then
       --найден "пустой" период в статусах (надо чтобы все дни текущего периода были заполнены)
       if var_=1 then
-        update kart k set k.fk_err=1 where k.lsk=lsk_;
+        update kart k set k.fk_err=1 where k.lsk=lsk_ and k.psch not in (8,9);
       end if;
       return 'Дата последнего периода статуса счетика должна быть открытой!';
    end if;
@@ -750,7 +750,7 @@ if org_var_ = 0 and l_cd='LSK_TP_MAIN' then
    if cnt_ > 0 then
       --найден "пустой" период в статусах (надо чтобы все дни текущего периода были заполнены)
       if var_=1 then
-        update kart k set k.fk_err=1 where k.lsk=lsk_;
+        update kart k set k.fk_err=1 where k.lsk=lsk_ and k.psch not in (8,9);
       end if;
       return 'Период действия статуса не перекрывает все дни текущего месяца в статусах счетчиков!';
    end if;
@@ -769,7 +769,7 @@ if org_var_ = 0 and l_cd='LSK_TP_MAIN' then
    if cnt_ > 0 then
       --найден "пустой" период в статусах (надо чтобы все дни текущего периода были заполнены)
       if var_=1 then
-        update kart k set k.fk_err=1 where k.lsk=lsk_;
+        update kart k set k.fk_err=1 where k.lsk=lsk_ and k.psch not in (8,9);
       end if;
       return 'Дата последнего периода статуса прописки проживающего должна быть открытой!';
    end if;
@@ -788,11 +788,11 @@ if org_var_ = 0 and l_cd='LSK_TP_MAIN' then
         between nvl(c.dt1, to_date('01011900','DDMMYYYY'))
         and nvl(c.dt2, to_date('01012900','DDMMYYYY'))
     ));
-  end if;  
+  end if;
 
   if cnt_ > 0 then
     if var_=1 then
-      update kart k set k.fk_err=1 where k.lsk=lsk_;
+      update kart k set k.fk_err=1 where k.lsk=lsk_ and k.psch not in (8,9);
     end if;
     return 'Период действия статуса счетчиков пересекается с другим периодом!';
   end if;
@@ -823,7 +823,7 @@ if org_var_ = 0 and l_cd='LSK_TP_MAIN' then
     where k.lsk=lsk_
     and k.id=c.fk_kart_pr
     and exists
-    (select * from c_states_pr t 
+    (select * from c_states_pr t
         where t.fk_kart_pr=k.id and t.fk_status=c.fk_status
     and t.id <> c.id and
     (nvl(t.dt1, to_date('01011900','DDMMYYYY'))
@@ -987,28 +987,13 @@ procedure set_krt_adm (lsk_ in c_kart_pr.lsk%type) is
   fk_kart_pr_ c_states_pr.fk_kart_pr%type;
 begin
  --установить квартиросъемщика в лицевой счет
-/*     for c in (select max(p.id) as id, max(p.fio) as fio, count(*) as cnt
-                from c_kart_pr p, relations s
-               where p.relat_id = s.id
-                 and s.fk_relat_tp = 1
-                 and p.lsk=lsk_
-                 and exists
-                 (select * from c_states_pr c, u_list u, params m where  --найти квартиросъемщика, прописанного
-                  last_day(to_date(m.period||'01','YYYYMMDD')) --на последнюю дату месяца
-                  between nvl(c.dt1(+), to_date('01011900','DDMMYYYY')) and
-                          nvl(c.dt2(+), to_date('01012900','DDMMYYYY'))
-                         and c.fk_kart_pr=p.id
-                         and c.fk_status=1
-                         and u.cd='PROP'
-                         and c.fk_status=u.id
-                         )
-                 ) loop*/
 fk_kart_pr_:=null;
      for c in (select c.fk_kart_pr from c_states_pr c, c_status_pr pr, u_list u, params m where  --найти квартиросъемщика, прописанного
                   last_day(to_date(m.period||'01','YYYYMMDD')) --на последнюю дату месяца
                   between nvl(c.dt1(+), to_date('01011900','DDMMYYYY')) and
                           nvl(c.dt2(+), to_date('01012900','DDMMYYYY'))
-                         and c.fk_status = 1 --нельзя делать статус 5 (так как устанавливается квартиросъемщик, всё серъёзно)))
+                         and c.fk_status in (1,4) -- нельзя делать статус 5 (так как устанавливается квартиросъемщик, всё серъёзно))) - ред. давно!
+                                                  -- может быть выписанный (статус 4) ред. - 25.03.2019
                          and u.cd='PROP'
                          and c.fk_status=pr.id
                          and pr.fk_tp=u.id
@@ -1040,21 +1025,6 @@ fk_kart_pr_:=null;
    where k.lsk = lsk_;
    exit;
    end loop;
-
---уже не ругаемся, в квартире может быть не один квартиросъёмщик, ред 07.02.2012
---if fk_kart_pr_ is null then
---если не один в л.с. квартиросъемщик, то ругаемся
---raise_application_error(-20000,
---                          'В л/с может быть только один квартиросъёмщик!');
- --удалять нельзя!!!!! так как может быть квартиросъемщик, не прописанный!!!
--- удалили основного квартиросъемщика
-/* if fk_kart_pr_ is null then
-    update kart k
-       set k.k_fam = null,
-           k.k_im = null,
-           k.k_ot = null
-     where k.lsk = lsk_;
-  end if;*/
 end;
 
 procedure set_krt_adm2 (fk_kart_pr_ in c_kart_pr.id%type) is
@@ -1357,7 +1327,7 @@ if l_cnt > 0 then
   Raise_application_error(-20000, 'Найдены дубликаты поля usl.lpw!');
 end if;
 
-for c in (select trim(t.kartw) as kartw, trim(t.kwni) as kwni, trim(t.lpw) as lpw from usl t) 
+for c in (select trim(t.kartw) as kartw, trim(t.kwni) as kwni, trim(t.lpw) as lpw from usl t)
 loop
 begin
   execute immediate 'alter table EXPKARTW add '||c.kartw||' number(8,2)';
@@ -1385,10 +1355,10 @@ end;
 
 dbms_output.disable;
 
-end loop;  
+end loop;
 
 end;
-  
+
 -- удалить лиц.счет
 function del_lsk(lsk_ in kart.lsk%type) return varchar2 is
   l_mg params.period%type;
@@ -1901,23 +1871,23 @@ begin
       (select * from v_cur_days d where
         d.dat between nvl(t.dt1, to_date('01011900','DDMMYYYY'))
         and nvl(t.dt2, to_date('01012900','DDMMYYYY')));
-      
+
 return l_cnt;
 end;
 
  --обновление признака счетчика в карточке л/c
- procedure upd_krt_sch_state(lsk_ in kart.lsk%type) is 
+ procedure upd_krt_sch_state(lsk_ in kart.lsk%type) is
  time_ date;
  l_psch number;
  l_pschEl number;
   begin
-    
+
   --Raise_application_error(-20000, 'выыв');
-  
+
   time_:=sysdate;
   if lsk_ is not null then
     --по данному л.с. (из триггера)
-    if utils.get_int_param('VER_METER1') = 0 then 
+    if utils.get_int_param('VER_METER1') = 0 then
       -- старая версия
       update kart k set k.psch =
          (select max(t.fk_status)
@@ -1937,36 +1907,36 @@ end;
               and nvl(t.dt2, to_date('01012900','DDMMYYYY'))
           ) and
            k.lsk=lsk_;
-     else 
+     else
      --новая версия
-        for c2 in (select k.lsk from kart k where 
+        for c2 in (select k.lsk from kart k where
                         exists (select * from c_states_sch t where t.lsk=k.lsk) and
-                        k.lsk=lsk_) loop 
+                        k.lsk=lsk_) loop
           --найти статус счета
-          select nvl(max(t.fk_status),-1) into l_psch   
+          select nvl(max(t.fk_status),-1) into l_psch
             from c_states_sch t, params p where
                 t.lsk=c2.lsk
                 and last_day(to_date(p.period||'01','YYYYMMDD')) -- на последний день месяца
                 between nvl(t.dt1, to_date('01011900','DDMMYYYY'))
                 and nvl(t.dt2, to_date('01012900','DDMMYYYY'));
-          --установить статусы счетчика        
-          if l_psch in (8,9) then                      
+          --установить статусы счетчика
+          if l_psch in (8,9) then
             update kart k set k.psch=l_psch
               where k.lsk=c2.lsk and nvl(k.psch,0)<>nvl(l_psch,0);
-          elsif l_psch <> -1 then 
+          elsif l_psch <> -1 then
             --найти признаки счетчика
             l_psch:=p_meter.getpsch(c2.lsk);
             l_pschEl:=p_meter.getElpsch(c2.lsk);
             update kart k set k.psch=l_psch, k.sch_el=l_pschEl
               where k.lsk=c2.lsk and (nvl(k.psch,0)<>nvl(l_psch,0) or nvl(k.sch_el,0)<>nvl(l_pschEl,0));
           else
-            null; --ничего не делать со статусом, если не найден статус в c_states_sch     
-          end if;    
+            null; --ничего не делать со статусом, если не найден статус в c_states_sch
+          end if;
         end loop;
      end if;
   else
     --по всем л.с. (после перехода)
-    if utils.get_int_param('VER_METER1') = 0 then 
+    if utils.get_int_param('VER_METER1') = 0 then
       -- старая версия
       update kart k set k.psch =
          (select max(t.fk_status)
@@ -1985,30 +1955,30 @@ end;
               between nvl(t.dt1, to_date('01011900','DDMMYYYY'))
               and nvl(t.dt2, to_date('01012900','DDMMYYYY')));
      else
-     --новая версия 
-        for c2 in (select k.lsk from kart k where exists (select * from c_states_sch t where t.lsk=k.lsk)) loop 
+     --новая версия
+        for c2 in (select k.lsk from kart k where exists (select * from c_states_sch t where t.lsk=k.lsk)) loop
           --найти статус счета
-          select nvl(max(t.fk_status),-1) into l_psch   
+          select nvl(max(t.fk_status),-1) into l_psch
             from c_states_sch t, params p where
                 t.lsk=c2.lsk
                 and last_day(to_date(p.period||'01','YYYYMMDD')) -- на последний день месяца
                 between nvl(t.dt1, to_date('01011900','DDMMYYYY'))
                 and nvl(t.dt2, to_date('01012900','DDMMYYYY'));
-          --установить статусы счетчика        
-          if l_psch in (8,9) then                      
+          --установить статусы счетчика
+          if l_psch in (8,9) then
             update kart k set k.psch=l_psch
               where k.lsk=c2.lsk and nvl(k.psch,0)<>nvl(l_psch,0);
-          elsif l_psch <> -1 then 
+          elsif l_psch <> -1 then
             --найти признаки счетчика
             l_psch:=p_meter.getpsch(c2.lsk);
             l_pschEl:=p_meter.getElpsch(c2.lsk);
             update kart k set k.psch=l_psch
               where k.lsk=c2.lsk and (nvl(k.psch,0)<>nvl(l_psch,0) or nvl(k.sch_el,0)<>nvl(l_pschEl,0));
           else
-            null; --ничего не делать со статусом, если не найден статус в c_states_sch     
-          end if;    
+            null; --ничего не делать со статусом, если не найден статус в c_states_sch
+          end if;
         end loop;
-     end if;         
+     end if;
      logger.log_(time_, 'gen.upd_krt_sch_state');
   end if;
   end;
@@ -2100,7 +2070,7 @@ end;
 
 /*
  --заменено на функцию в ext_pkg.is_lst, ред.27.08.14
- 
+
 function is_lst_day(p_days in number) return number is
   l_mg params.period%type;
 begin

@@ -1,7 +1,7 @@
 create sequence SCOTT.LIST_C_ID
 minvalue 1
 maxvalue 999999999999999999999999999
-start with 847879
+start with 855019
 increment by 1
 cache 20;
 

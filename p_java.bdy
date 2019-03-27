@@ -38,7 +38,7 @@ end;
      * @param p_debug_Lvl - уровень отладки 0, null - не записивать в лог отладочную информацию, 1 - записывать
      * @param genDt   - дата на которую сформировать
      * @param stop     - 1 - остановить выполнение текущей операции с типом tp*/
-procedure gen(
+function gen(
   p_tp in number, 
   p_house_id in number,
   p_vvod_id in number,
@@ -48,7 +48,7 @@ procedure gen(
   p_debug_lvl in number,
   p_gen_dt in date, 
   p_stop in number
-  ) is
+  ) return number is
   l_ret varchar2(1000);
   l_req varchar2(1000); 
 begin
@@ -72,8 +72,11 @@ begin
     ||'&genDt='||to_char(p_gen_dt,'DD.MM.YYYY')
     ||'&stop='||p_stop
     );
-  if substr(l_ret,1,2) <> 'OK' then
-    Raise_application_error(-20000, 'Ошибка при вызове Java функции: '||l_ret );
+  if substr(l_ret,1,2) = 'OK' then
+     -- вернуть ОК + объем, который может быть начислен при выполнении операции с типом tp=4
+     return substr(l_ret,4,24);
+    else
+      Raise_application_error(-20000, 'Ошибка при вызове Java функции: '||l_ret );
   end if;
 end;
 

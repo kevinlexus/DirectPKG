@@ -4,7 +4,8 @@ create table SCOTT.SPR_SERVICES
   mg          CHAR(6) not null,
   mg1         CHAR(6) not null,
   fk_sch_type NUMBER,
-  tp          NUMBER
+  tp          NUMBER,
+  npp         NUMBER
 )
 tablespace USERS
   pctfree 10
@@ -29,5 +30,7 @@ comment on column SCOTT.SPR_SERVICES.mg1
 comment on column SCOTT.SPR_SERVICES.fk_sch_type
   is 'формат счета (0-обычный счет, 4- счет для УСЗН)';
 comment on column SCOTT.SPR_SERVICES.tp
-  is 'Вариант счета (0-обычный счет, 1-с использованием детализации detail2';
+  is 'Вариант счета (0-обычный счет, 1-с использованием детализации detail2)';
+comment on column SCOTT.SPR_SERVICES.npp
+  is '№ п.п (после MG-MG1)';
 

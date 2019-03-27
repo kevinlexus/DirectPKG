@@ -4,7 +4,7 @@ CREATE OR REPLACE TRIGGER SCOTT.t_housexlist_bie
 declare
 begin
   if :new.id is null then
-    select scott.u_list_id.nextval into :new.id from dual;
+    select scott.t_housexlist_id.nextval into :new.id from dual;
   end if;
 end t_housexlist_bie;
 /

@@ -1278,39 +1278,21 @@ begin
       return 1; --формат лиц.счета не соответствует требованиям
   end;
     
-  --выполнить проверку на наличие открытого дополнительного счета в данном УК - не надо проверять, возможно наличие таких лс
-/*  select count(*) into l_cnt from kart k, params p, v_lsk_tp tp
-   where k.fk_tp=tp.id and p.period between k.mg1 and k.mg2
-   and k.k_lsk_id=l_klsk and k.psch not in (8,9)
-   and tp.cd=p_lsk_tp and k.reu=p_reu;
-  if l_cnt > 0 then
-     rollback;
-     return 4; 
---   Raise_application_error(-20000, 'По данному лиц.счету уже существует дополнительный'||l_klsk);
-  end if;
-  */
-  
   insert into kart k (lsk, reu, kul, nd, kw, k_fam, k_im, k_ot, psch, 
     status, kfg, kfot, house_id, k_lsk_id, c_lsk_id, mg1, mg2, fk_tp, kpr, kpr_wr, 
      kpr_ot, opl)
   select l_lsk, l_reu, k.kul, k.nd, k.kw, k.k_fam, k.k_im, k.k_ot,
     k.psch, k.status, 2 as kfg, 2 as kfot, k.house_id, k.k_lsk_id, k.c_lsk_id, 
-    p.period as mg1, '999999' as mg2, tp.id as fk_tp, 0 as kpr, 0 as kpr_wr,
-     0 as kpr_ot, k.opl
+    p.period as mg1, '999999' as mg2, tp.id as fk_tp, k.kpr as kpr, k.kpr_wr as kpr_wr,
+     k.kpr_ot as kpr_ot, k.opl
     from kart k, params p, v_lsk_tp tp
     where k.lsk=p_lsk
     and tp.cd=p_lsk_tp;
   if sql%rowcount=0 then
      rollback;
      return 3; 
---   Raise_application_error(-20000, 'Добавление произошло неудачно, лиц.счет не добавлен!');
   end if;   
 
-  --обновить квартиросъемщика
---  update kart k set k.fio=(select t.fio from kart t where t.lsk=p_lsk)
---    where k.lsk=l_lsk;
-
---ВРЕМЯНКА!!! (hard code org=xxx and koeff!)
   if p_lsk_tp='LSK_TP_ADDIT' then
     begin
     insert into nabor

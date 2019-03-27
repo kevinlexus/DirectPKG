@@ -1,6 +1,6 @@
 -------------------------------------------
 -- Export file for user SCOTT@ORCL       --
--- Created by Leo on 13.03.2019, 9:58:51 --
+-- Created by Leo on 27.03.2019, 4:34:47 --
 -------------------------------------------
 
 set define off
@@ -1816,6 +1816,16 @@ prompt Creating sequence T_EXT_ID
 prompt ==========================
 prompt
 @@t_ext_id.seq
+prompt
+prompt Creating sequence T_HOUSEXLIST_ID
+prompt =================================
+prompt
+@@t_housexlist_id.seq
+prompt
+prompt Creating sequence T_OBJXPAR_ID
+prompt ==============================
+prompt
+@@t_objxpar_id.seq
 prompt
 prompt Creating sequence T_OBJ_DET_ID
 prompt ==============================
@@ -3901,6 +3911,11 @@ prompt Creating trigger NABOR_PROGS_BI
 prompt ===============================
 prompt
 @@nabor_progs_bi.trg
+prompt
+prompt Creating trigger NABOR_TESTPOLIS_BID_E
+prompt ======================================
+prompt
+@@nabor_testpolis_bid_e.trg
 prompt
 prompt Creating trigger ON_LOGON
 prompt =========================
