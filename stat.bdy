@@ -1015,6 +1015,8 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
    kpr1_:=utils.getS_int_param('REP_RNG_KPR1');
    kpr2_:=utils.getS_int_param('REP_RNG_KPR2');
    n1_:=utils.getS_list_param('REP_DEB_VAR');
+   l_sel_id:=utils.getS_list_param('REP_TP_SCH_SEL');
+   
    if n1_=0 then
      n2_:=utils.getS_int_param('REP_DEB_MONTH');
      else
@@ -1022,113 +1024,117 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
    end if;
 
    if var_ = 3 then
-    --По дому
+    --По дому ред.09.04.2019 Долги в совокупности! (debits_lsk_month.var=0)
    open prep_refcursor for
-   'select s.lsk, DECODE(k.psch,9,''Закрытые Л/С'', 8,''Старый фонд'', ''Открытые Л/С'') AS psch,
+   select s.lsk, DECODE(k.psch,9,'Закрытые Л/С', 8,'Старый фонд', 'Открытые Л/С') AS psch,
     t.name_tr, t.name_reu,
-    trim(s.name) as street,  ltrim(s.nd,''0'') as nd, ltrim(s.kw,''0'') as kw,
-    trim(s.name)||'', ''||ltrim(s.nd,''0'')||''-''||ltrim(s.kw,''0'') as adr, s.fio,
-    case when :cur_pay_=1 then s.cnt_month
+    trim(s.name) as street,  ltrim(s.nd,'0') as nd, ltrim(s.kw,'0') as kw,
+    trim(s.name)||', '||ltrim(s.nd,'0')||'-'||ltrim(s.kw,'0') as adr, s.fio,
+    case when cur_pay_=1 then s.cnt_month
       else s.cnt_month2 end as cnt_month,
-    case when :cur_pay_=1 then s.dolg
+    case when cur_pay_=1 then s.dolg
       else s.dolg2 end as dolg, g.name as deb_org, s.penya, s.nachisl, s.payment, s.dat,
       a.name as st_name
     from kart k, debits_lsk_month s, s_reu_trest t, t_org g, status a
-    where k.lsk=s.lsk and s.status=a.id and s.reu=t.reu and s.reu=:reu and s.kul=:kul and s.nd=:nd and  '||sqlstr_||'
+    where decode(l_sel_id,0,0,1)=s.var and decode(l_sel_id,0,k.fk_tp,l_sel_id)=k.fk_tp-- либо совокупно по помещению, либо по конкретному типу лс
+    and k.lsk=s.lsk and s.status=a.id and s.reu=t.reu and s.reu=reu_ and s.kul=kul_ and s.nd=nd_ and s.mg between mg_ and mg1_
     and s.fk_deb_org=g.id(+)
-    and ((:cur_pay_=1 and s.cnt_month > 0) or
-    (:cur_pay_=0 and s.cnt_month2 > 0))
+    and ((cur_pay_=1 and s.cnt_month > 0) or
+    (cur_pay_=0 and s.cnt_month2 > 0))
     and exists
     (select * from kart k where k.lsk=s.lsk
-      and (:kpr1_ is not null and k.kpr >=:kpr1_ or :kpr1_ is null)
-    and (:kpr2_ is not null and k.kpr <=:kpr2_ or :kpr2_ is null))
+      and (kpr1_ is not null and k.kpr >=kpr1_ or kpr1_ is null)
+    and (kpr2_ is not null and k.kpr <=kpr2_ or kpr2_ is null))
     and
-    ((:n1_=0 and s.cnt_month >= :n2_) or
-    (:n1_=1 and s.dolg >= :n2_))
-    order by s.name, utils.f_order(s.nd,6), utils.f_order(s.kw,7)'
-    using cur_pay_, cur_pay_, reu_, kul_, nd_, cur_pay_, cur_pay_,
-    kpr1_, kpr1_, kpr1_, kpr2_, kpr2_, kpr2_, n1_, n2_, n1_, n2_;
+    ((n1_=0 and s.cnt_month >= n2_) or
+    (n1_=1 and s.dolg >= n2_))
+    order by s.name, utils.f_order(s.nd,6), utils.f_order(s.kw,7);
+--    using cur_pay_, cur_pay_, reu_, kul_, nd_, cur_pay_, cur_pay_,
+--    kpr1_, kpr1_, kpr1_, kpr2_, kpr2_, kpr2_, n1_, n2_, n1_, n2_;
    elsif var_ = 2 then
-    --По ЖЭО
+    --По ЖЭО ред.09.04.2019
    open prep_refcursor for
-   'select s.lsk, DECODE(k.psch,9,''Закрытые Л/С'', 8,''Старый фонд'', ''Открытые Л/С'') AS psch,
+   select s.lsk, DECODE(k.psch,9,'Закрытые Л/С', 8,'Старый фонд', 'Открытые Л/С') AS psch,
     t.name_tr, t.name_reu,
-    trim(s.name) as street,  ltrim(s.nd,''0'') as nd, ltrim(s.kw,''0'') as kw,
-    trim(s.name)||'', ''||ltrim(s.nd,''0'')||''-''||ltrim(s.kw,''0'') as adr, s.fio,
-    case when :cur_pay_=1 then s.cnt_month
+    trim(s.name) as street,  ltrim(s.nd,'0') as nd, ltrim(s.kw,'0') as kw,
+    trim(s.name)||', '||ltrim(s.nd,'0')||'-'||ltrim(s.kw,'0') as adr, s.fio,
+    case when cur_pay_=1 then s.cnt_month
       else s.cnt_month2 end as cnt_month,
-    case when :cur_pay_=1 then s.dolg
+    case when cur_pay_=1 then s.dolg
       else s.dolg2 end as dolg, g.name as deb_org, s.penya, s.nachisl, s.payment, s.dat,
     a.name as st_name
     from kart k, debits_lsk_month s, s_reu_trest t, t_org g, status a
-    where k.lsk=s.lsk and s.status=a.id and s.reu=t.reu and s.reu=:reu and  '||sqlstr_||'
+    where decode(l_sel_id,0,0,1)=s.var and decode(l_sel_id,0,k.fk_tp,l_sel_id)=k.fk_tp-- либо совокупно по помещению, либо по конкретному типу лс
+    and k.lsk=s.lsk and s.status=a.id and s.reu=t.reu and s.reu=reu_ and s.mg between mg_ and mg1_
     and s.fk_deb_org=g.id(+)
-    and ((:cur_pay_=1 and s.cnt_month > 0) or
-    (:cur_pay_=0 and s.cnt_month2 > 0))
+    and ((cur_pay_=1 and s.cnt_month > 0) or
+    (cur_pay_=0 and s.cnt_month2 > 0))
     and exists
     (select * from kart k where k.lsk=s.lsk
-      and (:kpr1_ is not null and k.kpr >=:kpr1_ or :kpr1_ is null)
-    and (:kpr2_ is not null and k.kpr <=:kpr2_ or :kpr2_ is null))
+      and (kpr1_ is not null and k.kpr >=kpr1_ or kpr1_ is null)
+    and (kpr2_ is not null and k.kpr <=kpr2_ or kpr2_ is null))
     and
-    ((:n1_=0 and s.cnt_month >= :n2_) or
-    (:n1_=1 and s.dolg >= :n2_))
-    order by s.name, utils.f_order(s.nd,6), utils.f_order(s.kw,7)'
-    using cur_pay_, cur_pay_, reu_, cur_pay_, cur_pay_,
-    kpr1_, kpr1_, kpr1_, kpr2_, kpr2_, kpr2_, n1_, n2_, n1_, n2_;
+    ((n1_=0 and s.cnt_month >= n2_) or
+    (n1_=1 and s.dolg >= n2_))
+    order by s.name, utils.f_order(s.nd,6), utils.f_order(s.kw,7);
+--    using cur_pay_, cur_pay_, reu_, cur_pay_, cur_pay_,
+--    kpr1_, kpr1_, kpr1_, kpr2_, kpr2_, kpr2_, n1_, n2_, n1_, n2_;
    elsif var_ = 1 then
-    --По фонду
+    --По фонду ред.09.04.2019
    open prep_refcursor for
-   'select s.lsk, DECODE(k.psch,9,''Закрытые Л/С'', 8,''Старый фонд'', ''Открытые Л/С'') AS psch,
+   select s.lsk, DECODE(k.psch,9,'Закрытые Л/С', 8,'Старый фонд', 'Открытые Л/С') AS psch,
     t.name_tr, t.name_reu,
-    trim(s.name) as street,  ltrim(s.nd,''0'') as nd, ltrim(s.kw,''0'') as kw,
-    trim(s.name)||'', ''||ltrim(s.nd,''0'')||''-''||ltrim(s.kw,''0'') as adr, s.fio,
-    case when :cur_pay_=1 then s.cnt_month
+    trim(s.name) as street,  ltrim(s.nd,'0') as nd, ltrim(s.kw,'0') as kw,
+    trim(s.name)||', '||ltrim(s.nd,'0')||'-'||ltrim(s.kw,'0') as adr, s.fio,
+    case when cur_pay_=1 then s.cnt_month
       else s.cnt_month2 end as cnt_month,
-    case when :cur_pay_=1 then s.dolg
+    case when cur_pay_=1 then s.dolg
       else s.dolg2 end as dolg, g.name as deb_org, s.penya, s.nachisl, s.payment, s.dat,
     a.name as st_name
     from kart k, debits_lsk_month s, s_reu_trest t, t_org g, status a
-    where k.lsk=s.lsk and s.status=a.id and s.reu=t.reu and t.trest=:trest and  '||sqlstr_||'
+    where decode(l_sel_id,0,0,1)=s.var and decode(l_sel_id,0,k.fk_tp,l_sel_id)=k.fk_tp-- либо совокупно по помещению, либо по конкретному типу лс
+    and k.lsk=s.lsk and s.status=a.id and s.reu=t.reu and t.trest=trest_ and s.mg between mg_ and mg1_
     and s.fk_deb_org=g.id(+)
-    and ((:cur_pay_=1 and s.cnt_month > 0) or
-    (:cur_pay_=0 and s.cnt_month2 > 0))
+    and ((cur_pay_=1 and s.cnt_month > 0) or
+    (cur_pay_=0 and s.cnt_month2 > 0))
     and exists
     (select * from kart k where k.lsk=s.lsk
-      and (:kpr1_ is not null and k.kpr >=:kpr1_ or :kpr1_ is null)
-    and (:kpr2_ is not null and k.kpr <=:kpr2_ or :kpr2_ is null))
+      and (kpr1_ is not null and k.kpr >=kpr1_ or kpr1_ is null)
+    and (kpr2_ is not null and k.kpr <=kpr2_ or kpr2_ is null))
     and
-    ((:n1_=0 and s.cnt_month >= :n2_) or
-    (:n1_=1 and s.dolg >= :n2_))
-    order by s.name, utils.f_order(s.nd,6), utils.f_order(s.kw,7)'
-    using cur_pay_, cur_pay_, trest_, cur_pay_, cur_pay_,
-    kpr1_, kpr1_, kpr1_, kpr2_, kpr2_, kpr2_, n1_, n2_, n1_, n2_;
+    ((n1_=0 and s.cnt_month >= n2_) or
+    (n1_=1 and s.dolg >= n2_))
+    order by s.name, utils.f_order(s.nd,6), utils.f_order(s.kw,7);
+--    using cur_pay_, cur_pay_, trest_, cur_pay_, cur_pay_,
+--    kpr1_, kpr1_, kpr1_, kpr2_, kpr2_, kpr2_, n1_, n2_, n1_, n2_;
    elsif var_ = 0 then
-   --По городу
+   --По городу ред.09.04.2019
    open prep_refcursor for
-   'select s.lsk, DECODE(k.psch,9,''Закрытые Л/С'', 8,''Старый фонд'', ''Открытые Л/С'') AS psch,
+   select s.lsk, DECODE(k.psch,9,'Закрытые Л/С', 8,'Старый фонд', 'Открытые Л/С') AS psch,
     t.name_tr, t.name_reu,
-    trim(s.name) as street,  ltrim(s.nd,''0'') as nd, ltrim(s.kw,''0'') as kw,
-    trim(s.name)||'', ''||ltrim(s.nd,''0'')||''-''||ltrim(s.kw,''0'') as adr, s.fio,
-    case when :cur_pay_=1 then s.cnt_month
+    trim(s.name) as street,  ltrim(s.nd,'0') as nd, ltrim(s.kw,'0') as kw,
+    trim(s.name)||', '||ltrim(s.nd,'0')||'-'||ltrim(s.kw,'0') as adr, s.fio,
+    case when cur_pay_=1 then s.cnt_month
       else s.cnt_month2 end as cnt_month,
-    case when :cur_pay_=1 then s.dolg
+    case when cur_pay_=1 then s.dolg
       else s.dolg2 end as dolg, g.name as deb_org, s.penya, s.nachisl, s.payment, s.dat,
     a.name as st_name
     from kart k, debits_lsk_month s, s_reu_trest t, t_org g, status a
-    where k.lsk=s.lsk and s.status=a.id and s.reu=t.reu and '||sqlstr_||'
+    where decode(l_sel_id,0,0,1)=s.var and decode(l_sel_id,0,k.fk_tp,l_sel_id)=k.fk_tp-- либо совокупно по помещению, либо по конкретному типу лс
+    and k.lsk=s.lsk and s.status=a.id and s.reu=t.reu and s.mg between mg_ and mg1_
     and s.fk_deb_org=g.id(+)
-    and ((:cur_pay_=1 and s.cnt_month > 0) or
-    (:cur_pay_=0 and s.cnt_month2 > 0))
+    and ((cur_pay_=1 and s.cnt_month > 0) or
+    (cur_pay_=0 and s.cnt_month2 > 0))
     and exists
     (select * from kart k where k.lsk=s.lsk
-      and (:kpr1_ is not null and k.kpr >=:kpr1_ or :kpr1_ is null)
-    and (:kpr2_ is not null and k.kpr <=:kpr2_ or :kpr2_ is null))
+      and (kpr1_ is not null and k.kpr >=kpr1_ or kpr1_ is null)
+    and (kpr2_ is not null and k.kpr <=kpr2_ or kpr2_ is null))
     and
-    ((:n1_=0 and s.cnt_month >= :n2_) or
-    (:n1_=1 and s.dolg >= :n2_))
-    order by s.name, utils.f_order(s.nd,6), utils.f_order(s.kw,7)'
-    using cur_pay_, cur_pay_, cur_pay_, cur_pay_,
-    kpr1_, kpr1_, kpr1_, kpr2_, kpr2_, kpr2_, n1_, n2_, n1_, n2_;
+    ((n1_=0 and s.cnt_month >= n2_) or
+    (n1_=1 and s.dolg >= n2_))
+    order by s.name, utils.f_order(s.nd,6), utils.f_order(s.kw,7);
+--    using cur_pay_, cur_pay_, cur_pay_, cur_pay_,
+--    kpr1_, kpr1_, kpr1_, kpr2_, kpr2_, kpr2_, n1_, n2_, n1_, n2_;
     end if;
  elsif сd_ = '56' then
  --Списки льготников
@@ -2013,11 +2019,11 @@ select t.trest||'' ''||t.name_reu as predp,
         union all
       select 'VOL' as tp_cd, n.lsk, n.usl as s1, o.cd as s2, null as s3,
                      round(nvl(decode(u.sptarn, 0, nvl(n.koeff,0), 1, nvl(n.norm,0), 2,
-                     nvl(n.koeff,0) * nvl(n.norm,0), 3, nvl(n.koeff,0) * nvl(n.norm,0)), 0), 8) as n1
+                     nvl(n.koeff,0) * nvl(n.norm,0), 3, nvl(n.koeff,0) * nvl(n.norm,0), 4, nvl(n.koeff,0) * nvl(n.norm,0)), 0), 8) as n1
         from nabor n, t_org o, usl u
         where n.org=o.id and n.usl=u.usl
         and round(nvl(decode(u.sptarn, 0, nvl(n.koeff,0), 1, nvl(n.norm,0), 2,
-                     nvl(n.koeff,0) * nvl(n.norm,0), 3, nvl(n.koeff,0) * nvl(n.norm,0)), 0), 8) <> 0
+                     nvl(n.koeff,0) * nvl(n.norm,0), 3, nvl(n.koeff,0) * nvl(n.norm,0), 4, nvl(n.koeff,0) * nvl(n.norm,0)), 0), 8) <> 0
                       and u.usl in ('045', '046');
  elsif сd_ in  ('69') then
   --Задолжники FR, вне зависимости от организатора задолжника
@@ -2205,7 +2211,9 @@ select t.trest||'' ''||t.name_reu as predp,
        from kart k, nabor n, spul l, usl u --лицевые по которым нет сальдо
         where k.psch not in (8,9) and k.lsk=n.lsk and k.kul=l.id
         and nvl(decode(u.sptarn, 0, nvl(n.koeff,0), 1, nvl(n.norm,0), 2,
-               nvl(n.koeff,0) * nvl(n.norm,0), 3, nvl(n.koeff,0) * nvl(n.norm,0)), 0) <> 0
+               nvl(n.koeff,0) * nvl(n.norm,0), 3, nvl(n.koeff,0) * nvl(n.norm,0), 
+               4, nvl(n.koeff,0) * nvl(n.norm,0)
+               ), 0) <> 0
         and n.usl=u.usl and u.cd in ('каб.тел.', 'антен.д.нач.','антен.нач.')
         and not exists
         (select t.*, u.nm from saldo_usl t, usl u where
@@ -3186,7 +3194,7 @@ elsif сd_ in  ('88') then
 
     if var_ = 0 then
     --по Городу
-      if utils.get_int_param('GEN_CHK_C_DEB_USL') = 0 then
+      if utils.get_int_param('CAP_VAR_REP1') = 0 then
           -- версия для остальных
           open prep_refcursor for
                     select * from 
@@ -3974,9 +3982,9 @@ elsif сd_ in  ('88') then
 
      left join
      (select n.lsk, round(sum(case when u.usl_norm = 0 then 
-        case when n.koeff is not null and u.sptarn in (0,2,3) then n.koeff else 1 end * r.summa else 0 end),2) as tf1,
+        case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf1,
              round(sum(case when u.usl_norm = 1 then 
-        case when n.koeff is not null and u.sptarn in (0,2,3) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
+        case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
        from 
          a_nabor2 n join usl u on n.usl=u.usl 
          join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
@@ -3988,9 +3996,9 @@ elsif сd_ in  ('88') then
        on s.lsk=c1.lsk
      left join
      (select n.lsk, round(sum(case when u.usl_norm = 0 then 
-        case when n.koeff is not null and u.sptarn in (0,2,3) then n.koeff else 1 end * r.summa else 0 end),2) as tf1,
+        case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf1,
              round(sum(case when u.usl_norm = 1 then 
-        case when n.koeff is not null and u.sptarn in (0,2,3) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
+        case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
        from 
          a_nabor2 n join usl u on n.usl=u.usl 
          join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
@@ -4003,9 +4011,9 @@ elsif сd_ in  ('88') then
        
      left join
      (select n.lsk, round(sum(case when u.usl_norm = 0 then 
-        case when n.koeff is not null and u.sptarn in (0,2,3) then n.koeff else 1 end * r.summa else 0 end),2) as tf1,
+        case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf1,
              round(sum(case when u.usl_norm = 1 then 
-        case when n.koeff is not null and u.sptarn in (0,2,3) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
+        case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
        from 
          a_nabor2 n join usl u on n.usl=u.usl 
          join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
@@ -4016,9 +4024,9 @@ elsif сd_ in  ('88') then
        on s.lsk=c4.lsk
      left join
      (select n.lsk, round(sum(case when u.usl_norm = 0 then 
-        case when n.koeff is not null and u.sptarn in (0,2,3) then n.koeff else 1 end * r.summa else 0 end),2) as tf1,
+        case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf1,
              round(sum(case when u.usl_norm = 1 then 
-        case when n.koeff is not null and u.sptarn in (0,2,3) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
+        case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
        from 
          a_nabor2 n join usl u on n.usl=u.usl 
          join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
@@ -4030,9 +4038,9 @@ elsif сd_ in  ('88') then
        
      left join
      (select n.lsk, round(sum(case when u.usl_norm = 0 then 
-        case when n.koeff is not null and u.sptarn in (0,2,3) then n.koeff else 1 end * r.summa else 0 end),2) as tf1,
+        case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf1,
              round(sum(case when u.usl_norm = 1 then 
-        case when n.koeff is not null and u.sptarn in (0,2,3) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
+        case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
        from 
          a_nabor2 n join usl u on n.usl=u.usl 
          join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
@@ -4044,9 +4052,9 @@ elsif сd_ in  ('88') then
        
      left join
      (select n.lsk, round(sum(case when u.usl_norm = 0 then 
-        case when n.koeff is not null and u.sptarn in (0,2,3) then n.koeff else 1 end * r.summa else 0 end),2) as tf1,
+        case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf1,
              round(sum(case when u.usl_norm = 1 then 
-        case when n.koeff is not null and u.sptarn in (0,2,3) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
+        case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
        from 
          a_nabor2 n join usl u on n.usl=u.usl 
          join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
@@ -4058,9 +4066,9 @@ elsif сd_ in  ('88') then
        
      left join
      (select n.lsk, round(sum(case when u.usl_norm = 0 then 
-        case when n.koeff is not null and u.sptarn in (0,2,3) then n.koeff else 1 end * r.summa else 0 end),2) as tf1,
+        case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf1,
              round(sum(case when u.usl_norm = 1 then 
-        case when n.koeff is not null and u.sptarn in (0,2,3) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
+        case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
        from 
          a_nabor2 n join usl u on n.usl=u.usl 
          join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
@@ -4072,9 +4080,9 @@ elsif сd_ in  ('88') then
 
      left join
      (select n.lsk, round(sum(case when u.usl_norm = 0 then 
-        case when n.koeff is not null and u.sptarn in (0,2,3) then n.koeff else 1 end * r.summa else 0 end),2) as tf1,
+        case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf1,
              round(sum(case when u.usl_norm = 1 then 
-        case when n.koeff is not null and u.sptarn in (0,2,3) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
+        case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
        from 
          a_nabor2 n join usl u on n.usl=u.usl 
          join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
@@ -4086,9 +4094,9 @@ elsif сd_ in  ('88') then
 
      left join
      (select n.lsk, round(sum(case when u.usl_norm = 0 then 
-        case when n.koeff is not null and u.sptarn in (0,2,3) then n.koeff else 1 end * r.summa else 0 end),2) as tf1,
+        case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf1,
              round(sum(case when u.usl_norm = 1 then 
-        case when n.koeff is not null and u.sptarn in (0,2,3) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
+        case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
        from 
          a_nabor2 n join usl u on n.usl=u.usl 
          join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
@@ -4100,9 +4108,9 @@ elsif сd_ in  ('88') then
 
      left join
      (select n.lsk, round(sum(case when u.usl_norm = 0 then 
-        case when n.koeff is not null and u.sptarn in (0,2,3) then n.koeff else 1 end * r.summa else 0 end),2) as tf1,
+        case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf1,
              round(sum(case when u.usl_norm = 1 then 
-        case when n.koeff is not null and u.sptarn in (0,2,3) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
+        case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
        from 
          a_nabor2 n join usl u on n.usl=u.usl 
          join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
@@ -4114,9 +4122,9 @@ elsif сd_ in  ('88') then
 
      left join
      (select n.lsk, round(sum(case when u.usl_norm = 0 then 
-        case when n.koeff is not null and u.sptarn in (0,2,3) then n.koeff else 1 end * r.summa else 0 end),2) as tf1,
+        case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf1,
              round(sum(case when u.usl_norm = 1 then 
-        case when n.koeff is not null and u.sptarn in (0,2,3) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
+        case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
        from 
          a_nabor2 n join usl u on n.usl=u.usl 
          join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
@@ -4143,9 +4151,9 @@ elsif сd_ in  ('88') then
      left join
 
      (select n.lsk, round(sum(case when u.usl_norm = 0 then 
-        case when n.koeff is not null and u.sptarn in (0,2,3) then n.koeff else 1 end * r.summa else 0 end),2) as tf1,
+        case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf1,
              round(sum(case when u.usl_norm = 1 then 
-        case when n.koeff is not null and u.sptarn in (0,2,3) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
+        case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
        from 
          a_nabor2 n join usl u on n.usl=u.usl 
          join a_prices r on n.usl=r.usl and r.mg=mg_

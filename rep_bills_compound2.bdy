@@ -36,7 +36,8 @@ select k.prn_num, k.for_bill, k.lsk, k.k_lsk_id, k.opl,
       left join scott.status t on k.status=t.id
       join (select * from (-- фильтр по приоритетному лиц.счету
               select k2.lsk,
-               first_value(k2.lsk) over (partition by k2.k_lsk_id order by decode(k2.psch,8,1,9,1,0), tp2.npp) as lsk_main
+               first_value(k2.lsk) over (partition by k2.k_lsk_id order by k2.for_bill desc,-- ред.04.04.19 -- поставил эксперементально (не выводился счет по лс 86014083)
+               decode(k2.psch,8,1,9,1,0), tp2.npp) as lsk_main
                from ARCH_KART k2 join v_lsk_tp tp2 on k2.fk_tp=tp2.id and k2.mg = p_mg) a where a.lsk=a.lsk_main) k3 on k3.lsk_main=k.lsk
    where k.mg = p_mg and
                 k.reu=p_reu and

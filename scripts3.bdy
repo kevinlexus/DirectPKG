@@ -36,10 +36,10 @@ procedure dist_saldo_polis is
  l_last_kr_max number;
  l_last_deb_max number;
 begin
-  l_mg:='201812'; --тек.период
-  l_cd:='dist_saldo_polis_201812';
+  l_mg:='201903'; --тек.период
+  l_cd:='dist_saldo_polis_201903';
   l_mgchange:=l_mg;
-  l_dt:=to_date('20181225','YYYYMMDD');
+  l_dt:=to_date('20190326','YYYYMMDD');
   l_mg3:=utils.add_months_pr(l_mg,1); --мес€ц вперед, если надо по исх сальдо
 
   --l_mg3 := l_mg; -- сальдо - вх.на текущий мес€ц

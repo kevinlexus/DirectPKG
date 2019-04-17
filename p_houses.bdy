@@ -105,7 +105,7 @@ BEGIN
                    AND n.usl = usl_)
          and k.fk_tp=tp.id
          and tp.cd=p_lsk_tp;
-    ELSIF sptarn_ IN (2, 3) AND nvl(koeff_, 0) <> 0 AND nvl(norm_, 0) <> 0 THEN
+    ELSIF sptarn_ IN (2, 3, 4) AND nvl(koeff_, 0) <> 0 AND nvl(norm_, 0) <> 0 THEN
       --и коэфф и норматив
       INSERT INTO nabor
         (lsk, usl, org, koeff, norm)
@@ -156,7 +156,7 @@ BEGIN
                    AND n.usl = usl_)
            and k.fk_tp=tp.id
            and tp.cd=p_lsk_tp;
-    ELSIF sptarn_ IN (2, 3) AND nvl(koeff_, 0) <> 0 AND nvl(norm_, 0) <> 0 THEN
+    ELSIF sptarn_ IN (2, 3, 4) AND nvl(koeff_, 0) <> 0 AND nvl(norm_, 0) <> 0 THEN
       --и коэфф и норматив
       INSERT INTO nabor
         (lsk, usl, org, koeff, norm)
@@ -211,7 +211,7 @@ BEGIN
                    AND n.usl = usl_)
            and k.fk_tp=tp.id
            and tp.cd=p_lsk_tp;
-    ELSIF sptarn_ IN (2, 3) AND nvl(koeff_, 0) <> 0 AND nvl(norm_, 0) <> 0 THEN
+    ELSIF sptarn_ IN (2, 3, 4) AND nvl(koeff_, 0) <> 0 AND nvl(norm_, 0) <> 0 THEN
       --и коэфф и норматив
       INSERT INTO nabor
         (lsk, usl, org, koeff, norm)
@@ -259,7 +259,7 @@ BEGIN
            and k.fk_tp=tp.id
            and tp.cd=p_lsk_tp
            and k.reu = p_reu;
-    ELSIF sptarn_ IN (2, 3) AND nvl(koeff_, 0) <> 0 AND nvl(norm_, 0) <> 0 THEN
+    ELSIF sptarn_ IN (2, 3, 4) AND nvl(koeff_, 0) <> 0 AND nvl(norm_, 0) <> 0 THEN
       --и коэфф и норматив
       INSERT INTO nabor
         (lsk, usl, org, koeff, norm)
@@ -336,7 +336,7 @@ BEGIN
                         and k.fk_tp=tp.id
                         and tp.cd=p_lsk_tp
                         );
-    ELSIF sptarn_ IN (2, 3) THEN
+    ELSIF sptarn_ IN (2, 3, 3) THEN
       --и коэфф и норматив
       UPDATE nabor n
          SET n.koeff = ROUND(nvl(new_koeff_, 0),10),
@@ -387,7 +387,7 @@ BEGIN
                         and tp.cd=p_lsk_tp
                         );
          
-    ELSIF sptarn_ IN (2, 3) THEN
+    ELSIF sptarn_ IN (2, 3, 4) THEN
       --и коэфф и норматив
       UPDATE nabor n
          SET n.koeff = ROUND(nvl(new_koeff_, 0),10),
@@ -441,7 +441,7 @@ BEGIN
                         and tp.cd=p_lsk_tp
                         );
          
-    ELSIF sptarn_ IN (2, 3) THEN
+    ELSIF sptarn_ IN (2, 3, 4) THEN
       --и коэфф и норматив
       UPDATE nabor n
          SET n.koeff = ROUND(nvl(new_koeff_, 0),10),
@@ -576,7 +576,7 @@ BEGIN
                         and tp.cd=l_sel
                         );
         
-    ELSIF sptarn_ IN (2, 3) THEN
+    ELSIF sptarn_ IN (2, 3, 4) THEN
       --и коэфф и норматив
       DELETE FROM nabor n
        WHERE
@@ -624,7 +624,7 @@ BEGIN
                         and tp.cd=l_sel
                         );
          
-    ELSIF sptarn_ IN (2, 3) THEN
+    ELSIF sptarn_ IN (2, 3, 4) THEN
       --и коэфф и норматив
       DELETE FROM nabor n
        WHERE EXISTS (SELECT *
@@ -674,7 +674,7 @@ BEGIN
                         and tp.cd=l_sel
                         );
          
-    ELSIF sptarn_ IN (2, 3) THEN
+    ELSIF sptarn_ IN (2, 3, 4) THEN
       --и коэфф и норматив
       DELETE FROM nabor n
        WHERE EXISTS (SELECT *
@@ -725,7 +725,7 @@ BEGIN
                         and tp.cd=l_sel
                         );
          
-    ELSIF sptarn_ IN (2, 3) THEN
+    ELSIF sptarn_ IN (2, 3, 4) THEN
       --и коэфф и норматив
       DELETE FROM nabor n
        WHERE EXISTS (SELECT *
@@ -759,7 +759,7 @@ BEGIN
          AND n.usl = usl_
          AND n.org = org_
          AND n.koeff = norm_;
-    ELSIF sptarn_ IN (2, 3) THEN
+    ELSIF sptarn_ IN (2, 3, 4) THEN
       --и коэфф и норматив
       DELETE FROM nabor n
        WHERE n.lsk = lsk_

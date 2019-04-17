@@ -4,7 +4,8 @@ create table SCOTT.SPR_PROC_PAY
   org NUMBER not null,
   reu CHAR(3) not null,
   mg1 VARCHAR2(6) not null,
-  mg2 VARCHAR2(6) not null
+  mg2 VARCHAR2(6) not null,
+  id  NUMBER not null
 )
 tablespace USERS
   pctfree 10
@@ -29,6 +30,8 @@ comment on column SCOTT.SPR_PROC_PAY.mg1
   is 'Нач.период';
 comment on column SCOTT.SPR_PROC_PAY.mg2
   is 'Конечн.период';
+comment on column SCOTT.SPR_PROC_PAY.id
+  is 'ID';
 create unique index SCOTT.SPR_PROC_PAY_I on SCOTT.SPR_PROC_PAY (USL, ORG, REU, MG1, MG2)
   tablespace USERS
   pctfree 10

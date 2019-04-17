@@ -419,8 +419,9 @@ create or replace package body scott.p_meter is
                    and tp.cd = 'LSK_TP_MAIN'
                    and a.psch not in (8, 9)
                   left join (select m.fk_klsk_obj, max(t.mg) as max_mg  -- кол-во месяцев непередачи показаний
-                            from meter m, T_OBJXPAR t, u_list s where 
-                            m.k_lsk_id=t.fk_k_lsk and m.fk_usl=p_usl
+                            from meter m, T_OBJXPAR t, u_list s, params p where 
+                            to_char(m.dt1,'YYYYMM') < p.period -- кроме счетчиков установленных в текущем периоде
+                            and m.k_lsk_id=t.fk_k_lsk and m.fk_usl=p_usl
                             and t.fk_list=s.id and s.cd='ins_vol_sch'
                             and t.mg>=l_mg1 and t.tp not in (1,2)
                             and t.n1 <> 0
@@ -442,7 +443,7 @@ create or replace package body scott.p_meter is
           l_ret2     := ins_vol_meter(p_met_klsk => null,
                                       p_lsk      => c.lsk,
                                       p_usl      => p_usl,
-                                      p_vol      => l_norm_vol,
+                                      p_vol      => round(l_norm_vol,3),
                                       p_n1       => null,
                                       p_tp       => 1);
           if l_ret2 = 0 then

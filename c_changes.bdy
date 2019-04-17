@@ -281,9 +281,9 @@ if lsk_start_ is not null and lsk_end_ is not null then
   if l_mg=mg_ then
   --текущий период
     insert into temp_c_change2
-      (lsk, usl, org, proc, abs_set, mg, tp,
+      (lsk, k_lsk_id, usl, org, proc, abs_set, mg, tp,
        cnt_days)
-      select k.lsk, t.usl_id, decode(l_part,0,t.org1_id,t.org2_id) as org,
+      select k.lsk, k.k_lsk_id, t.usl_id, decode(l_part,0,t.org1_id,t.org2_id) as org,
         decode(l_part,0,t.proc1,t.proc2) as proc, decode(l_part,0,t.abs_set, null),
         t.mg, t.type, t.cnt_days
         from v_kart k, list_choices_changes t, usl u
@@ -317,9 +317,9 @@ if lsk_start_ is not null and lsk_end_ is not null then
     else
       --архивный период
     insert into temp_c_change2
-      (lsk, usl, org, proc, abs_set, mg, tp,
+      (lsk, k_lsk_id, usl, org, proc, abs_set, mg, tp,
        cnt_days)
-      select k.lsk, t.usl_id, decode(l_part,0,t.org1_id,t.org2_id) as org,
+      select k.lsk, k.k_lsk_id, t.usl_id, decode(l_part,0,t.org1_id,t.org2_id) as org,
         decode(l_part,0,t.proc1,t.proc2) as proc, decode(l_part,0,t.abs_set, null),
         t.mg, t.type, t.cnt_days
         from v_arch_kart k, list_choices_changes t, usl u,
@@ -391,9 +391,9 @@ else
     if l_mg=mg_ then
     --текущий период
     insert into temp_c_change2
-      (lsk, usl, org, proc, abs_set, mg, tp,
+      (lsk, k_lsk_id, usl, org, proc, abs_set, mg, tp,
        cnt_days)
-      select k.lsk, t.usl_id, decode(l_part,0,t.org1_id,t.org2_id) as org,
+      select k.lsk, k.k_lsk_id, t.usl_id, decode(l_part,0,t.org1_id,t.org2_id) as org,
        decode(l_part,0,t.proc1,t.proc2) as proc,
              decode(l_part,0,t.abs_set, null), t.mg, t.type, t.cnt_days
         from v_kart k, list_choices_changes t, usl u
@@ -428,9 +428,9 @@ else
     else
       --архивный период
     insert into temp_c_change2
-      (lsk, usl, org, proc, abs_set, mg, tp,
+      (lsk, k_lsk_id, usl, org, proc, abs_set, mg, tp,
        cnt_days)
-      select k.lsk, t.usl_id, decode(l_part,0,t.org1_id,t.org2_id) as org,
+      select k.lsk, k.k_lsk_id, t.usl_id, decode(l_part,0,t.org1_id,t.org2_id) as org,
        decode(l_part,0,t.proc1,t.proc2) as proc,
              decode(l_part,0,t.abs_set, null), t.mg, t.type, t.cnt_days
         from v_arch_kart k, list_choices_changes t, usl u
@@ -536,34 +536,35 @@ insert into a_charge2
 if l_h_usl > 0 and p_kan=1 then
   l_part:=0;
   loop
-    for c in (select t.lsk, t.org, t.proc, t.mg, d.usl, d.summa, d.vol,
+    for c in (select t.lsk, b.lsk as lsk_kan, t.org, t.proc, t.mg, d.usl, d.summa, d.vol,
        a.summa/b.summa as proc_kan, --доля услуги в канализовании (отношение объемов)
        round(t.proc * a.summa/b.summa,3) as proc_itg
          from temp_c_change2 t join usl m on t.usl = m.usl
-          
       left join (select u.usl, t.mgFrom||t.mgTo, --нужно чтобы выборка периодов была правильной ред. 19.10.2017
       t.mgFrom, t.mgTo, t.lsk, sum(t.test_opl) as summa
       from a_charge2 t, usl u
-      where t.type=1         --объем услуги
+      where t.type=1         --объем основной услуги
       and t.usl=u.usl
-      and exists (select * from temp_c_change2 i where i.lsk=t.lsk)
+      and exists (select * from temp_c_change2 i where i.lsk=t.lsk and i.usl=t.usl)
       group by u.usl, t.mgFrom||t.mgTo, t.mgFrom, t.mgTo, t.lsk) a on t.lsk=a.lsk and t.mg between a.mgFrom and a.mgTo and t.usl=a.usl
       
-      left join (select t.mgFrom, t.mgTo, t.mgFrom||t.mgTo, t.lsk, sum(t.test_opl) as summa
-      from a_charge2 t, usl u --объем канализ
-      where t.type=1 and t.usl=u.usl
+      left join (select k.k_lsk_id, t.mgFrom, t.mgTo, t.mgFrom||t.mgTo, t.lsk, sum(t.test_opl) as summa
+      from arch_kart k, a_charge2 t, usl u --объем канализ
+      where t.type=1 and t.usl=u.usl and k.lsk=t.lsk
         and exists (select * from temp_c_change2 i where i.lsk=t.lsk)
+        and k.mg between t.mgFrom and t.mgTo and k.psch not in (8,9) -- только открытые на тот период лиц.счета
         and (l_part=0 and u.cd in ('канализ', 'канализ/св.нор')
         or l_part=1 and u.cd in ('канализ.ОДН'))
-      group by t.mgFrom, t.mgTo, t.mgFrom||t.mgTo, t.lsk) b on t.lsk=b.lsk and t.mg between b.mgFrom and b.mgTo
+      group by k.k_lsk_id, t.mgFrom, t.mgTo, t.mgFrom||t.mgTo, t.lsk) b on t.k_lsk_id=b.k_lsk_id and t.mg between b.mgFrom and b.mgTo
       
-      left join (select t.usl, t.mgFrom, t.mgTo, t.mgFrom||t.mgTo, t.lsk, sum(t.summa) as summa, sum(t.test_opl) as vol
-      from a_charge2 t, usl u --начисление канализ, детализир и объем
-      where t.type=1 and t.usl=u.usl
+      left join (select k.k_lsk_id, t.usl, t.mgFrom, t.mgTo, t.mgFrom||t.mgTo, t.lsk, sum(t.summa) as summa, sum(t.test_opl) as vol
+      from arch_kart k, a_charge2 t, usl u --начисление канализ, детализир и объем
+      where t.type=1 and t.usl=u.usl and k.lsk=t.lsk
         and exists (select * from temp_c_change2 i where i.lsk=t.lsk)
+        and k.mg between t.mgFrom and t.mgTo and k.psch not in (8,9) -- только открытые на тот период лиц.счета
         and (l_part=0 and u.cd in ('канализ', 'канализ/св.нор')
         or l_part=1 and u.cd in ('канализ.ОДН'))
-      group by t.usl, t.mgFrom, t.mgTo, t.mgFrom||t.mgTo, t.lsk) d on t.lsk=d.lsk and t.mg between d.mgFrom and d.mgTo
+      group by k.k_lsk_id, t.usl, t.mgFrom, t.mgTo, t.mgFrom||t.mgTo, t.lsk) d on t.k_lsk_id=d.k_lsk_id and t.mg between d.mgFrom and d.mgTo
       
       where 
       (l_mg=mg_ and exists (select * from v_kart k where k.lsk=t.lsk and k.status not in (9) and (l_wo_kpr=1 and k.kpr=0 or l_wo_kpr=0)) --кроме нежилых помещений, текущий или архивный период!
@@ -578,7 +579,7 @@ if l_h_usl > 0 and p_kan=1 then
     loop
       insert into c_change
               (lsk, mgchange, mg2, usl, proc, summa, org, type, dtek, ts, user_id, doc_id, vol)
-      values (c.lsk, mg2_, c.mg, c.usl, c.proc_itg, round(c.proc_itg/100 * c.summa,2),
+      values (c.lsk_kan, mg2_, c.mg, c.usl, c.proc_itg, round(c.proc_itg/100 * c.summa,2),
        c.org, decode(p_tp, 1, 3, 0), init.get_date, sysdate, l_uid, id_, round(c.proc_itg/100 * c.vol,4));
 
     end loop;

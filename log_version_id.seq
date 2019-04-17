@@ -1,7 +1,7 @@
 create sequence SCOTT.LOG_VERSION_ID
 minvalue 1
 maxvalue 999999999999999999999999999
-start with 36
+start with 61
 increment by 1
 cache 5
 order;

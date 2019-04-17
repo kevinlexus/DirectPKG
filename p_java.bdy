@@ -80,14 +80,13 @@ begin
   end if;
 end;
 
-/** Очистить кэш
-  str - комплексное наименование кэша
+/** Очистить HibernateL2 кэш
   **/
-procedure evictCache(p_str in varchar2) is
+procedure evictL2Cache is
   l_ret varchar2(1000);
 begin
   utl_http.set_transfer_timeout(50000);
-  l_ret:=p_java.http_req(p_str);
+  l_ret:=p_java.http_req('evictL2C');
   if substr(l_ret,1,2) <> 'OK' then
     Raise_application_error(-20000, 'Ошибка при вызове Java функции: '||l_ret );
   end if;

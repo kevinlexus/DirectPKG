@@ -1,7 +1,7 @@
 create sequence SCOTT.T_OBJXPAR_ID
 minvalue 0
 maxvalue 9999999999999999999999999
-start with 552886
+start with 553051
 increment by 1
 nocache;
 

@@ -48,7 +48,8 @@ create table SCOTT.T_ORG
   dolg_name      VARCHAR2(64),
   bank_fname     VARCHAR2(100),
   grp            NUMBER,
-  r_sch_gis      VARCHAR2(20)
+  r_sch_gis      VARCHAR2(20),
+  dist_pay_tp    NUMBER
 )
 tablespace USERS
   pctfree 10
@@ -161,6 +162,8 @@ comment on column SCOTT.T_ORG.grp
   is 'Группа организации (для отнесения в оборотке)';
 comment on column SCOTT.T_ORG.r_sch_gis
   is 'Р/C-для дополнительных счетов';
+comment on column SCOTT.T_ORG.dist_pay_tp
+  is 'Тип распределения оплаты (0-общий тип, 1 - сложный тип (ук 14,15 Кис)';
 create unique index SCOTT.T_ORG_U on SCOTT.T_ORG (CD)
   tablespace USERS
   pctfree 10

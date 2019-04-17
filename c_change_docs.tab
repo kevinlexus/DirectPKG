@@ -3,7 +3,7 @@ create table SCOTT.C_CHANGE_DOCS
   id       NUMBER not null,
   mgchange CHAR(6) not null,
   dtek     DATE not null,
-  ts       DATE not null,
+  ts       DATE default sysdate not null,
   user_id  NUMBER not null,
   text     VARCHAR2(2000),
   cd_tp    VARCHAR2(132),

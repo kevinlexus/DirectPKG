@@ -700,64 +700,21 @@ begin
   return g_concatenated_string_array(v_call_id);
 end;
 
+-- проверка карточки лс на возможные ошибки
+-- вызывается из Delphi:TForm_kart.save_changes(ask_: Integer);
 function tst_krt(lsk_ in kart.lsk%type, var_ in number) return varchar2 is
   cnt_ number;
   last_id_ number;
-  org_var_ number;
   prop_dt_ date;
   l_cd v_lsk_tp.cd%type;
 begin
---проверка карточки л/c на наличие ошибок
-select nvl(org_var,0) into org_var_ from params p;
 --тип счета
 select tp.cd into l_cd
  from kart k, v_lsk_tp tp where k.fk_tp=tp.id and k.lsk=lsk_;
 
 --проверки только для основных счетов
-if org_var_ = 0 and l_cd='LSK_TP_MAIN' then
-  if utils.get_int_param('VER_METER1') = 0 then --только в старой версии
-       --находим последний статус, по дате
-     begin
-       select max(t.id) keep (dense_rank first order by nvl(t.dt1, to_date('01011900','DDMMYYYY')) desc) into last_id_
-        from c_states_sch t where
-         t.lsk=lsk_
-        group by t.lsk;
-     exception
-       when no_data_found then
-        if var_=1 then
-          update kart k set k.fk_err=1 where k.lsk=lsk_ and k.psch not in (8,9);
-        end if;
-        return 'Отсутствуют периоды статусов счетчиков!';
-     end;
-  --проверка на то, что дата последнего статуса счетчиков должена быть открытой
-  select nvl(count(*),0) into cnt_ from c_states_sch c where
-     c.id=last_id_ and c.dt2 is not null;
-   if cnt_ > 0 then
-      --найден "пустой" период в статусах (надо чтобы все дни текущего периода были заполнены)
-      if var_=1 then
-        update kart k set k.fk_err=1 where k.lsk=lsk_ and k.psch not in (8,9);
-      end if;
-      return 'Дата последнего периода статуса счетика должна быть открытой!';
-   end if;
-
-  --проверка на диапазоны статусов счетчиков
-  select nvl(count(*),0) into cnt_ from v_cur_days t,
-    (select c.id, nvl(c.dt1, to_date('01011900','DDMMYYYY')) as dt1,
-     nvl(c.dt2, to_date('01012900','DDMMYYYY')) as dt2 from c_states_sch c where
-     c.lsk=lsk_)  s
-     where t.dat between s.dt1(+) and s.dt2(+)
-      and s.id is null;
-   if cnt_ > 0 then
-      --найден "пустой" период в статусах (надо чтобы все дни текущего периода были заполнены)
-      if var_=1 then
-        update kart k set k.fk_err=1 where k.lsk=lsk_ and k.psch not in (8,9);
-      end if;
-      return 'Период действия статуса не перекрывает все дни текущего месяца в статусах счетчиков!';
-   end if;
-  end if;
-
+if l_cd='LSK_TP_MAIN' then
   --для временной регистрации не проверяется
-
   select nvl(count(*),0) into cnt_ from (
    select k.id,
    max(t.dt2) keep (dense_rank first order by nvl(t.dt1, to_date('01011900','DDMMYYYY')) desc) as dat
@@ -767,57 +724,12 @@ if org_var_ = 0 and l_cd='LSK_TP_MAIN' then
    group by k.id) a
    where a.dat is not null;
    if cnt_ > 0 then
-      --найден "пустой" период в статусах (надо чтобы все дни текущего периода были заполнены)
+      --найден "пустой" период в статусах прописки(надо чтобы все дни текущего периода были заполнены)
       if var_=1 then
         update kart k set k.fk_err=1 where k.lsk=lsk_ and k.psch not in (8,9);
       end if;
       return 'Дата последнего периода статуса прописки проживающего должна быть открытой!';
    end if;
-
-  if utils.get_int_param('VER_METER1') = 0 then --только в старой версии
-    select nvl(count(*),0) into cnt_ from kart k, c_states_sch c
-    where k.lsk=lsk_
-    and k.lsk=c.lsk
-    and exists
-    (select * from c_states_sch t where t.lsk=k.lsk
-    and t.id <> c.id and
-    (nvl(t.dt1, to_date('01011900','DDMMYYYY'))
-        between nvl(c.dt1, to_date('01011900','DDMMYYYY'))
-        and nvl(c.dt2, to_date('01012900','DDMMYYYY'))
-      or nvl(t.dt2, to_date('01012900','DDMMYYYY'))
-        between nvl(c.dt1, to_date('01011900','DDMMYYYY'))
-        and nvl(c.dt2, to_date('01012900','DDMMYYYY'))
-    ));
-  end if;
-
-  if cnt_ > 0 then
-    if var_=1 then
-      update kart k set k.fk_err=1 where k.lsk=lsk_ and k.psch not in (8,9);
-    end if;
-    return 'Период действия статуса счетчиков пересекается с другим периодом!';
-  end if;
-
-/*
---уже не ругаемся, в квартире может быть не один квартиросъёмщик, ред 07.02.2012
-   select count(*) into cnt_
-                from c_kart_pr p, relations s
-               where p.lsk = lsk_
-                 and p.relat_id = s.id
-                 and s.fk_relat_tp = 1
-                 and exists
-                 (select * from c_states_pr c, params m where  --найти квартиросъемщика, прописанного
-                  last_day(to_date(m.period||'01','YYYYMMDD')) --на последнюю дату месяца
-                  between nvl(c.dt1(+), to_date('01011900','DDMMYYYY')) and
-                          nvl(c.dt2(+), to_date('01012900','DDMMYYYY'))
-                         and c.fk_kart_pr=p.id
-                         and c.fk_status=1);
-   if cnt_ > 1 then
-      if var_=1 then
-        update kart k set k.fk_err=1 where k.lsk=lsk_;
-      end if;
-      return 'Период прописки Квартиросъемщика пересекается с периодом прописки другого Квартиросъемщика!';
-   end if;
-*/
 
   select nvl(count(*),0) into cnt_ from c_kart_pr k, c_states_pr c
     where k.lsk=lsk_
@@ -835,7 +747,7 @@ if org_var_ = 0 and l_cd='LSK_TP_MAIN' then
     ));
    if cnt_ > 0 then
       if var_=1 then
-        update kart k set k.fk_err=1 where k.lsk=lsk_;
+        update kart k set k.fk_err=2 where k.lsk=lsk_;
       end if;
       return 'Период действия статуса проживающего пересекается с другим периодом!';
    end if;
@@ -1361,35 +1273,105 @@ end;
 
 -- удалить лиц.счет
 function del_lsk(lsk_ in kart.lsk%type) return varchar2 is
-  l_mg params.period%type;
+  l_mg  params.period%type;
   l_cnt number;
 begin
   --удаление лицевого счета
   select p.period into l_mg from params p;
 
-  select nvl(count(*),0) into l_cnt
-    from saldo_usl t where t.lsk=lsk_ and t.mg <= l_mg;
+  select nvl(count(*), 0)
+    into l_cnt
+    from saldo_usl t
+   where t.lsk = lsk_
+     and t.mg <= l_mg;
   if l_cnt > 0 then
     return 'Лицевой счет имеет историю в сальдо, удаление не допустимо!';
   end if;
 
-  select nvl(count(*),0) into l_cnt
-    from c_chargepay t where t.lsk=lsk_ and t.period < l_mg;
+  select nvl(count(*), 0)
+    into l_cnt
+    from c_chargepay t
+   where t.lsk = lsk_
+     and t.period < l_mg;
   if l_cnt > 0 then
     return 'Лицевой счет имеет историю в оборотах, удаление не допустимо!';
   end if;
 
   begin
-  delete from nabor t where t.lsk=lsk_;
-  delete from c_states_sch t where t.lsk=lsk_;
-  delete from c_kart_pr t where t.lsk=lsk_;
-  delete from saldo_usl t where t.lsk=lsk_;
-  delete from c_chargepay t where t.lsk=lsk_ and t.period=l_mg;
-  delete from c_kwtp t where t.lsk=lsk_;
-  delete from kart t where t.lsk=lsk_;
-
-  exception when others then
-    return 'Лицевой счет используется, удаление не допустимо!';
+    delete from nabor t where t.lsk = lsk_;
+    delete from c_states_sch t where t.lsk = lsk_;
+    delete from c_kart_pr t where t.lsk = lsk_;
+    delete from saldo_usl t where t.lsk = lsk_;
+    delete from c_chargepay t
+     where t.lsk = lsk_
+       and t.period = l_mg;
+    delete from c_kwtp t where t.lsk = lsk_;
+    delete from kart t where t.lsk = lsk_;
+    
+    -- добавил удаление из архивов (вдруг были уже сформированы архивы по этому лс), ред 17.04.19
+    delete from a_penya t
+     where t.lsk = lsk_
+       and t.mg = l_mg;
+    delete from c_chargepay t
+     where t.lsk = lsk_
+       and t.period = l_mg;
+    delete from arch_kart t
+     where t.lsk = lsk_
+       and t.mg = l_mg;
+    delete /*+ INDEX (a A_NABOR2_I)*/
+    from a_nabor2 a
+     where a.lsk = lsk_
+       and l_mg between a.mgFrom and a.mgTo;
+    delete from a_kwtp a
+     where a.lsk = lsk_
+       and a.mg = l_mg;
+    delete from a_kwtp_mg a
+     where a.lsk = lsk_
+       and a.mg = l_mg;
+    delete from a_kwtp_day a
+     where a.lsk = lsk_
+       and a.mg = l_mg;
+    delete /*+ INDEX (a A_CHARGE2_I)*/
+    from a_charge2 a
+     where a.lsk = lsk_
+       and l_mg between a.mgFrom and a.mgTo;
+    delete from a_change a
+     where a.lsk = lsk_
+       and a.mg = l_mg;
+    delete from a_kart_pr a
+     where a.lsk = lsk_
+       and a.mg = l_mg;
+    delete from a_lg_docs c
+     where c.mg = l_mg
+       and exists (select *
+              from c_kart_pr p
+             where p.lsk = lsk_
+               and p.id = c.c_kart_pr_id);
+    delete from a_pen_corr a
+     where a.lsk = lsk_
+       and a.mg = l_mg;
+    delete from a_pen_cur a
+     where a.lsk = lsk_
+       and a.mg = l_mg;
+    delete from arch_charges a
+     where a.lsk = lsk_
+       and a.mg = l_mg;
+    delete from arch_changes a
+     where a.lsk = lsk_
+       and a.mg = l_mg;
+    delete from arch_subsidii a
+     where a.lsk = lsk_
+       and a.mg = l_mg;
+    delete from arch_privs a
+     where a.lsk = lsk_
+       and a.mg = l_mg;
+    delete from a_charge_prep2 a
+     where a.lsk = lsk_
+       and l_mg between a.mgFrom and a.mgTo;
+  
+  exception
+    when others then
+      return 'Лицевой счет используется, удаление не допустимо!';
   end;
   commit;
   return null;

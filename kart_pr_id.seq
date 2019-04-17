@@ -1,7 +1,7 @@
 create sequence SCOTT.KART_PR_ID
 minvalue 1
 maxvalue 999999999999999999999999999
-start with 1072097
+start with 1072777
 increment by 1
 cache 20;
 

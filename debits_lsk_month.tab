@@ -23,7 +23,8 @@ create table SCOTT.DEBITS_LSK_MONTH
   k_lsk_id   NUMBER,
   pay_pen    NUMBER,
   pen_in     NUMBER,
-  pen_cur    NUMBER
+  pen_cur    NUMBER,
+  var        NUMBER
 )
 tablespace USERS
   pctfree 10
@@ -69,6 +70,8 @@ comment on column SCOTT.DEBITS_LSK_MONTH.pen_in
   is 'Вх.сальдо по пене';
 comment on column SCOTT.DEBITS_LSK_MONTH.pen_cur
   is 'Текущая, начисленная пеня';
+comment on column SCOTT.DEBITS_LSK_MONTH.var
+  is 'Вариант отчета (0-совокупность долга по адресу, 1-долг по лиц.счету) - используется только в Полыс';
 create index SCOTT.DEBITS_LSK_MONTH_I on SCOTT.DEBITS_LSK_MONTH (MG)
   tablespace USERS
   pctfree 10

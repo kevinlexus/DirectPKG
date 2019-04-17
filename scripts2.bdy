@@ -1770,10 +1770,10 @@ procedure swap_sal_chpay13 is
  l_ret number;
  l_deb number;
 begin
-  l_mg:='201712'; --тек.период
-  l_cd:='swap_sal_chpay13_20171227';
+  l_mg:='201903'; --тек.период
+  l_cd:='swap_sal_chpay13_20190327';
   l_mgchange:=l_mg;
-  l_dt:=to_date('20171227','YYYYMMDD');
+  l_dt:=to_date('20190327','YYYYMMDD');
   l_mg3:=utils.add_months_pr(l_mg,1); --месяц вперед
   l_mg3:=l_mg;
   --dbms_output.enable(2000000);
@@ -1798,67 +1798,47 @@ begin
     select s.lsk, s.usl ,s.org,
     s.summa,
     uid, l_dt, l_mg, l_mg, l_id, 0 as var
-    from saldo_usl s, kart k
-    where s.mg=l_mg3 and s.lsk=k.lsk and k.psch in (9)
-    and s.usl in ('003','013','052')
+    from saldo_usl_script2 s, kart k
+    where s.mg=l_mg3 and s.lsk=k.lsk
+    and s.usl in ('007','008','056')
     and s.summa < 0
-    and s.org = 3;
-
+    and s.org = 7;
+    
+  -- поставить
   insert into t_corrects_payments
     (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
-    select s.lsk, s.usl ,s.org,
-    s.summa,
+    select s.lsk, '007' as usl, 677 as org,
+    -1*s.summa,
     uid, l_dt, l_mg, l_mg, l_id, 0 as var
-    from saldo_usl s, kart k
-    where s.mg=l_mg3 and s.lsk=k.lsk and k.psch in (9)
-    and s.usl in ('003','052')
-    and s.summa < 0
-    and s.org = 2;
-
-  insert into t_corrects_payments
-    (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
-    select s.lsk, s.usl ,s.org,
-    s.summa,
-    uid, l_dt, l_mg, l_mg, l_id, 0 as var
-    from saldo_usl s, kart k
-    where s.mg=l_mg3 and s.lsk=k.lsk and k.psch in (9)
-    and s.usl in ('003','052')
-    and s.summa < 0
-    and s.org = 78;
-
-  insert into t_corrects_payments
-    (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
-    select s.lsk, s.usl ,s.org,
-    s.summa,
-    uid, l_dt, l_mg, l_mg, l_id, 0 as var
-    from saldo_usl s, kart k
-    where s.mg=l_mg3 and s.lsk=k.lsk and k.psch in (9)
-    and s.usl in ('031')
-    and s.summa < 0
-    and s.org = 650;
-
-  insert into t_corrects_payments
-    (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
-    select s.lsk, s.usl ,s.org,
-    s.summa,
-    uid, l_dt, l_mg, l_mg, l_id, 0 as var
-    from saldo_usl s, kart k
-    where s.mg=l_mg3 and s.lsk=k.lsk and k.psch in (9)
-    and s.usl in ('054')
-    and s.summa < 0
-    and s.org = 674;
-
-  insert into t_corrects_payments
-    (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
-    select s.lsk, s.usl ,s.org,
-    s.summa,
-    uid, l_dt, l_mg, l_mg, l_id, 0 as var
-    from saldo_usl s, kart k
-    where s.mg=l_mg3 and s.lsk=k.lsk and k.psch in (9)
-    and s.usl in ('011','013')
+    from saldo_usl_script2 s, kart k
+    where s.mg=l_mg3 and s.lsk=k.lsk
+    and s.usl in ('007','008','056')
     and s.summa < 0
     and s.org = 7;
 
+  -- снять
+  insert into t_corrects_payments
+    (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
+    select s.lsk, s.usl ,s.org,
+    s.summa,
+    uid, l_dt, l_mg, l_mg, l_id, 0 as var
+    from saldo_usl_script2 s, kart k
+    where s.mg=l_mg3 and s.lsk=k.lsk
+    and s.usl in ('015','016','058')
+    and s.summa < 0
+    and s.org = 7;
+    
+  -- поставить
+  insert into t_corrects_payments
+    (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
+    select s.lsk, '015' as usl, 677 as org,
+    -1*s.summa,
+    uid, l_dt, l_mg, l_mg, l_id, 0 as var
+    from saldo_usl_script2 s, kart k
+    where s.mg=l_mg3 and s.lsk=k.lsk
+    and s.usl in ('015','016','058')
+    and s.summa < 0
+    and s.org = 7;
 
 commit;
 end swap_sal_chpay13;

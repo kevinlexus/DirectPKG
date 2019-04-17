@@ -9,7 +9,7 @@ create table SCOTT.C_CHANGE
   org       NUMBER,
   type      NUMBER,
   dtek      DATE not null,
-  ts        DATE not null,
+  ts        DATE default sysdate not null,
   user_id   NUMBER not null,
   doc_id    NUMBER,
   cnt_days  NUMBER,

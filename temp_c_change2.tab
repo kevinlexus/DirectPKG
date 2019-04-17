@@ -9,7 +9,8 @@ create global temporary table SCOTT.TEMP_C_CHANGE2
   tp       NUMBER,
   for_usl  CHAR(3),
   cnt_days NUMBER,
-  uslm     CHAR(3)
+  uslm     CHAR(3),
+  k_lsk_id NUMBER
 )
 on commit preserve rows;
 comment on table SCOTT.TEMP_C_CHANGE2
@@ -32,5 +33,7 @@ comment on column SCOTT.TEMP_C_CHANGE2.cnt_days
   is 'Кол-во дней перерасчета (1-ый процент)';
 comment on column SCOTT.TEMP_C_CHANGE2.uslm
   is 'Услуга главная';
+comment on column SCOTT.TEMP_C_CHANGE2.k_lsk_id
+  is 'Klsk помещения';
 create index SCOTT.TEMP_C_CHANGE2_I on SCOTT.TEMP_C_CHANGE2 (LSK, USL, ORG);
 

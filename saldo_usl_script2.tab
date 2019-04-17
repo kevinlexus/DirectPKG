@@ -1,0 +1,23 @@
+create table SCOTT.SALDO_USL_SCRIPT2
+(
+  lsk   CHAR(8) not null,
+  usl   CHAR(3),
+  org   NUMBER not null,
+  summa NUMBER,
+  mg    VARCHAR2(6) not null,
+  uslm  CHAR(3)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.SALDO_USL_SCRIPT2
+  is 'Сальдо для работы в скриптах';
+

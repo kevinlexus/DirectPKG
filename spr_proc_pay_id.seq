@@ -1,7 +1,7 @@
-create sequence SCOTT.C_CHARGE_ID
+create sequence SCOTT.SPR_PROC_PAY_ID
 minvalue 1
 maxvalue 999999999999999999999999999
-start with 64359456
+start with 21
 increment by 1
 cache 20
 order;

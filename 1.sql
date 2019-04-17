@@ -1,6 +1,6 @@
 -------------------------------------------
 -- Export file for user SCOTT@ORCL       --
--- Created by Leo on 27.03.2019, 4:34:47 --
+-- Created by Leo on 17.04.2019, 8:37:52 --
 -------------------------------------------
 
 set define off
@@ -972,6 +972,11 @@ prompt ===============================
 prompt
 @@saldo_usl_script.tab
 prompt
+prompt Creating table SALDO_USL_SCRIPT2
+prompt ================================
+prompt
+@@saldo_usl_script2.tab
+prompt
 prompt Creating table SPK_STAT
 prompt =======================
 prompt
@@ -1757,10 +1762,20 @@ prompt ================================
 prompt
 @@spr_par_ses_id.seq
 prompt
+prompt Creating sequence SPR_PROC_PAY_ID
+prompt =================================
+prompt
+@@spr_proc_pay_id.seq
+prompt
 prompt Creating sequence SPR_REPXPAR_ID
 prompt ================================
 prompt
 @@spr_repxpar_id.seq
+prompt
+prompt Creating sequence STAV_R_ID
+prompt ===========================
+prompt
+@@stav_r_id.seq
 prompt
 prompt Creating sequence TEMP_PREP2_ID
 prompt ===============================
@@ -3967,6 +3982,11 @@ prompt =============================
 prompt
 @@prep_sal_bie.trg
 prompt
+prompt Creating trigger PRICES_ADU_L2C
+prompt ===============================
+prompt
+@@prices_adu_l2c.trg
+prompt
 prompt Creating trigger PRICES_BI_E
 prompt ============================
 prompt
@@ -4007,6 +4027,11 @@ prompt =============================
 prompt
 @@spr_koeff_bi.trg
 prompt
+prompt Creating trigger SPR_PARAMS_ADU_L2C
+prompt ===================================
+prompt
+@@spr_params_adu_l2c.trg
+prompt
 prompt Creating trigger SPR_PARAMS_BUIE
 prompt ================================
 prompt
@@ -4016,6 +4041,16 @@ prompt Creating trigger SPR_PAR_SES_BI_E
 prompt =================================
 prompt
 @@spr_par_ses_bi_e.trg
+prompt
+prompt Creating trigger SPR_PROC_PAY_BI
+prompt ================================
+prompt
+@@spr_proc_pay_bi.trg
+prompt
+prompt Creating trigger SPR_PROC_PAY_BIE
+prompt =================================
+prompt
+@@spr_proc_pay_bie.trg
 prompt
 prompt Creating trigger SPR_REPXPAR_BI_E
 prompt =================================
@@ -4097,6 +4132,11 @@ prompt =============================
 prompt
 @@t_objxpar_bi.trg
 prompt
+prompt Creating trigger T_ORG_ADU_L2C
+prompt ==============================
+prompt
+@@t_org_adu_l2c.trg
+prompt
 prompt Creating trigger T_ORG_AIUD
 prompt ===========================
 prompt
@@ -4147,10 +4187,20 @@ prompt ===========================
 prompt
 @@t_usxrl_bi.trg
 prompt
+prompt Creating trigger USL_ADU_L2C
+prompt ============================
+prompt
+@@usl_adu_l2c.trg
+prompt
 prompt Creating trigger USL_BI
 prompt =======================
 prompt
 @@usl_bi.trg
+prompt
+prompt Creating trigger USL_ROUND_ADU_L2C
+prompt ==================================
+prompt
+@@usl_round_adu_l2c.trg
 prompt
 prompt Creating trigger U_LISTTP_BI
 prompt ============================

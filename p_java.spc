@@ -12,7 +12,7 @@ function gen(
   p_gen_dt in date, 
   p_stop in number
   ) return number;
-procedure evictCache(p_str in varchar2);
+procedure evictL2Cache;
   
 end p_java;
 /

@@ -373,7 +373,7 @@ if mg_ > 200710 and mg_ < mg_nolg_ then
        max(h3.penya) as penya,
        max(h3.penya) as monthpenya,
        max(h3.penya) as monthpenya2,
-       max(h2.dolg) as dolg,
+       max(h2.dolg)  as dolg,
        null as old_dolg,
        max(nvl(h2.dolg,0)) as itog_dolg,
        max(
@@ -782,14 +782,14 @@ OPEN cur FOR
                null as itg_pen_pay,
                round(CASE
                  WHEN l.kpr <> 0 and u.uslm in (''002'', ''004'',''009'') THEN --расценка по тек ремонту, отоплению всегда на уровне расценки по соц норме
-                 (SELECT pr.summa*decode(u.sptarn, 0, NVL(w.koeff, 0), 1, 1, 2, NVL(w.koeff, 0), 3, NVL(w.koeff, 0))
+                 (SELECT pr.summa*decode(u.sptarn, 0, NVL(w.koeff, 0), 1, 1, 2, NVL(w.koeff, 0), 3, NVL(w.koeff, 0), 4, NVL(w.koeff, 0))
                      FROM USL um, a_prices pr, spt w
                     WHERE u.USLM = um.USLM
                       AND um.usl_norm = 0 AND u.usl=w.usl_id and w.gtr=l.gt and w.mg=l.mg
                       AND um.USL = pr.USL
                       AND pr.mg = m.mg)
                  WHEN l.kpr = 0 and u.uslm in (''002'', ''004'',''009'') THEN --расценка по тек ремонту, отоплению всегда на уровне расценки по соц норме
-                 (SELECT pr.summa*decode(u.sptarn, 0, NVL(w.koeff, 0), 1, 1, 2, NVL(w.koeff, 0), 3, NVL(w.koeff, 0))
+                 (SELECT pr.summa*decode(u.sptarn, 0, NVL(w.koeff, 0), 1, 1, 2, NVL(w.koeff, 0), 3, NVL(w.koeff, 0), 4, NVL(w.koeff, 0))
                      FROM USL um, a_prices pr, spt w
                     WHERE u.USLM = um.USLM
                       AND um.usl_norm = 1 AND u.usl=w.usl_id and w.gtr=l.gt and w.mg=l.mg
@@ -1337,7 +1337,7 @@ begin
       order by a.mg
       ;
   elsif  utils.get_int_param('SPR_DEB_VAR') = 0 then
-    --старый вариант, здесь по p_k_lsk_id
+    --старый вариант, для Полыс
     open p_rfcur for
       select * from (
       select substr(tp.name,1,3)||'-'||k.lsk as lsk, k.psch, s.name||', '||ltrim(k.nd,'0')||', '||ltrim(k.kw,'0') as adr, k.fio, s.name, k.mg,
@@ -1362,11 +1362,13 @@ begin
           from (select k1.psch, k1.fk_tp, k1.lsk, k1.c_lsk_id, k1.k_lsk_id, k1.kul, k1.nd, k1.kw, first_value(k1.fio)
              over (order by decode(psch,8,0,1) desc) as fio, a.mg
                 from scott.kart k1, scott.long_table a
-                where k1.k_lsk_id=p_k_lsk_id) k, scott.spul s, scott.params p,
+                where decode(p_k_lsk_id,0,p_lsk,k1.lsk)=k1.lsk 
+                and decode(p_k_lsk_id,0,k1.k_lsk_id, p_k_lsk_id)=k1.k_lsk_id) k, scott.spul s, scott.params p,
                (select c.lsk, c.mg, sum(c.summa) as summa
                   from scott.c_chargepay c, scott.kart k2
                  where period = (select period from scott.params)
-                   and type = 0 and k2.lsk=c.lsk and k2.k_lsk_id=p_k_lsk_id
+                   and type = 0 and k2.lsk=c.lsk and decode(p_k_lsk_id,0,p_lsk,k2.lsk)=k2.lsk 
+                and decode(p_k_lsk_id,0,k2.k_lsk_id, p_k_lsk_id)=k2.k_lsk_id
                  group by c.lsk, c.mg) b,
                  v_lsk_tp tp,
                  c_penya d

@@ -18,7 +18,7 @@ procedure gen_charge_pay_pen_house(p_dt in date, --дата формир.
  l_dt date;
  l_is_lstdt number;
 begin
-  if p_dt is null then
+/*  if p_dt is null then
     --по концу месяца
     l_is_lstdt:=1;
     l_dt:=init.get_dt_end;
@@ -26,13 +26,21 @@ begin
     --на заданную дату
     l_is_lstdt:=0;
     l_dt:=p_dt;
-  end if; 
+  end if; */
+  -- здесь всегда по концу месяца
+  l_is_lstdt:=1;
+  l_dt:=null;
+
+  logger.log_(time_, 'gen_charge_pay_pen_house начало: p_house='||p_house);
 
   for c in (select lsk from kart k where k.house_id=p_house) loop
     --пеня, на дату, с коммитом
     --движение работает внутри
+    --logger.log_(time_, 'gen_charge_pay_pen_house начало: p_lsk='||c.lsk);
     gen_penya(lsk_ => c.lsk, dat_ => l_dt, islastmonth_ => l_is_lstdt, p_commit => 1);
+    --logger.log_(time_, 'gen_charge_pay_pen_house окончание: p_lsk='||c.lsk);
   end loop;
+  logger.log_(time_, 'gen_charge_pay_pen_house окончание: p_house='||p_house);
   
 end;
 

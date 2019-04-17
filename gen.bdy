@@ -185,7 +185,7 @@ create or replace package body scott.gen is
      return;
    end if;
 
-  select nvl(a.summa,0)-nvl(b.summa,0) into cnt_
+  select nvl(a.summa,0)-nvl(b.summa,0) into cnt_ -- +++
    from (select nvl(sum(summa),0)+nvl(sum(penya),0) as summa from c_kwtp t
     where t.dat_ink between init.g_dt_start and init.g_dt_end) a,
    (select sum(summa) as summa from kwtp_day t
@@ -203,7 +203,7 @@ create or replace package body scott.gen is
   end if;
  elsif var_ =4 then
   --проверки до ПЕРЕХОДА!
-  --проверка, что сальдо исх идёт (бывает, когда удалят платёж без переформирования)
+  --проверка, что сальдо исх идёт (бывает, когда удалят платёж без переформирования) +++
    select nvl(count(*),0) into cnt_
     from (select * from xitog3_lsk where mg=rec_params.period) t 
      full outer join 
@@ -216,7 +216,7 @@ create or replace package body scott.gen is
       return;
     end if;
     
-  -- проверка, что не идет долг в c_chargepay с a_penya  
+  -- проверка, что не идет долг в c_chargepay с a_penya +++
   select nvl(count(*),0) into cnt_ from 
   (select t.lsk, sum(summa) as summa from a_PENYA t 
           where t.mg=rec_params.period group by t.lsk) a join
@@ -224,7 +224,7 @@ create or replace package body scott.gen is
           where t.period=rec_params.period group by t.lsk) b on a.lsk=b.lsk
   where nvl(a.summa,0)<>nvl(b.summa,0);
 
-  --проверка, что начисление идёт с начислением в оборотке (да, да, без учёта перерасчетов - не получилось с ними)
+  --проверка, что начисление идёт с начислением в оборотке (да, да, без учёта перерасчетов - не получилось с ними) +++
    select nvl(count(*),0) into cnt_
     from (select * from xitog3_lsk where mg=rec_params.period) t 
      full outer join 
@@ -242,7 +242,7 @@ create or replace package body scott.gen is
       return;
     end if;
 
-  --проверка, что перерасчет идёт в совокупности с начислением в оборотке 
+  --проверка, что перерасчет идёт в совокупности с начислением в оборотке +++
    select nvl(count(*),0) into cnt_
     from (select lsk, nvl(sum(changes),0)+nvl(sum(changes2),0) as summa from xitog3_lsk where mg=rec_params.period group by lsk) t 
      full outer join 
@@ -258,7 +258,7 @@ create or replace package body scott.gen is
       return;
     end if;
 
-  --проверка, что оплата идёт с оплатой в оборотке
+  --проверка, что оплата идёт с оплатой в оборотке +++
    select nvl(count(*),0) into cnt_
     from (select * from xitog3_lsk where mg=rec_params.period) t 
      full outer join 
@@ -277,7 +277,7 @@ create or replace package body scott.gen is
 
     if utils.get_int_param('GEN_CHK_C_DEB_USL') = 1 then
      --по-периодный способ распределения оплаты
-     --сравниваем сальдо с задолжностью по периодам,
+     --сравниваем сальдо с задолжностью по периодам, +++
      --по л/c
       select nvl(count(*),0)
         into cnt_
@@ -301,7 +301,7 @@ create or replace package body scott.gen is
       end if;
     end if;
 
-    --сравниваем сальдо с движением в совокупности
+    --сравниваем сальдо с движением в совокупности +++
     select nvl(a.summa, 0) - nvl(b.summa, 0)
       into cnt_
       from (select sum(decode(type, 1, -1 * summa, summa)) as summa
@@ -319,7 +319,7 @@ create or replace package body scott.gen is
       return;
     end if;
 
-    --сравниваем сальдо с движением по c_lsk_id
+    --сравниваем сальдо с движением по c_lsk_id +++
     select nvl(count(*),0)
       into cnt_
       from kart c, (select t.lsk, sum(decode(type, 1, -1 * summa, summa)) as summa
@@ -359,7 +359,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
       return;
     end if;
 
-  --проверка что в сальдо не присутствуют организации ниже уровня 1
+  --проверка что в сальдо не присутствуют организации ниже уровня 1 +++
     select count(*) into cnt_ from (
       select level as lvl, t.id, t.name from scott.t_org t
       connect by prior t.id=t.parent_id2
@@ -377,7 +377,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
    
    
  elsif var_ =5 then
-  --проверка перед формированием корректности л.с.
+  --проверка перед формированием корректности л.с. +++
    select nvl(count(*),0) into cnt_ from kart k where nvl(k.fk_err,0)<>0;
    if cnt_ <> 0 then
       err_:=9;
@@ -385,7 +385,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
    return;
 
  elsif var_ =6 then
-  --проверка распределения пени, после формирования сальдо
+  --проверка распределения пени, после формирования сальдо +++
   select nvl(a.summa,0) - nvl(b.summa,0) into cnt_ from
     (select sum(summa) as summa from (
       select c.lsk, c.mg1, round(sum(penya),2) as summa from c_pen_cur c
@@ -401,7 +401,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
    end if;
    
  elsif var_ =7 then
-  --проверка до итогового формирования, перехода, на получение всех показаний счетчиков
+  --проверка до итогового формирования, перехода, на получение всех показаний счетчиков +++
   --(при наличии ЛК)
   if utils.get_int_param('HAVE_LK') = 1 then
 
@@ -416,7 +416,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
   end if;
 
  elsif var_ =8 then
-  --проверка до итогового формирования, на корректность периода в личном кабинете
+  --проверка до итогового формирования, на корректность периода в личном кабинете +++
 
   if utils.get_int_param('HAVE_LK') = 1 then
 
@@ -432,7 +432,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
 
 
  elsif var_=9 then
-   --проверка распределения пени, после формирования сальдо
+   --проверка распределения пени, после формирования сальдо +++
    --проверка сальдо по пене
    select nvl(count(*),0) into cnt_ from (
     select k.lsk, b.pen_in, d.pen_cur, e.pen_cor, f.pen_pay, g.pen_out,
@@ -474,7 +474,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
     err_:=12;
    end if;
  
-   -- проверка сальдо по пене в оборотке
+   -- проверка сальдо по пене в оборотке +++
   select count(*) into cnt_ from 
    (select t.lsk, t.usl, t.org, sum(t.pinsal) as pinsal, sum(t.pcur) as pcur, sum(t.pn) as pn,
      sum(t.poutsal) as poutsal
@@ -485,7 +485,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
     err_:=12;
    end if;
     
-   -- проверка что исх.сальдо по пене идёт в двух таблицах
+   -- проверка что исх.сальдо по пене идёт в двух таблицах +++
    select count(*) into cnt_ from (
       select t.lsk, sum(t.penya) as summa from A_PENYA t where 
       t.mg=rec_params.period
@@ -2628,12 +2628,15 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
            and a.lsk = e.lsk(+)
            and nvl(a.dolg,0) > 0;
     elsif var_=3 then
-    --для ПОЛЫС ВРЕМЕННЫЙ ВАРИАНТ!!! (задолжностью считается всё что -1 месяц назад глядя на пеню), задолжность по л.с. (реально кол-во мес)
-    --и задолжностью считается не текущий период, а период по которому начислена пеня
+    -- ПОЛЫС: (задолжностью считается всё что -1 месяц назад глядя на пеню), задолжность по л.с. (реально кол-во мес)
+    -- и задолжностью считается не текущий период, а период по которому начислена пеня
+    -- ред.09.04.2019
+    
+    -- по совокупности долга по помещению
     insert into debits_lsk_month
         (lsk, k_lsk_id, reu, kul, name, nd, kw, fk_deb_org, fio, status, opl,
-         cnt_month, dolg, cnt_month2, dolg2, nachisl, penya, payment, mg, dat)
-        select a.lsk, a.k_lsk_id, a.reu, a.kul, s.name, a.nd, a.kw, a.fk_deb_org, a.fio,
+         cnt_month, dolg, cnt_month2, dolg2, nachisl, penya, payment, mg, dat, var)
+        select /*+ USE_HASH(a, b, c, e, s)*/a.lsk, a.k_lsk_id, a.reu, a.kul, s.name, a.nd, a.kw, a.fk_deb_org, a.fio,
                a.status, a.opl,
                a.cnt_month as cnt_month,
                      nvl(a.dolg,0) /* долг же уже с учетом оплаты и изменений ред 22.03.12 - nvl(c.summa, 0) + nvl(e.summa, 0)*/
@@ -2641,7 +2644,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
                a.cnt_month as cnt_month2, nvl(a.dolg,0) + nvl(c.summa, 0) as dolg2,--долг без учета оплаты
                b.summa as nachisl, a.penya, c.summa, case when dat_ is null then mg_
                                                              else null end,
-                                                               dat_
+                                                               dat_, 0 as var
           from (select t.psch, t.k_lsk_id, t.lsk, t.fk_deb_org, t.reu, t.kul, t.nd, t.kw,
                         t.fio, t.status, t.opl, e.dolg as dolg,
                         e.penya as penya, e.cnt_month
@@ -2677,6 +2680,54 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
            and a.kul = s.id
            and a.k_lsk_id = c.k_lsk_id(+)
            and a.k_lsk_id = e.k_lsk_id(+)
+           and nvl(a.dolg,0) > 0;
+
+    -- по лиц.счетам       
+    insert into debits_lsk_month
+        (lsk, reu, kul, name, nd, kw, fk_deb_org, fio, status, opl,
+         cnt_month, dolg, cnt_month2, dolg2, nachisl, penya, payment, mg, dat, var)
+        select /*+ USE_HASH(a, b, c, e, s)*/a.lsk, a.reu, a.kul, s.name, a.nd, a.kw, a.fk_deb_org, a.fio,
+               a.status, a.opl,
+               a.cnt_month as cnt_month,
+                     nvl(a.dolg,0) /* долг же уже с учетом оплаты и изменений ред 22.03.12 - nvl(c.summa, 0) + nvl(e.summa, 0)*/
+                     as dolg, --долг с учетом оплаты
+               a.cnt_month as cnt_month2, nvl(a.dolg,0) + nvl(c.summa, 0) as dolg2,--долг без учета оплаты
+               b.summa as nachisl, a.penya, c.summa, case when dat_ is null then mg_
+                                                             else null end,
+                                                               dat_, 1 as var
+          from (select t.psch, t.lsk, t.fk_deb_org, t.reu, t.kul, t.nd, t.kw,
+                        t.fio, t.status, t.opl, e.dolg as dolg,
+                        e.penya as penya, e.cnt_month
+                   from arch_kart t, v_lsk_tp tp,
+                        (select k.lsk, count(distinct a.mg1) as cnt_month,
+                        sum(a.summa) as dolg, sum(penya) as penya
+                            from kart k, a_penya a, v_lsk_tp tp
+                           where k.lsk=a.lsk and a.mg = mg_
+                           and nvl(a.summa,0) <> 0
+                           and a.mg1 <= mg3_ --бред
+                           and k.fk_tp=tp.id
+                           group by k.lsk) e
+                  where t.mg = mg_
+                    and t.lsk = e.lsk(+)
+                    and t.fk_tp=tp.id
+                    ) a,
+               (select d.lsk, sum(d.summa_it) as summa
+                   from arch_charges d --начисление
+                  where d.mg = mg_
+                  group by d.lsk) b,
+               (select d.lsk, sum(d.summa) as summa
+                   from a_kwtp_mg d --оплата
+                  where d.mg = mg_
+                  group by d.lsk) c,
+               (select d.lsk, sum(d.summa) as summa
+                   from a_change d  --изменения
+                  where d.mg = mg_
+                  group by d.lsk) e,
+                  spul s
+         where a.lsk = b.lsk(+)
+           and a.kul = s.id
+           and a.lsk = c.lsk(+)
+           and a.lsk = e.lsk(+)
            and nvl(a.dolg,0) > 0;
     end if;
 
@@ -4429,10 +4480,7 @@ end;
     p_vvod.g_tp:=3;--установить глобальную переменную - признак очистки по переходу
     update kart k set k.mhw = 0, k.mgw = 0, k.mel = 0, k.mot = 0, k.subs_cor = 0;
     p_vvod.g_tp:=0;
-    --ред.12.11.12 зачем update nabor? если ниже через c_vvod он по сути выполняется...
-    --update nabor n set n.vol=null, n.vol_add=null;
 
-    --чистить поле edt_norm - не надо (переходит из месяца в месяц)
     update c_vvod c
        set c.kub     = 0,
            c.kub_man = 0,
@@ -4456,36 +4504,12 @@ end;
            where (nvl(c.kub, 0) <> 0 or nvl(c.vol_add, 0) <> 0);
 
     --чистка таблиц от информации текущего месяца
-/*    execute immediate 'truncate table c_change';
-    execute immediate 'truncate table c_change_docs';
-    execute immediate 'truncate table c_kwtp_mg';
-    execute immediate 'truncate table c_kwtp';*/
-    --переделал delete, очень медленно работает, ред.10.01.13
-
     -- сначала c_change, затем c_change_docs, иначе блокируется! и индекс на c_change.doc_id нужен!!!
     delete from c_change t where t.dtek between init.g_dt_start and init.g_dt_end;
     delete from c_change_docs t where t.dtek between init.g_dt_start and init.g_dt_end;
     delete from c_kwtp t where t.dat_ink between init.g_dt_start and init.g_dt_end;
     --корректировки пени
     delete from c_pen_corr t;
---    delete from c_kwtp_mg c; - не надо - удалится в триггере
-
-/*    delete from c_change_docs c
-     where to_char(c.dtek, 'YYYYMM') = (select period from params);
-    delete from c_change c
-     where to_char(c.dtek, 'YYYYMM') = (select period from params);
-
-    delete from c_kwtp_mg c
-     where to_char(c.dat_ink, 'YYYYMM') = (select period from params);
-    delete from c_kwtp c
-     where to_char(c.dat_ink, 'YYYYMM') = (select period from params);
-  */
-    --чистка периодов в сальдо
-    --ЧИСТИТЬ САЛЬДО НЕЛЬЗЯ (Удаляется сальдо в счетах)
---    delete from saldo_usl t where t.mg < (select period from params p);
--- запрещенны комиты!... хотя может не хватить UNDO....
---    commit;
-
     -- чистка прошлых периодов
     delete from xxito10 t
      where dat <
