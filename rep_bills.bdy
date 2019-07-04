@@ -985,155 +985,421 @@ end loop;
 end;
 
 
-procedure main(p_sel_obj in number,
-               p_reu in kart.reu%type,
-               p_kul in kart.kul%type,
-               p_nd in kart.nd%type,
-               p_kw in kart.kw%type,
-               p_lsk in kart.lsk%type,
-               p_lsk1 in kart.lsk%type,
+procedure main(p_sel_obj  in number,
+               p_reu      in kart.reu%type,
+               p_kul      in kart.kul%type,
+               p_nd       in kart.nd%type,
+               p_kw       in kart.kw%type,
+               p_lsk      in kart.lsk%type,
+               p_lsk1     in kart.lsk%type,
                p_firstrec in number,
-               p_lastrec in number,
-               p_var2 in number, -- печатать ли закрытый фонд
-               p_var3 in number, -- печатать ли доп.счета
-               p_cntrec in number,
-               p_mg in params.period%type,
-               p_rfcur out ccur
-  ) is
+               p_lastrec  in number,
+               p_var2     in number, -- печатать ли закрытый фонд
+               p_var3     in number, -- печатать ли доп.счета
+               p_cntrec   in number,
+               p_mg       in params.period%type,
+               p_rfcur    out ccur) is
+  -- версия счета (0-старая (Полыс), 1 - новая - (Кис.))
+  l_bill_version_compound number;
+
 begin
+
+  delete from temp_lsk;
+
+  l_bill_version_compound := utils.get_int_param('BILL_VERSION_COMPOUND');
+
+  if l_bill_version_compound = 0 then
+    -- старая версия счета (Полыс)
+    insert into temp_lsk
+      (lsk)
+      select k.lsk
+        from arch_kart k
+       where k.mg = p_mg
+         and exists
+       (select *
+                from arch_kart k2
+               where k2.mg = k.mg
+                 and (decode(p_sel_obj, 0, 1, 1, 1, nvl(k2.for_bill, 0)) = 1) -- ред.14.05.19 фильтр по просьбе Полыс (некорректно выводились РСО счета) - эксперементально поставил, не знаю, заденет ли Кис
+                 and decode(p_sel_obj, 0, p_lsk, k2.lsk) >= k2.lsk
+                 and decode(p_sel_obj, 0, p_lsk1, k2.lsk) <= k2.lsk
+                 and decode(p_sel_obj, 1, nvl(p_kul, k2.kul), k2.kul) =
+                     k2.kul
+                 and decode(p_sel_obj, 1, nvl(p_nd, k2.nd), k2.nd) = k2.nd
+                 and decode(p_sel_obj, 1, nvl(p_kw, k2.kw), k2.kw) = k2.kw
+                 and decode(p_sel_obj, 2, p_reu, k2.reu) = k2.reu
+                 and k2.k_lsk_id = k.k_lsk_id);
   
-delete from temp_lsk;
-insert into temp_lsk (lsk)
-select k.lsk from arch_kart k 
- where k.mg = p_mg and (decode(p_sel_obj, 0, 1, 1, 1, nvl(k.for_bill,0)) =1) /* либо по 1 квартире, лс либо чтобы был промарк.for_bill*/ --)
-          and (decode(p_sel_obj, 0, p_lsk, k.lsk) >= k.lsk and decode(p_sel_obj, 0, p_lsk1, k.lsk) <= k.lsk and
-          decode(p_sel_obj, 1, nvl(p_kul,k.kul), k.kul) = k.kul and
-          decode(p_sel_obj, 1, nvl(p_nd,k.nd), k.nd) = k.nd and
-          decode(p_sel_obj, 1, nvl(p_kw,k.kw), k.kw) = k.kw and
-          decode(p_sel_obj, 2, p_reu, k.reu) = k.reu
-           );
-
-
-open p_rfcur for
-  select  * from (   --пока убрал RULE если не делать хинт RULE то возникает ошибка в CBO, которая препятствует выводу записей в датасете...
-  select  a.*,
-   'ST00012'||'|Name='||a.full_name||'|PersonalAcc='||a.raschet_schet||
-   '|BankName='||a.bank||'|BIC='||a.bik||'|CorrespAcc='||a.k_schet
-   ||'|Sum='||trim(to_char(a.sal_out*100,9999999999))||'|Purpose=Квартплата'
-   ||'|PayeeINN='||a.inn||'|lastName='||a.k_fam||'|firstName='||a.k_im
-   ||'|middleName='||a.k_ot||'|payerAddress='||a.adr2||'|persAcc='||a.lsk||'|PaymPeriod='||p_mg
-   ||'|serviceName=000'
-   ||'|category='||decode(a.psch,8,'43301',9,'43301', '43302') as QR
-  from (
-  select /*+ USE_HASH(k, sl, p1, p2, p3, p4, p5, p6  )*/ k.lsk, k.k_lsk_id, k.opl,
-         utils.month_name(SUBSTR(p_mg, 5, 2)) || ' ' || SUBSTR(p_mg, 1, 4) || ' г.' as mg2,
-         case when stp.cd in ('LSK_TP_ADDIT','LSK_TP_RSO') and k3.lsk is not null then k3.kpr else k.kpr end as kpr,
-         case when stp.cd in ('LSK_TP_ADDIT','LSK_TP_RSO') and k3.lsk is not null then k3.kpr_wr else k.kpr_wr end as kpr_wr,
-         case when stp.cd in ('LSK_TP_ADDIT','LSK_TP_RSO') and k3.lsk is not null then k3.kpr_wrp else k.kpr_wrp end as kpr_wrp,
-         case when stp.cd in ('LSK_TP_ADDIT','LSK_TP_RSO') and k3.lsk is not null then k3.kpr_ot else k.kpr_ot end as kpr_ot,
-         t.name as st_name,
-         decode(t.cd, 'MUN','Наниматель','Собственник') as pers_tp,
-         s.name || ', ' || nvl(ltrim(k.nd, '0'), '0') || '-' ||
-         nvl(ltrim(k.kw, '0'), '0') as adr,
-         o2.name||', ул.'||s.name || ', д. ' || nvl(ltrim(k.nd, '0'), '0') || ', кв.' ||
-         nvl(ltrim(k.kw, '0'), '0') as adr2,
-        k.phw, k.pgw, k.pel, k2.phw as phw_back, k2.pgw as pgw_back, k2.pel as pel_back,
-        k.mel, k.mhw, k.mgw,
-        scott.init.get_fio as fio_kass,
-        p_mg as mg, scott.utils.month_name(substr(p_mg, 5, 2))||' '||substr(p_mg,1,4)||'г.' as mg_str,
-        to_date(p_mg||'01','YYYYMMDD') as dt1,
-        to_date(scott.utils.add_months_pr(p_mg, 1)||'01','YYYYMMDD') as dt2,
-        k.house_id,
-        k.reu, case when stp.cd in ('LSK_TP_ADDIT','LSK_TP_RSO') then o.r_sch_addit
---                    when b.cnt = 1 then o.raschet_schet2
-                    when o3.code_deb is not null then o3.raschet_schet  
-                    else o.raschet_schet end
-                    as raschet_schet,
-        sl.summa as sal_out,
-        k.k_fam, k.k_im, k.k_ot, k.fio,
-        o.inn, o.k_schet, o.bik, o.bank, o.full_name, o.phone, o.adr as adr_org, k.psch, stp.cd as lsk_tp, stp.npp as lsk_tp_npp, k.prn_num, k.prn_new,
-        p1.penya_in, p2.penya_chrg, p3.penya_corr, nvl(p2.penya_chrg,0)+nvl(p3.penya_corr,0) as penya_chrg_itg, p4.penya_pay, p5.penya_out, p4.pay,
-        p4.last_dtek
-    from scott.arch_kart k
-      left join scott.arch_kart k2 on k.lsk=k2.lsk and k2.mg=scott.utils.add_months_pr(p_mg, -1)
-      left join scott.spul s on k.kul = s.id
-      left join scott.status t on k.status=t.id
-      left join scott.t_org_tp tp on tp.cd='РКЦ'
-      left join scott.t_org o on tp.id=o.fk_orgtp
-      left join scott.t_org_tp tp2 on tp2.cd='Город'
-      left join scott.t_org o2 on tp2.id=o2.fk_orgtp
-      left join scott.t_org o3 on k.reu=o3.reu
-      left join scott.v_lsk_tp stp on k.fk_tp=stp.id
-      left join scott.v_lsk_tp stp2 on stp2.cd='LSK_TP_MAIN'
-      left join scott.arch_kart k3 on k.k_lsk_id=k3.k_lsk_id and k.mg=k3.mg and k.lsk<>k3.lsk and k3.psch not in (8,9) and stp.cd in ('LSK_TP_ADDIT','LSK_TP_RSO')
-         and k3.fk_tp <> k.fk_tp and k3.fk_tp=stp2.id -- присоединить основной ЛС, чтоб получить кол-во прож.
-      left join (select l.lsk, sum(l.summa) as summa --сальдо исходящее
-            from scott.saldo_usl l, temp_lsk tmp
-           where l.mg=scott.utils.add_months_pr(p_mg, 1) and l.lsk=tmp.lsk
-           group by l.lsk) sl on k.lsk=sl.lsk
-      left join (select l.lsk, sum(l.penya) as penya_in --сальдо по пене входящее
-            from scott.a_penya l, temp_lsk tmp
-           where l.mg=scott.utils.add_months_pr(p_mg, -1) and l.lsk=tmp.lsk
-           group by l.lsk) p1 on k.lsk=p1.lsk
-      left join (
-           select l.lsk, sum(penya_chrg) as penya_chrg from ( --ред. 21.11.2016
-             select t.lsk, t.mg1, round(sum(t.penya),2) as penya_chrg --начисление по пене текущее
-              from scott.a_pen_cur t, temp_lsk tmp
-             where t.mg=p_mg and t.lsk=tmp.lsk
-             group by t.lsk, t.mg1) l
-           group by l.lsk
-           ) p2 on k.lsk=p2.lsk
-      left join (select l.lsk, sum(l.penya) as penya_corr --корректировки по пене текущие
-            from scott.a_pen_corr l, temp_lsk tmp
-           where l.mg=p_mg and l.lsk=tmp.lsk
-           group by l.lsk) p3 on k.lsk=p3.lsk
-      left join (select l.lsk, max(l.dtek) as last_dtek, -- дата платежа, последняя
-           sum(l.summa) as pay, -- оплата текущая
-           sum(l.penya) as penya_pay --оплата по пене текущая
-            from scott.a_kwtp_mg l, temp_lsk tmp
-           where l.mg=p_mg and l.lsk=tmp.lsk
-           group by l.lsk) p4 on k.lsk=p4.lsk
-      left join (select l.lsk, sum(l.penya) as penya_out --сальдо по пене исходящее
-            from scott.a_penya l, temp_lsk tmp
-           where l.mg=p_mg and l.lsk=tmp.lsk
-           group by l.lsk) p5 on k.lsk=p5.lsk
---      left join (select r.lsk, 1 as cnt from scott.a_nabor r, scott.usl u where r.mg=p_mg
---       and r.usl=u.usl and u.cd='усл.банка') b on k.lsk=b.lsk
-      /*left join (select l.lsk, sum(l.summa) as pay -- ред. 20.06.2018 убрал, лишнее, всё есть в left join p4
-          from a_kwtp_mg l, temp_lsk tmp
-           where l.mg=p_mg and l.lsk=tmp.lsk
-         group by l.lsk) p6 on k.lsk=p6.lsk */
-   where k.mg = p_mg
-     /*and  (p_cntrec=0 or p_cntrec<> 0 and */ 
-     and (decode(p_sel_obj, 0, 1, 1, 1, nvl(k.for_bill,0)) =1) /* либо по 1 квартире, лс либо чтобы был промарк.for_bill*/ --)
-     and (decode(p_sel_obj, 0, p_lsk, k.lsk) >= k.lsk and decode(p_sel_obj, 0, p_lsk1, k.lsk) <= k.lsk and
-          decode(p_sel_obj, 1, nvl(p_kul,k.kul), k.kul) = k.kul and
-          decode(p_sel_obj, 1, nvl(p_nd,k.nd), k.nd) = k.nd and
-          decode(p_sel_obj, 1, nvl(p_kw,k.kw), k.kw) = k.kw and
-          decode(p_sel_obj, 2, p_reu, k.reu) = k.reu
-           )
-
-/*-- убрал 03.09.2017
-     and (p_sel_obj in (0,1) or nvl(k.for_bill,0)=1)  --либо по 1 квартире, лс либо чтобы был промарк.for_bill --)
-     and ((p_sel_obj = 0 and k.lsk between p_lsk and p_lsk1) or
-           p_sel_obj = 1 and
-           (p_kul is not null and k.kul = p_kul or p_kul is null) and
-           (p_nd is not null and k.nd = p_nd or p_nd is null) and
-           (p_kw is not null and k.kw = p_kw or p_kw is null) or
-           (p_sel_obj = 2 and k.reu = p_reu)
-           ) */
-     and (p_var2 = 1 and k.psch in (8,9) and (nvl(sl.summa,0) <> 0 or nvl(p5.penya_out,0) <> 0) 
-          or k.psch not in (8,9) and (stp.cd='LSK_TP_MAIN' or stp.cd<>'LSK_TP_MAIN' --and (nvl(sl.summa,0) <> 0 or nvl(p5.penya_out,0) <> 0) ред.10.01.18 закоммент. по просьбе Полыс - не выводил расшифровку(счет) по РСО лс
-          ) )
-     and (p_var3 = 0 or p_var3 = 1 and stp.cd='LSK_TP_MAIN')
-    order by s.name, scott.utils.f_ord_digit(k.nd), --Внимание! порядок точно такой как и в GEN.upd_arch_kart2
-         scott.utils.f_ord3(k.nd) desc,
-         scott.utils.f_ord_digit(k.kw),
-         scott.utils.f_ord3(k.kw) desc, k.k_lsk_id, stp.npp
-  ) a
-  ) b
-  where p_cntrec=0 or
-  p_cntrec<>0 and b.prn_num between nvl(p_firstrec,0) and nvl(p_lastrec,0);
+    open p_rfcur for
+      select *
+        from ( --пока убрал RULE если не делать хинт RULE то возникает ошибка в CBO, которая препятствует выводу записей в датасете...
+               select a.*, 'ST00012' || '|Name=' || a.full_name ||
+                        '|PersonalAcc=' || a.raschet_schet || '|BankName=' ||
+                        a.bank || '|BIC=' || a.bik || '|CorrespAcc=' ||
+                        a.k_schet || '|Sum=' ||
+                        trim(to_char(a.sal_out * 100, 9999999999)) ||
+                        '|Purpose=Квартплата' || '|PayeeINN=' || a.inn ||
+                        '|lastName=' || a.k_fam || '|firstName=' || a.k_im ||
+                        '|middleName=' || a.k_ot || '|payerAddress=' ||
+                        a.adr2 || '|persAcc=' || a.lsk || '|PaymPeriod=' || p_mg ||
+                        '|serviceName=000' || '|category=' ||
+                        decode(a.psch, 8, '43301', 9, '43301', '43302') as QR
+                 from (select /*+ USE_HASH(k, sl, p1, p2, p3, p4, p5, p6  )*/
+                          k.lsk, k.k_lsk_id, k.opl, utils.month_name(SUBSTR(p_mg,
+                                                   5,
+                                                   2)) || ' ' ||
+                           SUBSTR(p_mg, 1, 4) || ' г.' as mg2,case
+                            when stp.cd in ('LSK_TP_ADDIT', 'LSK_TP_RSO') and
+                                 k3.lsk is not null then
+                             k3.kpr
+                            else
+                             k.kpr
+                          end as kpr,case
+                            when stp.cd in ('LSK_TP_ADDIT', 'LSK_TP_RSO') and
+                                 k3.lsk is not null then
+                             k3.kpr_wr
+                            else
+                             k.kpr_wr
+                          end as kpr_wr,case
+                            when stp.cd in ('LSK_TP_ADDIT', 'LSK_TP_RSO') and
+                                 k3.lsk is not null then
+                             k3.kpr_wrp
+                            else
+                             k.kpr_wrp
+                          end as kpr_wrp,case
+                            when stp.cd in ('LSK_TP_ADDIT', 'LSK_TP_RSO') and
+                                 k3.lsk is not null then
+                             k3.kpr_ot
+                            else
+                             k.kpr_ot
+                          end as kpr_ot, t.name as st_name, decode(t.cd,
+                                  'MUN',
+                                  'Наниматель',
+                                  'Собственник') as pers_tp, s.name || ', ' ||
+                           nvl(ltrim(k.nd, '0'),
+                               '0') || '-' ||
+                           nvl(ltrim(k.kw, '0'),
+                               '0') as adr, o2.name || ', ул.' || s.name ||
+                           ', д. ' || nvl(ltrim(k.nd, '0'), '0') ||
+                           ', кв.' || nvl(ltrim(k.kw, '0'), '0') as adr2, k.phw, k.pgw, k.pel, k2.phw as phw_back, k2.pgw as pgw_back, k2.pel as pel_back, k.mel, k.mhw, k.mgw, scott.init.get_fio as fio_kass, p_mg as mg, scott.utils.month_name(substr(p_mg,
+                                                         5,
+                                                         2)) || ' ' ||
+                           substr(p_mg,
+                                  1,
+                                  4) || 'г.' as mg_str, to_date(p_mg || '01',
+                                   'YYYYMMDD') as dt1, to_date(scott.utils.add_months_pr(p_mg,
+                                                             1) || '01',
+                                   'YYYYMMDD') as dt2, k.house_id, k.reu,case
+                            when stp.cd in ('LSK_TP_ADDIT', 'LSK_TP_RSO') then
+                             o.r_sch_addit
+                          --                    when b.cnt = 1 then o.raschet_schet2
+                            when o3.code_deb is not null then
+                             o3.raschet_schet
+                            else
+                             o.raschet_schet
+                          end as raschet_schet, sl.summa as sal_out, k.k_fam, k.k_im, k.k_ot, k.fio, o.inn, o.k_schet, o.bik, o.bank, o.full_name, o.phone, o.adr as adr_org, k.psch, stp.cd as lsk_tp, stp.npp as lsk_tp_npp, k.prn_num, k.prn_new, p1.penya_in, p2.penya_chrg, p3.penya_corr, nvl(p2.penya_chrg,
+                               0) +
+                           nvl(p3.penya_corr,
+                               0) as penya_chrg_itg, p4.penya_pay, p5.penya_out, p4.pay, p4.last_dtek
+                           from scott.arch_kart k
+                           left join scott.arch_kart k2
+                             on k.lsk = k2.lsk
+                            and k2.mg = scott.utils.add_months_pr(p_mg, -1)
+                           left join scott.spul s
+                             on k.kul = s.id
+                           left join scott.status t
+                             on k.status = t.id
+                           left join scott.t_org_tp tp
+                             on tp.cd = 'РКЦ'
+                           left join scott.t_org o
+                             on tp.id = o.fk_orgtp
+                           left join scott.t_org_tp tp2
+                             on tp2.cd = 'Город'
+                           left join scott.t_org o2
+                             on tp2.id = o2.fk_orgtp
+                           left join scott.t_org o3
+                             on k.reu = o3.reu
+                           left join scott.v_lsk_tp stp
+                             on k.fk_tp = stp.id
+                           left join scott.v_lsk_tp stp2
+                             on stp2.cd = 'LSK_TP_MAIN'
+                           left join scott.arch_kart k3
+                             on k.k_lsk_id = k3.k_lsk_id
+                            and k.mg = k3.mg
+                            and k.lsk <> k3.lsk
+                            and k3.psch not in (8, 9)
+                            and stp.cd in ('LSK_TP_ADDIT', 'LSK_TP_RSO')
+                            and k3.fk_tp <> k.fk_tp
+                            and k3.fk_tp = stp2.id -- присоединить основной ЛС, чтоб получить кол-во прож.
+                           left join (select l.lsk, sum(l.summa) as summa --сальдо исходящее
+                                       from scott.saldo_usl l, temp_lsk tmp
+                                      where l.mg =
+                                            scott.utils.add_months_pr(p_mg, 1)
+                                        and l.lsk = tmp.lsk
+                                      group by l.lsk) sl
+                             on k.lsk = sl.lsk
+                           left join (select l.lsk, sum(l.penya) as penya_in --сальдо по пене входящее
+                                       from scott.a_penya l, temp_lsk tmp
+                                      where l.mg =
+                                            scott.utils.add_months_pr(p_mg, -1)
+                                        and l.lsk = tmp.lsk
+                                      group by l.lsk) p1
+                             on k.lsk = p1.lsk
+                           left join (select l.lsk, sum(penya_chrg) as penya_chrg
+                                       from ( --ред. 21.11.2016
+                                              select t.lsk, t.mg1, round(sum(t.penya),
+                                                             2) as penya_chrg --начисление по пене текущее
+                                                from scott.a_pen_cur t, temp_lsk tmp
+                                               where t.mg = p_mg
+                                                 and t.lsk = tmp.lsk
+                                               group by t.lsk, t.mg1) l
+                                      group by l.lsk) p2
+                             on k.lsk = p2.lsk
+                           left join (select l.lsk, sum(l.penya) as penya_corr --корректировки по пене текущие
+                                       from scott.a_pen_corr l, temp_lsk tmp
+                                      where l.mg = p_mg
+                                        and l.lsk = tmp.lsk
+                                      group by l.lsk) p3
+                             on k.lsk = p3.lsk
+                           left join (select l.lsk, max(l.dtek) as last_dtek, -- дата платежа, последняя
+                                            sum(l.summa) as pay, -- оплата текущая
+                                            sum(l.penya) as penya_pay --оплата по пене текущая
+                                       from scott.a_kwtp_mg l, temp_lsk tmp
+                                      where l.mg = p_mg
+                                        and l.lsk = tmp.lsk
+                                      group by l.lsk) p4
+                             on k.lsk = p4.lsk
+                           left join (select l.lsk, sum(l.penya) as penya_out --сальдо по пене исходящее
+                                       from scott.a_penya l, temp_lsk tmp
+                                      where l.mg = p_mg
+                                        and l.lsk = tmp.lsk
+                                      group by l.lsk) p5
+                             on k.lsk = p5.lsk
+                           join (select distinct k2.k_lsk_id
+                                  from arch_kart k2
+                                 where k2.mg = p_mg
+                                   and (decode(p_sel_obj,
+                                               0,
+                                               1,
+                                               1,
+                                               1,
+                                               nvl(k2.for_bill, 0)) = 1) -- ред.14.05.19 фильтр по просьбе Полыс (некорректно выводились РСО счета) - эксперементально поставил, не знаю, заденет ли Кис
+                                   and (decode(p_sel_obj, 0, p_lsk, k2.lsk) >=
+                                       k2.lsk and
+                                       decode(p_sel_obj, 0, p_lsk1, k2.lsk) <=
+                                       k2.lsk and
+                                       decode(p_sel_obj,
+                                               1,
+                                               nvl(p_kul, k2.kul),
+                                               k2.kul) = k2.kul and
+                                       decode(p_sel_obj,
+                                               1,
+                                               nvl(p_nd, k2.nd),
+                                               k2.nd) = k2.nd and
+                                       decode(p_sel_obj,
+                                               1,
+                                               nvl(p_kw, k2.kw),
+                                               k2.kw) = k2.kw and
+                                       decode(p_sel_obj, 2, p_reu, k2.reu) =
+                                       k2.reu)) k4
+                             on k4.k_lsk_id = k.k_lsk_id
+                          where k.mg = p_mg
+                            and (p_var2 = 1 and k.psch in (8, 9) and
+                                (nvl(sl.summa, 0) <> 0 or
+                                nvl(p5.penya_out, 0) <> 0) or
+                                k.psch not in (8, 9) and
+                                (stp.cd = 'LSK_TP_MAIN' or
+                                stp.cd <> 'LSK_TP_MAIN'))
+                            and (p_var3 = 0 or
+                                p_var3 = 1 and stp.cd = 'LSK_TP_MAIN')
+                          order by s.name, scott.utils.f_ord_digit(k.nd), --Внимание! порядок точно такой как и в GEN.upd_arch_kart2
+                                   scott.utils.f_ord3(k.nd) desc, scott.utils.f_ord_digit(k.kw), scott.utils.f_ord3(k.kw) desc, k.k_lsk_id, stp.npp) a) b
+       where p_cntrec = 0
+          or p_cntrec <> 0
+         and b.prn_num between nvl(p_firstrec, 0) and nvl(p_lastrec, 0);
+  else
+    -- новая версия счета (Кис.)  
+    insert into temp_lsk
+      (lsk)
+      select k.lsk
+        from arch_kart k
+       where k.mg = p_mg
+         and (decode(p_sel_obj, 0, 1, 1, 1, nvl(k.for_bill, 0)) = 1) /* либо по 1 квартире, лс либо чтобы был промарк.for_bill*/ --)
+         and (decode(p_sel_obj, 0, p_lsk, k.lsk) >= k.lsk and
+             decode(p_sel_obj, 0, p_lsk1, k.lsk) <= k.lsk and
+             decode(p_sel_obj, 1, nvl(p_kul, k.kul), k.kul) = k.kul and
+             decode(p_sel_obj, 1, nvl(p_nd, k.nd), k.nd) = k.nd and
+             decode(p_sel_obj, 1, nvl(p_kw, k.kw), k.kw) = k.kw and
+             decode(p_sel_obj, 2, p_reu, k.reu) = k.reu);
+  
+    open p_rfcur for
+      select *
+        from ( --пока убрал RULE если не делать хинт RULE то возникает ошибка в CBO, которая препятствует выводу записей в датасете...
+               select a.*, 'ST00012' || '|Name=' || a.full_name ||
+                        '|PersonalAcc=' || a.raschet_schet || '|BankName=' ||
+                        a.bank || '|BIC=' || a.bik || '|CorrespAcc=' ||
+                        a.k_schet || '|Sum=' ||
+                        trim(to_char(a.sal_out * 100, 9999999999)) ||
+                        '|Purpose=Квартплата' || '|PayeeINN=' || a.inn ||
+                        '|lastName=' || a.k_fam || '|firstName=' || a.k_im ||
+                        '|middleName=' || a.k_ot || '|payerAddress=' ||
+                        a.adr2 || '|persAcc=' || a.lsk || '|PaymPeriod=' || p_mg ||
+                        '|serviceName=000' || '|category=' ||
+                        decode(a.psch, 8, '43301', 9, '43301', '43302') as QR
+                 from (select /*+ USE_HASH(k, sl, p1, p2, p3, p4, p5, p6  )*/
+                          k.lsk, k.k_lsk_id, k.opl, utils.month_name(SUBSTR(p_mg,
+                                                   5,
+                                                   2)) || ' ' ||
+                           SUBSTR(p_mg, 1, 4) || ' г.' as mg2,case
+                            when stp.cd in ('LSK_TP_ADDIT', 'LSK_TP_RSO') and
+                                 k3.lsk is not null then
+                             k3.kpr
+                            else
+                             k.kpr
+                          end as kpr,case
+                            when stp.cd in ('LSK_TP_ADDIT', 'LSK_TP_RSO') and
+                                 k3.lsk is not null then
+                             k3.kpr_wr
+                            else
+                             k.kpr_wr
+                          end as kpr_wr,case
+                            when stp.cd in ('LSK_TP_ADDIT', 'LSK_TP_RSO') and
+                                 k3.lsk is not null then
+                             k3.kpr_wrp
+                            else
+                             k.kpr_wrp
+                          end as kpr_wrp,case
+                            when stp.cd in ('LSK_TP_ADDIT', 'LSK_TP_RSO') and
+                                 k3.lsk is not null then
+                             k3.kpr_ot
+                            else
+                             k.kpr_ot
+                          end as kpr_ot, t.name as st_name, decode(t.cd,
+                                  'MUN',
+                                  'Наниматель',
+                                  'Собственник') as pers_tp, s.name || ', ' ||
+                           nvl(ltrim(k.nd, '0'),
+                               '0') || '-' ||
+                           nvl(ltrim(k.kw, '0'),
+                               '0') as adr, o2.name || ', ул.' || s.name ||
+                           ', д. ' || nvl(ltrim(k.nd, '0'), '0') ||
+                           ', кв.' || nvl(ltrim(k.kw, '0'), '0') as adr2, k.phw, k.pgw, k.pel, k2.phw as phw_back, k2.pgw as pgw_back, k2.pel as pel_back, k.mel, k.mhw, k.mgw, scott.init.get_fio as fio_kass, p_mg as mg, scott.utils.month_name(substr(p_mg,
+                                                         5,
+                                                         2)) || ' ' ||
+                           substr(p_mg,
+                                  1,
+                                  4) || 'г.' as mg_str, to_date(p_mg || '01',
+                                   'YYYYMMDD') as dt1, to_date(scott.utils.add_months_pr(p_mg,
+                                                             1) || '01',
+                                   'YYYYMMDD') as dt2, k.house_id, k.reu,case
+                            when stp.cd in ('LSK_TP_ADDIT', 'LSK_TP_RSO') then
+                             o.r_sch_addit
+                            when o3.code_deb is not null then
+                             o3.raschet_schet
+                            else
+                             o.raschet_schet
+                          end as raschet_schet, sl.summa as sal_out, k.k_fam, k.k_im, k.k_ot, k.fio, o.inn, o.k_schet, o.bik, o.bank, o.full_name, o.phone, o.adr as adr_org, k.psch, stp.cd as lsk_tp, stp.npp as lsk_tp_npp, k.prn_num, k.prn_new, p1.penya_in, p2.penya_chrg, p3.penya_corr, nvl(p2.penya_chrg,
+                               0) +
+                           nvl(p3.penya_corr,
+                               0) as penya_chrg_itg, p4.penya_pay, p5.penya_out, p4.pay, p4.last_dtek
+                           from scott.arch_kart k
+                           left join scott.arch_kart k2
+                             on k.lsk = k2.lsk
+                            and k2.mg = scott.utils.add_months_pr(p_mg, -1)
+                           left join scott.spul s
+                             on k.kul = s.id
+                           left join scott.status t
+                             on k.status = t.id
+                           left join scott.t_org_tp tp
+                             on tp.cd = 'РКЦ'
+                           left join scott.t_org o
+                             on tp.id = o.fk_orgtp
+                           left join scott.t_org_tp tp2
+                             on tp2.cd = 'Город'
+                           left join scott.t_org o2
+                             on tp2.id = o2.fk_orgtp
+                           left join scott.t_org o3
+                             on k.reu = o3.reu
+                           left join scott.v_lsk_tp stp
+                             on k.fk_tp = stp.id
+                           left join scott.v_lsk_tp stp2
+                             on stp2.cd = 'LSK_TP_MAIN'
+                           left join scott.arch_kart k3
+                             on k.k_lsk_id = k3.k_lsk_id
+                            and k.mg = k3.mg
+                            and k.lsk <> k3.lsk
+                            and k3.psch not in (8, 9)
+                            and stp.cd in ('LSK_TP_ADDIT', 'LSK_TP_RSO')
+                            and k3.fk_tp <> k.fk_tp
+                            and k3.fk_tp = stp2.id -- присоединить основной ЛС, чтоб получить кол-во прож.
+                           left join (select l.lsk, sum(l.summa) as summa --сальдо исходящее
+                                       from scott.saldo_usl l, temp_lsk tmp
+                                      where l.mg =
+                                            scott.utils.add_months_pr(p_mg, 1)
+                                        and l.lsk = tmp.lsk
+                                      group by l.lsk) sl
+                             on k.lsk = sl.lsk
+                           left join (select l.lsk, sum(l.penya) as penya_in --сальдо по пене входящее
+                                       from scott.a_penya l, temp_lsk tmp
+                                      where l.mg =
+                                            scott.utils.add_months_pr(p_mg, -1)
+                                        and l.lsk = tmp.lsk
+                                      group by l.lsk) p1
+                             on k.lsk = p1.lsk
+                           left join (select l.lsk, sum(penya_chrg) as penya_chrg
+                                       from ( --ред. 21.11.2016
+                                              select t.lsk, t.mg1, round(sum(t.penya),
+                                                             2) as penya_chrg --начисление по пене текущее
+                                                from scott.a_pen_cur t, temp_lsk tmp
+                                               where t.mg = p_mg
+                                                 and t.lsk = tmp.lsk
+                                               group by t.lsk, t.mg1) l
+                                      group by l.lsk) p2
+                             on k.lsk = p2.lsk
+                           left join (select l.lsk, sum(l.penya) as penya_corr --корректировки по пене текущие
+                                       from scott.a_pen_corr l, temp_lsk tmp
+                                      where l.mg = p_mg
+                                        and l.lsk = tmp.lsk
+                                      group by l.lsk) p3
+                             on k.lsk = p3.lsk
+                           left join (select l.lsk, max(l.dtek) as last_dtek, -- дата платежа, последняя
+                                            sum(l.summa) as pay, -- оплата текущая
+                                            sum(l.penya) as penya_pay --оплата по пене текущая
+                                       from scott.a_kwtp_mg l, temp_lsk tmp
+                                      where l.mg = p_mg
+                                        and l.lsk = tmp.lsk
+                                      group by l.lsk) p4
+                             on k.lsk = p4.lsk
+                           left join (select l.lsk, sum(l.penya) as penya_out --сальдо по пене исходящее
+                                       from scott.a_penya l, temp_lsk tmp
+                                      where l.mg = p_mg
+                                        and l.lsk = tmp.lsk
+                                      group by l.lsk) p5
+                             on k.lsk = p5.lsk
+                          where k.mg = p_mg
+                            and (decode(p_sel_obj, 0, 1, 1, 1, nvl(k.for_bill, 0)) = 1) /* либо по 1 квартире, лс либо чтобы был промарк.for_bill*/ --)
+                            and (decode(p_sel_obj, 0, p_lsk, k.lsk) >= k.lsk and
+                                decode(p_sel_obj, 0, p_lsk1, k.lsk) <= k.lsk and
+                                decode(p_sel_obj, 1, nvl(p_kul, k.kul), k.kul) =
+                                k.kul and
+                                decode(p_sel_obj, 1, nvl(p_nd, k.nd), k.nd) = k.nd and
+                                decode(p_sel_obj, 1, nvl(p_kw, k.kw), k.kw) = k.kw and
+                                decode(p_sel_obj, 2, p_reu, k.reu) = k.reu)
+                            and (p_var2 = 1 and k.psch in (8, 9) and
+                                (nvl(sl.summa, 0) <> 0 or
+                                nvl(p5.penya_out, 0) <> 0) or
+                                k.psch not in (8, 9) and
+                                (stp.cd = 'LSK_TP_MAIN' or
+                                stp.cd <> 'LSK_TP_MAIN' --and (nvl(sl.summa,0) <> 0 or nvl(p5.penya_out,0) <> 0) ред.10.01.18 закоммент. по просьбе Полыс - не выводил расшифровку(счет) по РСО лс
+                                ))
+                            and (p_var3 = 0 or
+                                p_var3 = 1 and stp.cd = 'LSK_TP_MAIN')
+                          order by s.name, scott.utils.f_ord_digit(k.nd), --Внимание! порядок точно такой как и в GEN.upd_arch_kart2
+                                   scott.utils.f_ord3(k.nd) desc, scott.utils.f_ord_digit(k.kw), scott.utils.f_ord3(k.kw) desc, k.k_lsk_id, stp.npp) a) b
+       where p_cntrec = 0
+          or p_cntrec <> 0
+         and b.prn_num between nvl(p_firstrec, 0) and nvl(p_lastrec, 0);
+  
+  end if;
 
 end;
 
@@ -1310,9 +1576,11 @@ procedure deb(p_k_lsk_id in number,
               p_lsk in kart.lsk%type,
               p_rfcur out ccur
   ) is
+  l_lsk kart.lsk%type;
 begin
   if utils.get_int_param('SPR_DEB_VAR') = 1 then
     --новый вариант (для ТСЖ), здесь по p_lsk
+    select max(k.lsk) into l_lsk from kart k where k.k_lsk_id=p_k_lsk_id;
     open p_rfcur for
       select b.summa as charge, c.summa as payment, nvl(b.summa,0) - nvl(c.summa,0) as dolg,
       nvl(d.penya,0) as penya,
@@ -1323,13 +1591,13 @@ begin
        from
        scott.long_table a ,
       (select mg, sum(summa) as summa from scott.c_chargepay where period=(select period from scott.params) and
-         lsk=p_lsk and type=0 group by mg) b,
+         lsk=l_lsk and type=0 group by mg) b,
       (select mg, sum(summa) as summa from scott.c_chargepay where period=(select period from scott.params) and
-         lsk=p_lsk and type=1 group by mg) c,
+         lsk=l_lsk and type=1 group by mg) c,
       (select t.mg, sum(t.dolg) as summa from scott.arch_kart t where
-         lsk=p_lsk group by mg) e,
+         lsk=l_lsk group by mg) e,
 
-      (select summa as dolg_pen,penya, days, mg1 from scott.c_penya c where lsk=p_lsk) d
+      (select summa as dolg_pen,penya, days, mg1 from scott.c_penya c where lsk=l_lsk) d
       where a.mg=b.mg(+) and a.mg=c.mg(+)
       and a.mg=e.mg(+)
       and a.mg=d.mg1(+)  and (nvl(b.summa,0) <>0 or nvl(c.summa,0) <>0 or nvl(e.summa,0) <>0)
@@ -1454,9 +1722,13 @@ end;
 procedure arch_supp(p_k_lsk in number, p_adr in number, p_lsk in kart.lsk%type, 
                p_mg1 in params.period%type, p_mg2 in params.period%type,
                p_rfcur out ccur) is
+l_klsk_id number;               
 begin
+  if p_adr = 1 then
+    l_klsk_id:=scott.utils.get_k_lsk_id_by_lsk(p_lsk);
+  end if;  
 open p_rfcur for  
-  select k.lsk, s.name as street, nvl(ltrim(k.nd, '0'), '0') as nd,
+  select /*+ USE_HASH(k,s,tp,e,e2,b */ k.lsk, s.name as street, nvl(ltrim(k.nd, '0'), '0') as nd,
          nvl(ltrim(k.kw, '0'), '0') as kw, k.opl, k.fio, k.kpr, k.kpr_wr,
          k.kpr_wrp, 
          decode(tp.cd, 'MUN','Наниматель','Собственник') as pers_tp,
@@ -1470,9 +1742,8 @@ open p_rfcur for
          (select sum(t.summa) as pay, sum(t.penya) as pay_pen
              from scott.a_kwtp t, scott.kart k
             where k.lsk = t.lsk
-              and (p_adr = 1 and
-                  k.k_lsk_id = scott.utils.get_k_lsk_id_by_lsk(p_lsk) or
-                  p_adr = 0 and k.lsk = p_lsk)
+              and (decode(p_adr,1, l_klsk_id, k.k_lsk_id)=k.k_lsk_id
+                   and decode(p_adr,0,p_lsk, k.lsk)=k.lsk)
               and t.mg between p_mg1 and p_mg2 --запрос для оплаты до 200804
               and t.mg < '200804') e 
               on 1=1
@@ -1480,9 +1751,8 @@ open p_rfcur for
          (select sum(t.summa) as pay, sum(t.penya) as pay_pen
              from scott.a_kwtp_mg t, scott.kart k
             where k.lsk = t.lsk
-              and (p_adr = 1 and
-                  k.k_lsk_id = scott.utils.get_k_lsk_id_by_lsk(p_lsk) or
-                  p_adr = 0 and k.lsk = p_lsk)
+              and (decode(p_adr,1,l_klsk_id, k.k_lsk_id)=k.k_lsk_id
+                   and decode(p_adr,0,p_lsk, k.lsk)=k.lsk)
               and t.mg between p_mg1 and p_mg2 --запрос для оплаты после 200804, включительно
               and t.mg >= '200804') e2 
               on 1=1
@@ -1490,9 +1760,8 @@ open p_rfcur for
          (select nvl(sum(t.summa),0) + nvl(sum(t.penya),0) as dolg, sum(t.penya) as penya
              from scott.a_penya t, scott.kart k, scott.v_params p
             where k.lsk = t.lsk
-              and (p_adr = 1 and
-                  k.k_lsk_id = scott.utils.get_k_lsk_id_by_lsk(p_lsk) or
-                  p_adr = 0 and k.lsk = p_lsk)
+              and (decode(p_adr,1,l_klsk_id, k.k_lsk_id)=k.k_lsk_id
+                   and decode(p_adr,0,p_lsk, k.lsk)=k.lsk)
               and t.mg1 between p_mg1 and p_mg2
               and t.mg=p.period3--был ошибочно указан не тот период? 28.11.2018--and t.mg = p_mg2
               ) b

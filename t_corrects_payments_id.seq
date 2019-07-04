@@ -1,7 +1,7 @@
 create sequence SCOTT.T_CORRECTS_PAYMENTS_ID
 minvalue 0
 maxvalue 9999999999999999999999999
-start with 7948
+start with 8833
 increment by 1
 nocache;
 

@@ -4,7 +4,7 @@ TYPE type_saldo_usl IS table of saldo_usl%rowtype;
 
   procedure dist_saldo_polis;
   procedure dist_sal_deb_by_cr;
-
+  procedure set_elsd;
 end scripts3;
 /
 

@@ -12,7 +12,7 @@ loop
    logger.log_(null,
           'распределяем: ' || c.lsk);
   c_get_pay.get_payment_mg(c.id, c.nkvit,
-  c.lsk, c.summa, c.penya, c.oper, c.dopl, c.iscorrect, c.nkom, c.dtek, c.nink);
+  c.lsk, c.summa, c.penya, c.oper, c.dopl, c.iscorrect, c.nkom, c.dtek, c.nink, c.dat_ink);
   commit;
 end loop;
 end;

@@ -518,6 +518,22 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
   
   end;
 
+-- JAVA обертка
+  procedure gen_charges(lsk_      VARCHAR2,
+                       lsk_end_  VARCHAR2,
+                       house_id_ c_houses.id%TYPE,
+                       p_vvod c_vvod.id%type,
+                       iscommit_ NUMBER,
+                       sendmsg_  NUMBER) IS
+  a number;                       
+  begin
+  a := c_charges.gen_charges(lsk_ => lsk_,
+                                   lsk_end_ => lsk_end_,
+                                   house_id_ => house_id_,
+                                   p_vvod => p_vvod,
+                                   iscommit_ => iscommit_,
+                                   sendmsg_ => sendmsg_);    
+  end;                     
 
   FUNCTION gen_charges(lsk_      VARCHAR2,
                        lsk_end_  VARCHAR2,
@@ -1147,7 +1163,6 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
       l_dummy:=p_java.gen(p_tp        => 0,
                  p_house_id  => house_id_,
                  p_vvod_id   => p_vvod,
-                 p_reu_id    => null,
                  p_usl_id    => null,
                  p_klsk_id   => l_klsk_id,
                  p_debug_lvl => 0,

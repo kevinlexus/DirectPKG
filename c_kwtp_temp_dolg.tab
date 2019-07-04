@@ -3,11 +3,13 @@ create global temporary table SCOTT.C_KWTP_TEMP_DOLG
   mg      VARCHAR2(6),
   charge  NUMBER,
   payment NUMBER,
-  dolg    NUMBER,
   summa   NUMBER(12,2),
   sal     NUMBER,
   penya   NUMBER(12,2),
-  itog    NUMBER(12,2)
+  itog    NUMBER(12,2),
+  lsk     CHAR(8),
+  lsk_tp  VARCHAR2(96),
+  dolg2   NUMBER
 )
 on commit delete rows;
 comment on table SCOTT.C_KWTP_TEMP_DOLG
@@ -22,4 +24,8 @@ comment on column SCOTT.C_KWTP_TEMP_DOLG.penya
   is 'Пеня';
 comment on column SCOTT.C_KWTP_TEMP_DOLG.itog
   is 'Итого';
+comment on column SCOTT.C_KWTP_TEMP_DOLG.lsk
+  is 'Лиц.счет';
+comment on column SCOTT.C_KWTP_TEMP_DOLG.lsk_tp
+  is 'Тип лиц.счета';
 

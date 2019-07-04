@@ -4,16 +4,11 @@ create table SCOTT.DEB
   lsk       CHAR(8) not null,
   usl       CHAR(3) not null,
   org       NUMBER not null,
-  debin     NUMBER,
-  debrolled NUMBER,
-  chrg      NUMBER,
-  chng      NUMBER,
-  debpay    NUMBER,
-  paycorr   NUMBER,
   debout    NUMBER,
   mg        NUMBER,
   mgfrom    NUMBER not null,
-  mgto      NUMBER not null
+  mgto      NUMBER not null,
+  debrolled NUMBER
 )
 tablespace USERS
   pctfree 10
@@ -36,26 +31,16 @@ comment on column SCOTT.DEB.usl
   is 'Код услуги';
 comment on column SCOTT.DEB.org
   is 'ID организации';
-comment on column SCOTT.DEB.debin
-  is 'Входящее сальдо по задолженности';
-comment on column SCOTT.DEB.debrolled
-  is 'Свернутый долг';
-comment on column SCOTT.DEB.chrg
-  is 'Начисление';
-comment on column SCOTT.DEB.chng
-  is 'Перерасчеты';
-comment on column SCOTT.DEB.debpay
-  is 'Оплата задолженности';
-comment on column SCOTT.DEB.paycorr
-  is 'Корректировки оплаты';
 comment on column SCOTT.DEB.debout
-  is 'Исходящее сальдо по задолженности';
+  is 'Исходящий долг';
 comment on column SCOTT.DEB.mg
   is 'Период задолженности';
 comment on column SCOTT.DEB.mgfrom
   is 'Бухгалтерский период - начало';
 comment on column SCOTT.DEB.mgto
   is 'Бухгалтерский период  - окончание';
+comment on column SCOTT.DEB.debrolled
+  is 'Исходящий свернутый долг';
 create unique index SCOTT.DEB_U_I on SCOTT.DEB (LSK, USL, ORG, MGFROM, MGTO, MG)
   tablespace USERS
   pctfree 10

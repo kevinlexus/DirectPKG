@@ -3,7 +3,6 @@ select k."LSK",k."KUL",k."ND",k."KW",k."FIO",k."KPR",k."KPR_WR",k."KPR_OT",k."KP
     from kart k, v_lsk_tp tp
     where k.fk_tp=tp.id(+)
     and case when p_houses.get_g_lsk_tp=0 and tp.cd='LSK_TP_MAIN' then 1 --только основные лс
-             when p_houses.get_g_lsk_tp=0 and tp.cd is null then 1 --считать основными лс где не заполнено k.fk_tp (старые периоды)
              when p_houses.get_g_lsk_tp=1 and tp.cd='LSK_TP_ADDIT' then 1  --только дополнительные лс
              when p_houses.get_g_lsk_tp=2 then 1 --все лс
              else 0 end=1

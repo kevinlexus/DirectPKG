@@ -46,7 +46,6 @@ insert into statistics_lsk
        case when nvl(a.cnt,0) <> 0 then 'Есть' else 'Нет' end as is_vol, null as vol
         from arch_kart k
              left join a_nabor2 n on k.lsk=n.lsk and mg_ between n.mgFrom and n.mgTo
-             --join (select 0 as sch from dual union all select 1 as sch from dual) s on 1=1 --необходимо чтобы left join прошёл
              left join a_houses c on k.house_id=c.id and c.mg=mg_
              left join spr_tarif_prices b on n.fk_tarif = b.fk_tarif and mg_ between b.mg1 and b.mg2
              left join (select c.lsk, c.usl, nvl(c.sch,0) as sch,
@@ -54,10 +53,9 @@ insert into statistics_lsk
                         max(c.test_cena) as cena
                         from a_charge2 c
                        where c.type = 1 and mg_ between c.mgFrom and c.mgTo
-                       group by c.lsk, c.usl, c.sch) a on n.lsk=a.lsk and n.usl=a.usl-- and s.sch=a.sch
+                       group by c.lsk, c.usl, c.sch) a on n.lsk=a.lsk and n.usl=a.usl
              join usl u on a.usl=u.usl
-      where k.mg=mg_
-      /*and (nvl(a.cnt,0)<>0 or nvl(d.vol,0)<>0)*/; --вроде должны быть строки с отстутств. объемом
+      where k.mg=mg_; --вроде должны быть строки с отстутств. объемом
       
 --перерасчёты
 insert into statistics_lsk

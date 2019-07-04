@@ -18,6 +18,8 @@ procedure set_part_kpr(p_lsk in kart.lsk%type, p_usl in usl.usl%type,
                        p_set_utl_kpr in number,
                        p_tp in u_list.cd%type --тип лицевого, для расчета капремонта в доп.счетах (для подстановки проживающих из основного
                        ) is
+  -- начисление на Java?
+  l_Java_Charge number;
   l_dt_start date;
   l_dt_end date;
   l_dt date;
@@ -362,7 +364,6 @@ begin
   --подсчитать кол-во людей, для определения нормативов по отдельным услугам
   --перебираем услуги
   --инициализация пустого массива записей
-  l_nrm_kpr:=0;
     --перебираем дни месяца
     l_dt:=l_dt_start;
     l_nrm_kpr:=0;
@@ -573,6 +574,10 @@ begin
 --то разрешить пересчёт...
 --сделано для ускорения работы приложения
 
+    l_Java_Charge := utils.get_int_param('JAVA_CHARGE');
+    if l_Java_Charge=1 then 
+      Raise_application_error(-20000, 'Процедура не работает!');
+    end if;
 --удалить предыдущие данные
 delete from c_charge_prep t where t.lsk=p_lsk
  and t.tp in (0,1,2,3,5,6,7,8,9)
@@ -1657,7 +1662,7 @@ begin
   end if;
 end;
 
---установить единый лиц.счет
+--установить единый лиц.счет ГИС ЖКХ
 function set_elsk (p_lsk in kart.lsk%type, p_elsk in varchar2) return number is
 begin
   update kart k set k.elsk=p_elsk where k.lsk=p_lsk;  

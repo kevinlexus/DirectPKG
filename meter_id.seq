@@ -1,7 +1,7 @@
 create sequence SCOTT.METER_ID
 minvalue 1
 maxvalue 999999999999999999999999999
-start with 95521
+start with 97121
 increment by 1
 cache 20
 order;

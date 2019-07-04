@@ -47,6 +47,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
     l_sel varchar2(256);
     l_sel_id number;
     l_period_tp number;
+    l_char_dat_mg varchar2(6);
 --    TYPE l_cur_type IS REF CURSOR;
 --    l_cur sys_refcursor;
 /*    TYPE l_rec_type IS RECORD ( fld1 VARCHAR2(100),
@@ -66,6 +67,9 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
     BEGIN
     select USERENV('sessionid') into fk_ses_ from dual;
     select period into l_cur_period from params;
+
+    l_char_dat_mg:=to_char(dat_,'YYYYMM');
+    
     --вычислить первую и последнюю даты заданных периодов, для оптимизации запросов.
     if mg_ is not null then
       l_dt:=to_date(mg_||'01','YYYYMMDD');
@@ -1668,97 +1672,96 @@ select t.trest||'' ''||t.name_reu as predp,
       sqlstr_ := sqlstr_ || ' and s.oper=:oper_';
     end if;
 
-/*    if org_ is null then
-      --не выбрана организация
-      sqlstr_ := sqlstr_ || ' and :org_ is null';
-    elsif org_ is not null then
-      --выбрана организация
-      sqlstr_ := sqlstr_ || ' and s.org in (:org_)';
-    end if;*/
-
     if var_ = 2 then
     --по РЭУ
-        OPEN prep_refcursor FOR 'select ''' ||period_ || ''' as period, s.trest, substr(t.name_tr, 1, 15) as name_tr, s.oper,
-               to_char(o.kod) || '' '' || substr(o.name, 1, 20) as name,
+        OPEN prep_refcursor for select period_ as period, s.trest, substr(t.name_tr, 1, 15) as name_tr, s.oper,
+               to_char(o.kod) || ' ' || substr(o.name, 1, 20) as name,
                substr(u.nm1, 1, 20) as nm1, sum(summa) as summa,
-               decode(s.cd_tp, 0, ''Пеня'', ''Оплата'') as cd_tp
-         from xxito14 s, s_reu_trest t, sprorg o, usl u
+               decode(s.cd_tp, 0, 'Пеня', 'Оплата') as cd_tp
+         from 
+         (-- ред.03.07.19 для избежания неэффективного плана CBO при использовании OR в WHERE ввёл CASE WHEN
+          select * from xxito14 a where case when dat_ is not null and dat1_ is not null and a.dat between dat_ and dat1_ and a.mg=l_char_dat_mg then 1
+                                             when dat_ is not null and dat1_ is null and a.dat = dat_ and a.mg=l_char_dat_mg then 1
+                                             when dat_ is null and dat1_ is null and a.mg between mg_ and mg1_ then 1
+                                             else 0 end = 1
+             ) s, s_reu_trest t, sprorg o, usl u
            where s.forreu = t.reu
              and s.org = o.kod
-
             and exists
-           (select * from list_c i, spr_params p where i.fk_ses=:fk_ses_
-                and p.id=i.fk_par and p.cd=''REP_USL2'' 
+           (select * from list_c i, spr_params p where i.fk_ses=fk_ses_
+                and p.id=i.fk_par and p.cd='REP_USL2' 
                 and i.sel_cd=s.usl
             and i.sel=1)
             and exists
-           (select * from list_c i, spr_params p where i.fk_ses=:fk_ses_
-                and p.id=i.fk_par and p.cd=''REP_ORG2'' 
+           (select * from list_c i, spr_params p where i.fk_ses=fk_ses_
+                and p.id=i.fk_par and p.cd='REP_ORG2' 
                 and i.sel_id=s.org
             and i.sel=1)
-             
-             and s.forreu = :reu_
-             and s.usl = u.usl and '||sqlstr_||'
+             and s.forreu = reu_
+             and s.usl = u.usl 
            group by s.trest, substr(t.name_tr, 1, 15), s.oper,
-          to_char(o.kod) || '' '' || substr(o.name, 1, 20),
+          to_char(o.kod) || ' ' || substr(o.name, 1, 20),
           substr(u.nm1, 1, 20),
-          decode(s.cd_tp, 0, ''Пеня'', ''Оплата'')'
-          USING fk_ses_, fk_ses_, reu_, oper_;
+          decode(s.cd_tp, 0, 'Пеня', 'Оплата');
     elsif var_ = 1 then
     --по ЖЭО
-        OPEN prep_refcursor FOR 'select ''' ||period_ || ''' as period, s.trest, substr(t.name_tr, 1, 15) as name_tr, s.oper,
-               to_char(o.kod) || '' '' || substr(o.name, 1, 20) as name,
+        OPEN prep_refcursor FOR select period_ as period, s.trest, substr(t.name_tr, 1, 15) as name_tr, s.oper,
+               to_char(o.kod) || ' ' || substr(o.name, 1, 20) as name,
                substr(u.nm1, 1, 20) as nm1, sum(summa) as summa,
-               decode(s.cd_tp, 0, ''Пеня'', ''Оплата'') as cd_tp
-         from xxito14 s, s_reu_trest t, sprorg o, usl u
+               decode(s.cd_tp, 0, 'Пеня', 'Оплата') as cd_tp
+         from (-- ред.03.07.19 для избежания неэффективного плана CBO при использовании OR в WHERE ввёл CASE WHEN
+          select * from xxito14 a where case when dat_ is not null and dat1_ is not null and a.dat between dat_ and dat1_ and a.mg=l_char_dat_mg then 1
+                                             when dat_ is not null and dat1_ is null and a.dat = dat_ and a.mg=l_char_dat_mg then 1
+                                             when dat_ is null and dat1_ is null and a.mg between mg_ and mg1_ then 1
+                                             else 0 end = 1
+             ) s, s_reu_trest t, sprorg o, usl u
            where s.forreu = t.reu
              and s.org = o.kod
-
             and exists
-           (select * from list_c i, spr_params p where i.fk_ses=:fk_ses_
-                and p.id=i.fk_par and p.cd=''REP_USL2'' 
+           (select * from list_c i, spr_params p where i.fk_ses=fk_ses_
+                and p.id=i.fk_par and p.cd='REP_USL2' 
                 and i.sel_cd=s.usl
             and i.sel=1)
             and exists
-           (select * from list_c i, spr_params p where i.fk_ses=:fk_ses_
-                and p.id=i.fk_par and p.cd=''REP_ORG2'' 
+           (select * from list_c i, spr_params p where i.fk_ses=fk_ses_
+                and p.id=i.fk_par and p.cd='REP_ORG2' 
                 and i.sel_id=s.org
             and i.sel=1)
-
-             and s.trest = :trest_
-             and s.usl = u.usl and '||sqlstr_||'
+             and s.trest = trest_
+             and s.usl = u.usl 
            group by s.trest, substr(t.name_tr, 1, 15), s.oper,
-          to_char(o.kod) || '' '' || substr(o.name, 1, 20),
+          to_char(o.kod) || ' ' || substr(o.name, 1, 20),
           substr(u.nm1, 1, 20),
-          decode(s.cd_tp, 0, ''Пеня'', ''Оплата'')'
-          USING fk_ses_, fk_ses_, trest_, oper_;
+          decode(s.cd_tp, 0, 'Пеня', 'Оплата');
     elsif var_ = 0 then
     --по Городу
-        OPEN prep_refcursor FOR 'select ''' ||period_ || ''' as period, s.trest, substr(t.name_tr, 1, 15) as name_tr, s.oper,
-               to_char(o.kod) || '' '' || substr(o.name, 1, 20) as name,
+        OPEN prep_refcursor FOR select period_ as period, s.trest, substr(t.name_tr, 1, 15) as name_tr, s.oper,
+               to_char(o.kod) || ' ' || substr(o.name, 1, 20) as name,
                substr(u.nm1, 1, 20) as nm1, sum(summa) as summa,
-               decode(s.cd_tp, 0, ''Пеня'', ''Оплата'') as cd_tp
-         from xxito14 s, s_reu_trest t, sprorg o, usl u
+               decode(s.cd_tp, 0, 'Пеня', 'Оплата') as cd_tp
+         from (-- ред.03.07.19 для избежания неэффективного плана CBO при использовании OR в WHERE ввёл CASE WHEN
+          select * from xxito14 a where case when dat_ is not null and dat1_ is not null and a.dat between dat_ and dat1_ and a.mg=l_char_dat_mg then 1
+                                             when dat_ is not null and dat1_ is null and a.dat = dat_ and a.mg=l_char_dat_mg then 1
+                                             when dat_ is null and dat1_ is null and a.mg between mg_ and mg1_ then 1
+                                             else 0 end = 1
+             ) s, s_reu_trest t, sprorg o, usl u
            where s.forreu = t.reu
              and s.org = o.kod
-
             and exists
-           (select * from list_c i, spr_params p where i.fk_ses=:fk_ses_
-                and p.id=i.fk_par and p.cd=''REP_USL2'' 
+           (select * from list_c i, spr_params p where i.fk_ses=fk_ses_
+                and p.id=i.fk_par and p.cd='REP_USL2' 
                 and i.sel_cd=s.usl
             and i.sel=1)
             and exists
-           (select * from list_c i, spr_params p where i.fk_ses=:fk_ses_
-                and p.id=i.fk_par and p.cd=''REP_ORG2'' 
+           (select * from list_c i, spr_params p where i.fk_ses=fk_ses_
+                and p.id=i.fk_par and p.cd='REP_ORG2' 
                 and i.sel_id=s.org
             and i.sel=1)
-
-             and s.usl = u.usl and '||sqlstr_||'
+             and s.usl = u.usl 
            group by s.trest, substr(t.name_tr, 1, 15), s.oper,
-          to_char(o.kod) || '' '' || substr(o.name, 1, 20),
+          to_char(o.kod) || ' ' || substr(o.name, 1, 20),
           substr(u.nm1, 1, 20),
-          decode(s.cd_tp, 0, ''Пеня'', ''Оплата'')'
-          USING fk_ses_, fk_ses_, oper_;
+          decode(s.cd_tp, 0, 'Пеня', 'Оплата');
     end if;
 
  elsif сd_ in  ('62','63') then
@@ -2291,6 +2294,7 @@ select t.trest||'' ''||t.name_reu as predp,
         and k.fk_tp=tp.id
         and tp.cd=l_sel
         and k.reu = reu_
+        and k.psch not in (8,9)
        order by u.npp, g.id, t.koeff, t.norm;
     elsif var_ = 2 then
     --по УК
@@ -2303,6 +2307,7 @@ select t.trest||'' ''||t.name_reu as predp,
         and k.reu = reu_
         and k.fk_tp=tp.id
         and tp.cd=l_sel
+        and k.psch not in (8,9)
        order by u.npp, g.id, t.koeff, t.norm;
     elsif var_ = 1 then
     --по Фонду
@@ -2315,6 +2320,7 @@ select t.trest||'' ''||t.name_reu as predp,
         and k.fk_tp=tp.id
         and exists (select * from s_reu_trest r where r.reu=k.reu and r.trest=trest_)
         and tp.cd=l_sel
+        and k.psch not in (8,9)
        order by u.npp, g.id, t.koeff, t.norm;
     elsif var_ = 0 then
     --по Городу
@@ -2326,6 +2332,7 @@ select t.trest||'' ''||t.name_reu as predp,
         and t.org=g.id and g.fk_org2=m.id
         and k.fk_tp=tp.id
         and tp.cd=l_sel
+        and k.psch not in (8,9)
        order by u.npp, g.id, t.koeff, t.norm;
     end if;
    else
@@ -2342,6 +2349,7 @@ select t.trest||'' ''||t.name_reu as predp,
         and k.mg=mg_ and k.mg between t.mgFrom and t.mgTo
         and k.fk_tp=tp.id
         and tp.cd=l_sel
+        and k.psch not in (8,9)
        order by u.npp, g.id, t.koeff, t.norm;
     elsif var_ = 2 then
     --по УК
@@ -2355,6 +2363,7 @@ select t.trest||'' ''||t.name_reu as predp,
         and k.mg=mg_ and k.mg between t.mgFrom and t.mgTo
         and k.fk_tp=tp.id
         and tp.cd=l_sel
+        and k.psch not in (8,9)
        order by u.npp, g.id, t.koeff, t.norm;
     elsif var_ = 1 then
     --по Фонду
@@ -2368,6 +2377,7 @@ select t.trest||'' ''||t.name_reu as predp,
         and k.mg=mg_ and k.mg between t.mgFrom and t.mgTo
         and k.fk_tp=tp.id
         and tp.cd=l_sel
+        and k.psch not in (8,9)
        order by u.npp, g.id, t.koeff, t.norm;
     elsif var_ = 0 then
     --по Городу
@@ -2380,6 +2390,7 @@ select t.trest||'' ''||t.name_reu as predp,
         and k.mg=mg_ and k.mg between t.mgFrom and t.mgTo
         and k.fk_tp=tp.id
         and tp.cd=l_sel
+        and k.psch not in (8,9)
        order by u.npp, g.id, t.koeff, t.norm;
     end if;
    end if;
@@ -2705,7 +2716,7 @@ select t.trest||'' ''||t.name_reu as predp,
            else s.dat
            end as dat
       from debits_lsk_month s, s_reu_trest t, t_org o, c_kart_pr pr
-      where s.reu=t.reu
+      where s.reu=t.reu and s.var=0
       and ' || sqlstr_ || '
       and s.reu=:reu_ AND s.kul=:kul_ AND s.nd=:nd_
       and exists
@@ -2737,7 +2748,7 @@ select t.trest||'' ''||t.name_reu as predp,
            else s.dat
            end as dat
       from debits_lsk_month s, s_reu_trest t, t_org o, c_kart_pr pr
-      where s.reu=t.reu
+      where s.reu=t.reu and s.var=0
       and ' || sqlstr_ || '
       and s.reu=:reu_
       and exists
@@ -2766,7 +2777,7 @@ select t.trest||'' ''||t.name_reu as predp,
     'select o.name as name_deb_org, s.lsk, t.name_reu, trim(s.name) as street_name,
       ltrim(s.nd,''0'') as nd, ltrim(s.kw,''0'') as kw, pr.fio, s.cnt_month, s.dolg, s.penya,
       case when s.dat is null and s.mg is not null then to_date(s.mg||''01'',''YYYYMMDD'')
-           else s.dat
+           else s.dat and s.var=0
            end as dat
       from debits_lsk_month s, s_reu_trest t, t_org o, c_kart_pr pr
       where s.reu=t.reu
@@ -2801,7 +2812,7 @@ select t.trest||'' ''||t.name_reu as predp,
            else s.dat
            end as dat
       from debits_lsk_month s, s_reu_trest t, t_org o, c_kart_pr pr
-      where s.reu=t.reu
+      where s.reu=t.reu and s.var=0
       and ' || sqlstr_ || '
       and exists
       (select * from kart k where k.lsk=s.lsk

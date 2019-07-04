@@ -11,6 +11,7 @@ function create_house(reu_ in kart.reu%type, kul_ in c_houses.kul%type,
  vvod_gw_id_ number;
  vvod_rkc_id_ number;
  maxlsk_ kart.lsk%type;
+ l_elsd k_lsk.elsd%type;
 begin
    select max(c.id) into house_id_ from c_houses c
     where c.kul=kul_ and c.nd=lpad(trim(nd_), 6, '0');
@@ -33,9 +34,10 @@ begin
      end if;
 
      --первый лицевой по дому
+     l_elsd:= get_next_elsd;  
      select k_lsk_id.nextval into k_lsk_id_ from dual;
-     insert into k_lsk (id, fk_addrtp)
-       select k_lsk_id_, u.id
+     insert into k_lsk (id, fk_addrtp, elsd)
+       select k_lsk_id_, u.id, l_elsd
        from u_list u, u_listtp tp
        where
        u.cd='flat' and tp.cd='object_type';
@@ -336,7 +338,7 @@ BEGIN
                         and k.fk_tp=tp.id
                         and tp.cd=p_lsk_tp
                         );
-    ELSIF sptarn_ IN (2, 3, 3) THEN
+    ELSIF sptarn_ IN (2, 3, 4) THEN
       --и коэфф и норматив
       UPDATE nabor n
          SET n.koeff = ROUND(nvl(new_koeff_, 0),10),
@@ -496,7 +498,7 @@ BEGIN
                         and tp.cd=p_lsk_tp
                         );
          
-    ELSIF sptarn_ IN (2, 3) THEN
+    ELSIF sptarn_ IN (2, 3, 4) THEN
       --и коэфф и норматив
       UPDATE nabor n
          SET n.koeff = ROUND(nvl(new_koeff_, 0),10),
@@ -1155,7 +1157,8 @@ function create_lsk (lsk_ kart.lsk%TYPE, lsk_new_ kart.lsk%TYPE,
       p_reu in varchar2 -- если указан, применить данный код УК
       )
            RETURN number is
-  l_cnt number;
+    l_cnt number;
+    l_elsd k_lsk.elsd%type;
   begin
   begin
     select 1 into l_cnt
@@ -1169,8 +1172,9 @@ function create_lsk (lsk_ kart.lsk%TYPE, lsk_new_ kart.lsk%TYPE,
   
   insert into c_lsk (id)
     values (c_lsk_id.nextval);
-  insert into k_lsk (id, fk_addrtp)
-     select k_lsk_id.nextval, u.id
+  l_elsd:= get_next_elsd;  
+  insert into k_lsk (id, fk_addrtp, elsd)
+     select k_lsk_id.nextval, u.id, l_elsd
      from u_list u, u_listtp tp
      where
      u.cd='flat' and tp.cd='object_type';
@@ -1376,6 +1380,19 @@ begin
 
 end;  
 
+
+-- вернуть следующий, уникальный ELSD (выполняется блокировка таблицы k_lsk)
+function get_next_elsd return varchar2 is
+  l_elsd k_lsk.elsd%type;
+begin
+  -- заблокировать k_lsk во избежании дублей ELSD
+  LOCK TABLE k_lsk IN EXCLUSIVE MODE; 
+  select 'A'||(max(to_number(substr(k.elsd,2,length(k.elsd)-1)))+1) into l_elsd
+   from k_lsk k join u_list u on k.fk_addrtp=u.id
+   and u.cd='flat';
+  return l_elsd; 
+end;  
+   
 end P_HOUSES;
 /
 

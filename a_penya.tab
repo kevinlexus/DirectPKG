@@ -1,12 +1,12 @@
 create table SCOTT.A_PENYA
 (
-  lsk      CHAR(8),
-  summa    NUMBER,
-  penya    NUMBER,
-  mg1      CHAR(6),
-  mg       CHAR(6),
-  days     NUMBER,
-  c_lsk_id NUMBER
+  lsk   CHAR(8),
+  summa NUMBER,
+  penya NUMBER,
+  mg1   CHAR(6),
+  mg    CHAR(6),
+  days  NUMBER,
+  id    NUMBER not null
 )
 tablespace USERS
   pctfree 10
@@ -22,8 +22,6 @@ tablespace USERS
 nologging;
 comment on table SCOTT.A_PENYA
   is 'Сальдо по пене на конец периода';
-comment on column SCOTT.A_PENYA.c_lsk_id
-  is 'ID адреса';
 create index SCOTT.A_PENYA_I on SCOTT.A_PENYA (LSK)
   tablespace USERS
   pctfree 10
@@ -32,6 +30,20 @@ create index SCOTT.A_PENYA_I on SCOTT.A_PENYA (LSK)
   storage
   (
     initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.A_PENYA
+  add constraint A_PENYA_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
     next 1M
     minextents 1
     maxextents unlimited

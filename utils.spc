@@ -33,6 +33,8 @@ function GET_LSK_BY_ADR2(house_id_ kart.house_id%TYPE, kw_ kart.kw%TYPE)
            RETURN NUMBER;
   function ALLOW_EDIT_LSK(lsk_ kart.lsk%TYPE, cd_ in varchar2)
            RETURN NUMBER;
+  function ALLOW_EDIT_LSK_BY_REU(p_reu in varchar2, p_pasp_org in number, p_cd in varchar2)
+           RETURN NUMBER;
  function ALLOW_CR_NEW_LSK(lsk_ kart.lsk%TYPE)
            RETURN NUMBER;
  function ALLOW_CHANGES_LSK(lsk_ kart.lsk%TYPE)

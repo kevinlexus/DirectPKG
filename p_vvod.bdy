@@ -220,7 +220,6 @@ create or replace package body scott.p_vvod is
       l_dummy:=p_java.gen(p_tp        => 2,
                  p_house_id  => null,
                  p_vvod_id   => p_id,
-                 p_reu_id    => null,
                  p_usl_id    => null,
                  p_klsk_id   => null,
                  p_debug_lvl => 0,
@@ -2042,7 +2041,25 @@ create or replace package body scott.p_vvod is
     l_rec_cnt rec_cnt;
     l_odn_nrm number; --ограничение по ОДН (еще называют нормативом)
     l_time1 date;
+    -- распределение на Java?
+    l_Java_Charge number;
+    l_dummy number;
   begin
+
+    l_Java_Charge := utils.get_int_param('JAVA_CHARGE');
+    if l_Java_Charge=1 then 
+      -- вызов Java распределения
+      l_dummy:=p_java.gen(p_tp        => 2,
+                 p_house_id  => null,
+                 p_vvod_id   => p_vvod,
+                 p_usl_id    => null,
+                 p_klsk_id   => null,
+                 p_debug_lvl => 0,
+                 p_gen_dt    => init.get_date,
+                 p_stop      => 0);
+      return;
+    end if;
+
     l_time1 := sysdate;
     --распределение ОДН по домам, в которых нет домового П.У.
     --(ОДН по формуле)

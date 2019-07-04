@@ -39,6 +39,7 @@ create or replace package body scott.P_THREAD is
   -- обертка для Java функции smpl_chk
   procedure smpl_chk(p_var in number, p_ret out number) is
   begin
+    Raise_application_error(-20000, 'НЕ РАБОТАЕТ БЛОК!');
     p_ret := smpl_chk(p_var);
   end;
 
@@ -48,6 +49,7 @@ create or replace package body scott.P_THREAD is
   --содержащих ошибки в таблицу prep_err
   function smpl_chk(p_var in number) return number is
   begin
+    Raise_application_error(-20000, 'НЕ РАБОТАЕТ БЛОК!');
     delete from prep_err;
     if p_var = 1 then
       insert into prep_err
@@ -384,7 +386,7 @@ create or replace package body scott.P_THREAD is
            and t.dt2 > gdt(1, 0, 0)
            and k.fk_tp = tp.id
            and tp.cd = 'LSK_TP_MAIN'
-        union all
+        union
         select k.*
           from kart k, meter t, v_lsk_tp tp
          where k.psch not in (8, 9)
@@ -394,7 +396,7 @@ create or replace package body scott.P_THREAD is
            and t.dt2 > gdt(1, 0, 0)
            and k.fk_tp = tp.id
            and tp.cd = 'LSK_TP_MAIN'
-        union all
+        union
         select k.*
           from kart k, meter t, v_lsk_tp tp
          where k.psch not in (8, 9)
@@ -465,10 +467,12 @@ create or replace package body scott.P_THREAD is
     -- Проверки после итог.формирования
     if p_var = 100 then
       -- проверка распределения пени, после формирования сальдо
+      -- ВНИМАНИЕ! выполнять сразу после формирования распределения пени, так как 
+      -- текущими действиями пользователи меняют состояние C_PEN_CUR! 
       OPEN prep_refcursor FOR
-        select rownum as id, nvl(a.lsk, b.lsk) || ':' || nvl(a.summa, 0) -
-                nvl(b.summa, 0) as text
-          from (select t.lsk, sum(summa) as summa
+        select rownum as id, nvl(a.lsk, b.lsk) || ':' || to_char(nvl(a.summa, 0) -
+                nvl(b.summa, 0)) as text
+                   from (select t.lsk, sum(summa) as summa
                    from (select c.lsk, c.mg1, round(sum(penya), 2) as summa
                             from c_pen_cur c
                            group by c.lsk, c.mg1
@@ -685,7 +689,20 @@ create or replace package body scott.P_THREAD is
                       group by t.lsk) b
             on a.lsk = b.lsk
          where nvl(a.summa, 0) <> nvl(b.summa, 0);
-    
+    elsif p_var = 114 then
+      -- список лс. по которым не корректно распр.пеня
+      OPEN prep_refcursor FOR
+        select rownum as id, nvl(a.lsk, b.lsk) as text from 
+        (select s.lsk, sum(s.summa) as summa from 
+        (select t.lsk, round(sum(t.summa),2) as summa from 
+        (select c.lsk, c.mg1, c.penya as summa from c_pen_cur c
+         union all 
+         select c.lsk, c.dopl, c.penya as summa from c_pen_corr c) t
+         group by t.lsk, t.mg1) s group by s.lsk
+        ) a full outer join
+        (select c.lsk, sum(summa) as summa from t_chpenya_for_saldo c group by lsk) b
+        on a.lsk=b.lsk
+        where nvl(a.summa,0) - nvl(b.summa,0) <> 0;
     end if;
   
   end;

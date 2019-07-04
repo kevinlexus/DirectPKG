@@ -11,9 +11,9 @@ begin
   --Краны из системы отопления
   update kart k set k.kran1=:new.kran1
    where k.house_id=:old.id;
-  if nvl(:old.kran1,0) <> nvl(:new.kran1,0) then
-    cnt_:=c_charges.gen_charges(null, null, null, :old.id, 0, 0);
-  end if;
+  --if nvl(:old.kran1,0) <> nvl(:new.kran1,0) then
+    --cnt_:=c_charges.gen_charges(null, null, null, :old.id, 0, 0);
+  --end if;
 end;
 /
 

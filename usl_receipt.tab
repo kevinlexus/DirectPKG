@@ -1,0 +1,61 @@
+create table SCOTT.USL_RECEIPT
+(
+  id        NUMBER not null,
+  name      VARCHAR2(100),
+  usl       CHAR(3),
+  parent_id NUMBER,
+  npp       NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.USL_RECEIPT
+  is 'Группировка услуг для фискального чека';
+comment on column SCOTT.USL_RECEIPT.id
+  is 'ID';
+comment on column SCOTT.USL_RECEIPT.name
+  is 'Наименование группы';
+comment on column SCOTT.USL_RECEIPT.usl
+  is 'Fk на услугу для группировки';
+comment on column SCOTT.USL_RECEIPT.parent_id
+  is 'FK на заголовок группы';
+comment on column SCOTT.USL_RECEIPT.npp
+  is '№ п.п';
+create unique index SCOTT.USL_RECEIPT_I on SCOTT.USL_RECEIPT (USL, PARENT_ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.USL_RECEIPT
+  add constraint USL_RECEIPT_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.USL_RECEIPT
+  add constraint USL_RECEIPT_F_PARENT foreign key (PARENT_ID)
+  references SCOTT.USL_RECEIPT (ID);
+

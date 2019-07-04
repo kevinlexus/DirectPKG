@@ -1,0 +1,7 @@
+create sequence SCOTT.KWTP_DAY_LOG_ID
+minvalue 1
+maxvalue 999999999999999999999999999
+start with 14901
+increment by 1
+cache 20;
+

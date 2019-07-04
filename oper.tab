@@ -1,15 +1,16 @@
 create table SCOTT.OPER
 (
-  oper       CHAR(3) not null,
-  naim       CHAR(25),
-  tpl        CHAR(1) default 9 not null,
-  oigu       CHAR(4) default 1001 not null,
-  svoi       CHAR(1),
-  post       CHAR(2),
-  fk_org     NUMBER,
-  fk_usl     CHAR(3),
-  fk_usl_chk CHAR(3),
-  iscounter  NUMBER
+  oper         CHAR(3) not null,
+  naim         CHAR(25),
+  tpl          CHAR(1) default 9 not null,
+  oigu         CHAR(4) default 1001 not null,
+  svoi         CHAR(1),
+  post         CHAR(2),
+  fk_org       NUMBER,
+  fk_usl       CHAR(3),
+  fk_usl_chk   CHAR(3),
+  iscounter    NUMBER,
+  cash_oper_tp NUMBER default 0
 )
 tablespace USERS
   pctfree 1
@@ -32,6 +33,8 @@ comment on column SCOTT.OPER.fk_usl_chk
   is 'Операция будет выводиться только при наличии данной услуги в начислении';
 comment on column SCOTT.OPER.iscounter
   is 'Выводить ли показания счетчика по операции (1) либо ввод суммы (2) либо работа без счетчика (null, 0)';
+comment on column SCOTT.OPER.cash_oper_tp
+  is 'Тип операции для фискального регистратора (0-наличка, 1-безнал)';
 create index SCOTT.OPER_I_OIGU on SCOTT.OPER (OIGU)
   tablespace USERS
   pctfree 10

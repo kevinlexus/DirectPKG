@@ -234,21 +234,56 @@ create or replace package body scott.utils is
       where u.id=p.user_id and u.cd=user
       and k.lsk = lsk_ and p.fk_reu=k.reu and k.psch <> 8
       and i.id=p.fk_perm_tp and i.cd=cd_
-      and i.fk_listtp=l_listtp; -- k.psch <> 8 (запрещено править старый фонд);
+      and i.fk_listtp=l_listtp;
   elsif cd_='доступ к пасп.столу' then
   --для Паспортного
    select count(*) into cnt_ from t_user u, c_users_perm p, kart k, u_list i
       where u.id=p.user_id and upper(u.cd)=upper(user)
       and k.lsk = lsk_ and p.fk_pasp_org=k.fk_pasp_org and k.psch <> 8
       and i.id=p.fk_perm_tp and i.cd=cd_
-      and i.fk_listtp=l_listtp; -- k.psch <> 8 (запрещено править старый фонд);
+      and i.fk_listtp=l_listtp;
   elsif cd_='доступ к льготам' then
   --для редактирования льгот
    select count(*) into cnt_ from t_user u, c_users_perm p, kart k, u_list i
       where u.id=p.user_id and u.cd=user
       and k.lsk = lsk_ and p.fk_reu=k.reu and k.psch <> 8
       and i.id=p.fk_perm_tp and i.cd=cd_
-      and i.fk_listtp=l_listtp; -- k.psch <> 8 (запрещено править старый фонд);
+      and i.fk_listtp=l_listtp;
+  end if;
+  return cnt_;
+  end;
+
+  -- разрешение править лицевой счет, по коду УК
+  function ALLOW_EDIT_LSK_BY_REU(p_reu in varchar2, p_pasp_org in number, p_cd in varchar2)
+           RETURN NUMBER is
+  cnt_ number;
+  l_listtp u_listtp.id%type;
+  begin
+--    TODO СДЕЛАТЬ ПРОВЕРКУ НА ЗАКРЫТЫЕ ЛС!!!!
+  select t.id into l_listtp from u_listtp t where t.cd='Тип разрешения';
+  --проверяет можно ли пользователю редактировать лицевой счет
+  if p_cd in ('доступ к карт.рэу', 'доступ к карт.площадь',
+     'доступ к карт.статус') then
+  --для РЭУ
+   select count(*) into cnt_ from t_user u, c_users_perm p, u_list i
+      where u.id=p.user_id and u.cd=user
+      and p.fk_reu=p_reu
+      and i.id=p.fk_perm_tp and i.cd=p_cd
+      and i.fk_listtp=l_listtp;
+  elsif p_cd='доступ к пасп.столу' then
+  --для Паспортного
+   select count(*) into cnt_ from t_user u, c_users_perm p, u_list i
+      where u.id=p.user_id and upper(u.cd)=upper(user)
+      and p.fk_pasp_org=p_pasp_org
+      and i.id=p.fk_perm_tp and i.cd=p_cd
+      and i.fk_listtp=l_listtp;
+  elsif p_cd='доступ к льготам' then
+  --для редактирования льгот
+   select count(*) into cnt_ from t_user u, c_users_perm p, u_list i
+      where u.id=p.user_id and u.cd=user
+      and p.fk_reu=p_reu
+      and i.id=p.fk_perm_tp and i.cd=p_cd
+      and i.fk_listtp=l_listtp;
   end if;
   return cnt_;
   end;
@@ -904,7 +939,8 @@ fk_kart_pr_:=null;
                   last_day(to_date(m.period||'01','YYYYMMDD')) --на последнюю дату месяца
                   between nvl(c.dt1(+), to_date('01011900','DDMMYYYY')) and
                           nvl(c.dt2(+), to_date('01012900','DDMMYYYY'))
-                         and c.fk_status in (1,4) -- нельзя делать статус 5 (так как устанавливается квартиросъемщик, всё серъёзно))) - ред. давно!
+                         and c.fk_status in (1) -- ред.13.05.2019 выявлено, что некорректно использовать 4 статус, получили искажение собственников в карточках!
+                         --and c.fk_status in (1,4) -- нельзя делать статус 5 (так как устанавливается квартиросъемщик, всё серъёзно))) - ред. давно!
                                                   -- может быть выписанный (статус 4) ред. - 25.03.2019
                          and u.cd='PROP'
                          and c.fk_status=pr.id
@@ -1863,9 +1899,6 @@ end;
  l_psch number;
  l_pschEl number;
   begin
-
-  --Raise_application_error(-20000, 'выыв');
-
   time_:=sysdate;
   if lsk_ is not null then
     --по данному л.с. (из триггера)

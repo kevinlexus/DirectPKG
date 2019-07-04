@@ -482,6 +482,7 @@ begin
     from dual where not exists (select * from log_version t where t.n1=p_n1);                        
   
 end;  
+
 END ADMIN;
 /
 

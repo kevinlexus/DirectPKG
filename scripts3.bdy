@@ -342,6 +342,27 @@ commit;
 end dist_sal_deb_by_cr;
 
 
+/*
+Установить ЕЛС Директа по всем лиц.сч. где не проставлено
+ВНИМАНИЕ! выполнять, только в самом начале установки ELSD по всем помещениям!
+*/
+procedure set_elsd is
+  i number;
+begin
+  i:=1;
+  for c in (select distinct k.k_lsk_id, s.name, utils.f_order(k.nd,6), utils.f_order2(k.nd), utils.f_order(k.kw,7) from kart k join spul s on k.kul=s.id
+    order by s.name, utils.f_order(k.nd,6), utils.f_order2(k.nd), utils.f_order(k.kw,7)) loop
+
+    update k_lsk t set t.elsd='A'||i where t.id=c.k_lsk_id and t.elsd is null;
+    if sql%rowcount > 0 then
+      -- увеличить, если обновился идентификатор
+      i:=i+1;
+    end if;
+  end loop;
+
+end;  
+
+
 end scripts3;
 /
 

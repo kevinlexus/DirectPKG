@@ -9,6 +9,10 @@ create or replace package body scott.gen is
   l_mg1 params.period%type;
   rec_params cur_params%rowtype;
   begin
+  
+  return;
+      
+  Raise_application_error(-20000, 'НЕ РАБОТАЕТ БЛОК!');
   --нет ошибок
   err_:=0;
 
@@ -36,7 +40,7 @@ create or replace package body scott.gen is
    select nvl(count(*),0) into cnt_
      from kart k
      where not exists
-      (select * from s_reu_trest t where t.reu=k.reu);
+      (select * from s_reu_trest t where t.reu=k.reu); -- +++
 
    if cnt_ <> 0 then
      err_str_:='Стоп, код REU не найден в представлении s_reu_trest!';
@@ -46,7 +50,7 @@ create or replace package body scott.gen is
 
     --проверяем кол-во проживающих в карточках (кроме дополнительных счетов, - там не проверять! ред. 03.11.2015) 
    cnt_:=0;
-    select nvl(count(*),0) into cnt_ from kart k, v_lsk_tp tp where
+    select nvl(count(*),0) into cnt_ from kart k, v_lsk_tp tp where -- +++
         k.fk_tp=tp.id and tp.cd='LSK_TP_MAIN' 
         and k.psch not in (8,9) -- ред 05.12.18
         and k.kpr <>(select nvl(count(*),0)
@@ -75,7 +79,7 @@ create or replace package body scott.gen is
       return;
     end if;
 
-  if utils.get_int_param('CONTROL_METER') = 1 then
+  if utils.get_int_param('CONTROL_METER') = 1 then -- +++
      select count(*) into cnt_ from (
      select k.fk_tp, k.k_lsk_id, k.lsk, k.phw as cnt, t.n1 from kart k, meter t, v_lsk_tp tp
           where k.psch not in (8,9)
@@ -111,7 +115,7 @@ create or replace package body scott.gen is
    end if;
    
 
-   select nvl(a.summa,0)-nvl(b.summa,0) into cnt_
+   select nvl(a.summa,0)-nvl(b.summa,0) into cnt_ -- +++
      from (select nvl(sum(summa),0)+nvl(sum(penya),0) as summa from c_kwtp t
        where t.dat_ink between init.g_dt_start and init.g_dt_end
      ) a,
@@ -125,7 +129,7 @@ create or replace package body scott.gen is
    end if;
    
   select count(*), 
-    rtrim(xmlagg(xmlelement(e, a.nkom,',').extract('//text()')),',')
+    rtrim(xmlagg(xmlelement(e, a.nkom,',').extract('//text()')),',') -- +++
      into cnt_, l_str
    from (select distinct t.nkom from c_kwtp t where nvl(t.nink, 0) = 0) a; 
 --если раскомментировать, то будет мешать при формировании (не проверит, что выполнена инкассация)
@@ -136,7 +140,7 @@ create or replace package body scott.gen is
      return;
    end if;
    
-  select count(*) into cnt_ from ALL_TAB_COLUMNS t
+  select count(*) into cnt_ from ALL_TAB_COLUMNS t -- +++
    where t.TABLE_NAME='A_CHARGE_PREP2' and lower(t.OWNER)='scott';
    if cnt_ <> 18 then
      err_str_:='Стоп, изменилось кол-во полей! Необходимо исправить модель в Java: A_CHARGE_PREP2 ';
@@ -144,7 +148,7 @@ create or replace package body scott.gen is
      return;
    end if;
 
-  select count(*) into cnt_ from ALL_TAB_COLUMNS t
+  select count(*) into cnt_ from ALL_TAB_COLUMNS t -- +++
    where t.TABLE_NAME='A_CHARGE2' and lower(t.OWNER)='scott';
    if cnt_ <> 22 then
      err_str_:='Стоп, изменилось кол-во полей! Необходимо исправить модель в Java: A_CHARGE2 ';
@@ -152,7 +156,7 @@ create or replace package body scott.gen is
      return;
    end if;
 
-  select count(*) into cnt_ from ALL_TAB_COLUMNS t
+  select count(*) into cnt_ from ALL_TAB_COLUMNS t -- +++
    where t.TABLE_NAME='A_NABOR2' and lower(t.OWNER)='scott';
    if cnt_ <> 24 then
      err_str_:='Стоп, изменилось кол-во полей! Необходимо исправить модель в Java: A_NABOR2 ';
@@ -168,7 +172,7 @@ create or replace package body scott.gen is
 --если раскомментировать, то будет мешать при формировании (не проверит, что выполнена инкассация)
 --     and c.dat_ink between init.g_dt_start and init.g_dt_end;
    if cnt_ <> 0 then
-     err_str_:='Стоп, не проинкассированы деньги на компьютерах: '||l_str;
+     err_str_:='Стоп, не проинкассированы деньги на компьютерах: '||l_str; -- +++
      err_:=4;
      return;
    end if;
@@ -505,6 +509,8 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
   procedure gen_check_lst (var_ in number,
                            prep_refcursor IN OUT rep_refcursor) is
   begin
+  Raise_application_error(-20000, 'НЕ РАБОТАЕТ БЛОК!');
+    
   --проверка перед формированием, с выводом л.с.
   --содержащих ошибки
   if var_=12 then
@@ -4128,7 +4134,7 @@ end if;
   if p_klsk is null then
     for c in (select t.rowid as rd, t.k_lsk_id, tp.cd as lsk_tp
       from arch_kart t, spul s, v_lsk_tp tp where t.mg=l_mg 
-      and t.fk_tp=tp.id and t.for_bill=1
+      and t.fk_tp=tp.id --and t.for_bill=1 ред.05.06.2019 - нарушается порядок вывода лиц.счетов (смотреть переписку с Кис. от 05.06.2019 в skype)
       and t.kul=s.id and nvl(p_klsk, t.k_lsk_id)=t.k_lsk_id
       order by s.name, scott.utils.f_ord_digit(t.nd),
        scott.utils.f_ord3(t.nd) desc, 
@@ -4208,20 +4214,17 @@ end;
     c_charges.trg_proc_next_month:=0;
   end go_next_month_year;
 
+  -- I - этап (сам переход)
   procedure go_nye_phase1 is
     type_otchet_  constant number := 50; --для таблицы long_table
     type_otchet2_ constant number := 51; --новые архивы
-    summa_ number;
     cnt_ number;
-    part_  number;
     mg_ params.period%type;
-    l_cd_org t_org.cd%type;
   begin
-    -- 1 - этап (сам переход)
     logger.log_(null, 'Начало I фазы перехода...');
     select period into mg_ from params;
     --Проверка
-    --наличие оплаты не проинкассированной
+    --наличие оплаты непроинкассированной
       select nvl(count(*),0)
         into cnt_
         from c_kwtp c
@@ -4242,12 +4245,12 @@ end;
 
     --повторное формирование движения нужно, так как некоторые РКЦ принимают оплату уже будущим периодом
     --(до очистки итоговых таблиц!)
-    logger.log_(null, 'Повторное формирование движения, начало');
-    c_cpenya.gen_charge_pay_pen;
-    logger.log_(null, 'Повторное формирование движения, окончание');
+    -- ред.24.04.2019 - не понял, зачем это нужно? - отключил пока
+    --logger.log_(null, 'Повторное формирование движения, начало');
+    --c_cpenya.gen_charge_pay_pen;
+    --logger.log_(null, 'Повторное формирование движения, окончание');
     ---
     
-    select p.part into part_ from params p;
     -- чистим итоговые таблицы
     logger.log_(null, 'Очистка итоговых таблиц, начало');
     gen.gen_clear_tables;
@@ -4310,10 +4313,10 @@ end;
     logger.log_(null, 'Окончание I - фазы перехода...');
   end;
 
+  -- II - этап
   procedure go_nye_phase2 is
     part_  number;
     type_otchet_  constant number := 50; --для таблицы long_table
-    l_cnt number;
   begin
     logger.log_(null, 'Начало II - фазы перехода...');
     select p.part into part_ from params p;
@@ -4348,7 +4351,8 @@ end;
     (select * from long_table s where s.mg=a.mg);
 
 
-    logger.log_(null, 'Переход-распределение оплаты, принятой будущим периодом, начало');
+/*  ред.24.04.2019 - не понятно зачем это здесь, для кого? пока закомментировал
+  logger.log_(null, 'Переход-распределение оплаты, принятой будущим периодом, начало');
      if utils.get_int_param('DIST_PAY_TP') = 0 then
      --по-сальдовый способ распределения оплаты
        c_gen_pay.dist_pay_lsk_force; 
@@ -4357,7 +4361,7 @@ end;
        null; --пока не написал
      end if;
     logger.log_(null, 'Переход-распределение оплаты, принятой будущим периодом, окончание');
-     
+  */   
     logger.log_(null, 'Переход-установка признаков закрытых домов начало');
     update c_houses t set t.psch=1
      where nvl(t.psch,0)=0 and
@@ -4375,7 +4379,6 @@ end;
     --устанавливаем кол-во прожив, с учетом выбывших и зарегистрированных
     --(например человек прописался в конце прошлого месяца)
 
-    --перенес в расчет начисления 11.04.14
     --изменяем признаки счетчиков, в л.с. где они должны поменяться по срокам
     logger.log_(null, 'Переход-utils.upd_krt_sch_state начало');
     utils.upd_krt_sch_state(null);
@@ -4384,40 +4387,27 @@ end;
     logger.log_(null, 'Переход-utils.upd_c_kart_pr_state начало');
     utils.upd_c_kart_pr_state(null);
     logger.log_(null, 'Переход-utils.upd_c_kart_pr_state окончание');
-    --обновляем доли проживающих, для долевого расчета начисления
-    --только по тем, где существуют даты окончания (ред. 20.02.2012)
-    --не обязательно, выполняется в процедуре начисление (ред.21.05.2012)
-
-    --ОБЯЗАТЕЛЬНО, вынес из c_charge, надо выполнять здесь,
-    --в c_charge приводит к DEADLOCK!!!
-    --временно отменил, так как поставил в c_charge COMMIT ред.29.11.12
-    --logger.log_(null, 'Переход-gen.c_kart.set_part_kpr_all_lsk начало');
-    --c_kart.set_part_kpr_all_lsk;
-    -- logger.log_(null, 'Переход-gen.c_kart.set_part_kpr_all_lsk окончание');
-
     --сброс признака итогового формирования отчетов
     init.set_state(0);
     commit; --коммит по окончанию I фазы
-
-    --очистить таблицу оплаты, иначе влияет на сальдо...
-    --её не надо уже чистить, сама почистится выше, в триггере, ред.10.01.13
-    --execute immediate 'truncate table kwtp_day';
-
     --после I фазы, открываем базу
     admin.set_state_base(0);
     --выполнение автоначисление счетчиков
-    logger.log_(null, 'Переход-gen.auto_charge начало');
-    auto_charge;
-    logger.log_(null, 'Переход-gen.auto_charge окончание');
+    --logger.log_(null, 'Переход-gen.auto_charge начало');
+    -- ред.24.04.2019 WTF??? Что это?? для кого это???
+    --auto_charge;
+    --logger.log_(null, 'Переход-gen.auto_charge окончание');
     --подготовка сальдо, для возможности распределения начисленной пени по услугам
     gen_saldo(null);
     --подготовка послепереходной информации
-    l_cnt:=c_charges.gen_charges(null, null, null, null, 1, 0);
+    -- ред.24.04.2019 - убрал нафиг
+    --l_cnt:=c_charges.gen_charges(null, null, null, null, 1, 0);
     
     --сформировать оборотную ведомость обязательно!
     --иначе будут некорректно распределяться платежи в c_dist_pay (xitog3_lsk нужен текущего периода)
-    gen_saldo(null);
-    gen_saldo_houses;
+    -- ред.24.04.2019 - убрал нафиг
+    --gen_saldo(null);
+    --gen_saldo_houses;
     
     --ЗАЧЕМ здесь выполнять формирование движения и пени??
     --если при вызове л.с, и прочем они всё равно рассчитываются
@@ -4430,16 +4420,22 @@ end;
     --for c in (select distinct lsk from kart) loop
     --  c_cpenya.gen_penya(c.lsk, 0, 0);
     --end loop;
+    
     commit;
+    -- ПОСЛЕ КОММИТА ОБНОВИТЬ PARAMS В JAVA Обязательно! Иначе может формировать Итоговое некорректно! ред.04.06.2019
+    logger.log_(null, 'Переход: обновление Params в Java - начало');
+    p_java.reloadParams;
+    logger.log_(null, 'Переход: обновление Params в Java - окончание');
+    
     logger.log_(null, 'Окончание II - фазы перехода...');
   end;
 
+  -- III - этап
   procedure go_nye_phase3 is
   l_p_mg1 params.period%type;
   l_p_mg2 params.period%type;
   l_cd_org t_org.cd%type;
   begin
-  --Фаза III перехода
     logger.log_(null, 'Начало III - фазы перехода...');
     if utils.get_int_param('HAVE_LK') = 1 then
        --Если присутствует функция личного кабинета
@@ -4728,10 +4724,12 @@ end;
 
 
 
+-- ред.24.04.2019 WTF??? Что это?? для кого это???
   procedure auto_charge is
     cnt_sch_ number;
     part_ number;
   begin
+    Raise_application_error(-20000, 'WTF???');
   --автоначисление счетчиков
   --средний расход за прошлые 3 месяца начислить, у кого не начислено
   --выполнять сразу после перехода!

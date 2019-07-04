@@ -24,7 +24,7 @@ begin
     return l_str;
   exception
     when others then
-      Raise_application_error(-20000, l_url || ' OTHER Error Msg  : ' ||
+      Raise_application_error(-20000, l_url || ' ВОЗМОЖНО НЕ ЗАПУЩЕНО ЯДРО НАЧИСЛЕНИЯ! OTHER Error Msg  : ' ||
                            utl_http.get_detailed_sqlcode ||
                            utl_http.get_detailed_sqlerrm);
   end;                           
@@ -42,7 +42,6 @@ function gen(
   p_tp in number, 
   p_house_id in number,
   p_vvod_id in number,
-  p_reu_id in varchar2,
   p_usl_id in usl.usl%type,
   p_klsk_id in number,
   p_debug_lvl in number,
@@ -80,6 +79,60 @@ begin
   end if;
 end;
 
+/**
+
+ Распределить платеж C_KWTP_MG в Java 
+**/
+procedure distKwtpMg(
+  p_kwtp_mg_id in number,
+  p_lsk in kart.lsk%type,
+  p_summa in number,
+  p_penya in number,
+  p_debt in number,
+  p_dopl in varchar2,
+  p_nink in number,
+  p_nkom in varchar2,
+  p_oper in varchar2,
+  p_dtek in date,
+  p_dat_ink in date,
+  p_use_queue in number default 0
+  ) is
+  l_ret varchar2(1000);
+  l_req varchar2(1000); 
+begin
+  utl_http.set_transfer_timeout(50000);
+                    
+  l_req:='distKwtpMg?kwtpMgId='||p_kwtp_mg_id||'&lsk='||p_lsk||'&strSumma='||p_summa
+    ||'&strPenya='||p_penya||'&strDebt='||p_debt||'&dopl='||p_dopl||'&nink='||p_nink||'&nkom='||p_nkom
+    ||'&oper='||p_oper||'&strDtek='||to_char(p_dtek,'DD.MM.YYYY')
+    ||'&strDtInk='||to_char(p_dat_ink,'DD.MM.YYYY')||'&useQueue='||p_use_queue;
+  l_ret:=p_java.http_req(l_req);
+  if substr(l_ret,1,2) != 'OK' then
+      Raise_application_error(-20000, 'Ошибка при вызове Java функции: '||l_ret );
+  end if;
+end;
+
+/**
+
+ Выполнить корректировку сальдо в T_CORRECTS_PAYMENTS
+**/
+procedure correct(
+  p_var in number,
+  p_dt in date,
+  p_uk in varchar2
+  ) is
+  l_ret varchar2(1000);
+  l_req varchar2(1000); 
+begin
+  utl_http.set_transfer_timeout(50000);
+                    
+  l_req:='correct?var='||p_var||'&strDt='||to_char(p_dt,'DD.MM.YYYY')||'&uk='||p_uk;
+  l_ret:=p_java.http_req(l_req);
+  if substr(l_ret,1,2) != 'OK' then
+      Raise_application_error(-20000, 'Ошибка при вызове Java функции: '||l_ret );
+  end if;
+end;
+
 /** Очистить HibernateL2 кэш
   **/
 procedure evictL2Cache is
@@ -87,6 +140,17 @@ procedure evictL2Cache is
 begin
   utl_http.set_transfer_timeout(50000);
   l_ret:=p_java.http_req('evictL2C');
+  if substr(l_ret,1,2) <> 'OK' then
+    Raise_application_error(-20000, 'Ошибка при вызове Java функции: '||l_ret );
+  end if;
+end;
+
+-- Перезагрузить сущность Params
+procedure reloadParams is
+  l_ret varchar2(1000);
+begin
+  utl_http.set_transfer_timeout(50000);
+  l_ret:=p_java.http_req('reloadParams');
   if substr(l_ret,1,2) <> 'OK' then
     Raise_application_error(-20000, 'Ошибка при вызове Java функции: '||l_ret );
   end if;

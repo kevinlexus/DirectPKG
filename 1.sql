@@ -1,7 +1,7 @@
--------------------------------------------
--- Export file for user SCOTT@ORCL       --
--- Created by Leo on 17.04.2019, 8:37:52 --
--------------------------------------------
+--------------------------------------------
+-- Export file for user SCOTT@ORCL        --
+-- Created by Leo on 04.07.2019, 10:34:16 --
+--------------------------------------------
 
 set define off
 spool 1.log
@@ -582,6 +582,11 @@ prompt =======================
 prompt
 @@kwtp_day.tab
 prompt
+prompt Creating table KWTP_DAY_LOG
+prompt ===========================
+prompt
+@@kwtp_day_log.tab
+prompt
 prompt Creating table LIST_C
 prompt =====================
 prompt
@@ -1072,6 +1077,11 @@ prompt ==================
 prompt
 @@swx.tab
 prompt
+prompt Creating table SYS_EXPORT_FULL_01
+prompt =================================
+prompt
+@@sys_export_full_01.tab
+prompt
 prompt Creating table SYS_IMPORT_FULL_01
 prompt =================================
 prompt
@@ -1367,6 +1377,11 @@ prompt =======================
 prompt
 @@usl_excl.tab
 prompt
+prompt Creating table USL_RECEIPT
+prompt ==========================
+prompt
+@@usl_receipt.tab
+prompt
 prompt Creating table USL_ROUND
 prompt ========================
 prompt
@@ -1487,6 +1502,11 @@ prompt ============================
 prompt
 @@a_nabor_id.seq
 prompt
+prompt Creating sequence A_PENYA_ID
+prompt ============================
+prompt
+@@a_penya_id.seq
+prompt
 prompt Creating sequence CHANGES_ID
 prompt ============================
 prompt
@@ -1557,6 +1577,11 @@ prompt ==============================
 prompt
 @@c_kwtp_mg_id.seq
 prompt
+prompt Creating sequence C_KWTP_MG_LOG_ID
+prompt ==================================
+prompt
+@@c_kwtp_mg_log_id.seq
+prompt
 prompt Creating sequence C_LG_DOCS_ID
 prompt ==============================
 prompt
@@ -1576,6 +1601,11 @@ prompt Creating sequence C_PEN_CORR_ID
 prompt ===============================
 prompt
 @@c_pen_corr_id.seq
+prompt
+prompt Creating sequence C_PEN_CUR_ID
+prompt ==============================
+prompt
+@@c_pen_cur_id.seq
 prompt
 prompt Creating sequence C_PEN_USL_CORR_ID
 prompt ===================================
@@ -1626,6 +1656,11 @@ prompt Creating sequence KWTP_DAY_ID
 prompt =============================
 prompt
 @@kwtp_day_id.seq
+prompt
+prompt Creating sequence KWTP_DAY_LOG_ID
+prompt =================================
+prompt
+@@kwtp_day_log_id.seq
 prompt
 prompt Creating sequence K_LSK_ID
 prompt ==========================
@@ -1922,6 +1957,11 @@ prompt ===========================
 prompt
 @@t_usxs_id.seq
 prompt
+prompt Creating sequence USL_RECEIPT_ID
+prompt ================================
+prompt
+@@usl_receipt_id.seq
+prompt
 prompt Creating sequence U_LIST_ID
 prompt ===========================
 prompt
@@ -2192,6 +2232,11 @@ prompt ==========================
 prompt
 @@v_load_privs.vw
 prompt
+prompt Creating view V_LSK_PRIORITY
+prompt ============================
+prompt
+@@v_lsk_priority.vw
+prompt
 prompt Creating view V_MESSAGES
 prompt ========================
 prompt
@@ -2367,6 +2412,11 @@ prompt ==========================
 prompt
 @@c_get_pay.spc
 prompt
+prompt Creating package C_GET_PAY2
+prompt ===========================
+prompt
+@@c_get_pay2.spc
+prompt
 prompt Creating package C_KART
 prompt =======================
 prompt
@@ -2411,11 +2461,6 @@ prompt Creating package EXT_PKG
 prompt ========================
 prompt
 @@ext_pkg.spc
-prompt
-prompt Creating package EXT_PKG_NEW
-prompt ============================
-prompt
-@@ext_pkg_new.spc
 prompt
 prompt Creating package GEN
 prompt ====================
@@ -2491,11 +2536,6 @@ prompt Creating package REP_BILLS_COMPOUND
 prompt ===================================
 prompt
 @@rep_bills_compound.spc
-prompt
-prompt Creating package REP_BILLS_COMPOUND2
-prompt ====================================
-prompt
-@@rep_bills_compound2.spc
 prompt
 prompt Creating type REC_BILL_ROW
 prompt ==========================
@@ -2641,6 +2681,11 @@ prompt Creating type SYS_PLSQL_53039_DUMMY_2
 prompt =====================================
 prompt
 @@sys_plsql_53039_dummy_2.tps
+prompt
+prompt Creating type TAB_ID
+prompt ====================
+prompt
+@@tab_id.tps
 prompt
 prompt Creating type TAB_NABOR
 prompt =======================
@@ -3287,6 +3332,11 @@ prompt ========================================
 prompt
 @@script_saldo_detailed.prc
 prompt
+prompt Creating procedure SCRIPT_SEARCH_EMPTY_TABLES
+prompt =============================================
+prompt
+@@script_search_empty_tables.prc
+prompt
 prompt Creating procedure SCRIPT_SET_K_LSK_ID
 prompt ======================================
 prompt
@@ -3377,6 +3427,11 @@ prompt ===============================
 prompt
 @@c_get_pay.bdy
 prompt
+prompt Creating package body C_GET_PAY2
+prompt ================================
+prompt
+@@c_get_pay2.bdy
+prompt
 prompt Creating package body C_KART
 prompt ============================
 prompt
@@ -3411,11 +3466,6 @@ prompt Creating package body EXT_PKG
 prompt =============================
 prompt
 @@ext_pkg.bdy
-prompt
-prompt Creating package body EXT_PKG_NEW
-prompt =================================
-prompt
-@@ext_pkg_new.bdy
 prompt
 prompt Creating package body GEN
 prompt =========================
@@ -3486,11 +3536,6 @@ prompt Creating package body REP_BILLS_COMPOUND
 prompt ========================================
 prompt
 @@rep_bills_compound.bdy
-prompt
-prompt Creating package body REP_BILLS_COMPOUND2
-prompt =========================================
-prompt
-@@rep_bills_compound2.bdy
 prompt
 prompt Creating package body REP_BILLS_EXT
 prompt ===================================
@@ -3576,6 +3621,11 @@ prompt Creating trigger A_NABOR2_BIE
 prompt =============================
 prompt
 @@a_nabor2_bie.trg
+prompt
+prompt Creating trigger A_PENYA_BI_E
+prompt =============================
+prompt
+@@a_penya_bi_e.trg
 prompt
 prompt Creating trigger C_CHANGE_AD_E
 prompt ==============================
@@ -3667,6 +3717,11 @@ prompt ===============================
 prompt
 @@c_kwtp_mg_bi_e.trg
 prompt
+prompt Creating trigger C_KWTP_MG_D_E
+prompt ==============================
+prompt
+@@c_kwtp_mg_d_e.trg
+prompt
 prompt Creating trigger C_LG_DOCS_AD
 prompt =============================
 prompt
@@ -3706,6 +3761,11 @@ prompt Creating trigger C_PEN_CORR_BIU_E
 prompt =================================
 prompt
 @@c_pen_corr_biu_e.trg
+prompt
+prompt Creating trigger C_PEN_CUR_BI_E
+prompt ===============================
+prompt
+@@c_pen_cur_bi_e.trg
 prompt
 prompt Creating trigger C_PEN_USL_CORR_AD_E
 prompt ====================================
@@ -3941,6 +4001,11 @@ prompt Creating trigger OPER_BIE
 prompt =========================
 prompt
 @@oper_bie.trg
+prompt
+prompt Creating trigger PARAMS_ADU
+prompt ===========================
+prompt
+@@params_adu.trg
 prompt
 prompt Creating trigger PEN_BI_E
 prompt =========================
@@ -4196,6 +4261,11 @@ prompt Creating trigger USL_BI
 prompt =======================
 prompt
 @@usl_bi.trg
+prompt
+prompt Creating trigger USL_RECEIPT_BIE
+prompt ================================
+prompt
+@@usl_receipt_bie.trg
 prompt
 prompt Creating trigger USL_ROUND_ADU_L2C
 prompt ==================================

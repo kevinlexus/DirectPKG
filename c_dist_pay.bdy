@@ -175,7 +175,8 @@ for c in (select k.reu, t.*, t.rowid as rw from c_kwtp_mg t, kart k where/*t.lsk
   )
 loop
 
- select t.lsk, t.summa, t.penya, t.oper, t.dopl, t.nink, t.nkom, t.dtek, t.nkvit, t.dat_ink, t.ts, t.c_kwtp_id, t.cnt_sch, t.cnt_sch0, t.id, null
+ select t.lsk, t.summa, t.penya, t.oper, t.dopl, t.nink, t.nkom, t.dtek, t.nkvit, 
+ t.dat_ink, t.ts, t.c_kwtp_id, t.cnt_sch, t.cnt_sch0, t.id, null, t.debt
   into l_rec from c_kwtp_mg t where t.id=c.id
   and t.rowid=c.rw
   and t.dtek between init.g_dt_start and init.g_dt_end;

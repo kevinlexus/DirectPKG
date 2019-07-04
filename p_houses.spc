@@ -95,7 +95,7 @@ CREATE OR REPLACE PACKAGE SCOTT.P_HOUSES IS
   function get_other_lsk(p_lsk in kart.lsk%type) return tab_lsk;
   --вернуть klsk по GUID дома
   function get_klsk_by_guid(p_guid in varchar2) return number;  
-  
+  function get_next_elsd return varchar2;
 END P_HOUSES;
 /
 

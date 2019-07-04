@@ -14,6 +14,7 @@ procedure main(p_sel_obj in number, -- вариант выборки: 0 - по klsk, 1 - по адре
                p_is_closed in number, -- выводить ли закрытый фонд, если есть долг? (0-нет, 1-да)
                p_mg in params.period%type, -- период выборки
                p_sel_uk in varchar2, -- список УК
+               p_for_arch in number default 0, -- для арх.справки (0-нет, 1-да)
                p_rfcur out ccur -- исх.рефкурсор
   );
 

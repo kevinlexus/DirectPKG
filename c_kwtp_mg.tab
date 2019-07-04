@@ -15,7 +15,8 @@ create table SCOTT.C_KWTP_MG
   cnt_sch   NUMBER,
   cnt_sch0  NUMBER,
   id        NUMBER not null,
-  is_dist   NUMBER
+  is_dist   NUMBER,
+  debt      NUMBER
 )
 tablespace USERS
   pctfree 1
@@ -62,6 +63,8 @@ comment on column SCOTT.C_KWTP_MG.id
   is 'ID';
 comment on column SCOTT.C_KWTP_MG.is_dist
   is 'Оплата уже распределена? (1-да, null,0 - нет)';
+comment on column SCOTT.C_KWTP_MG.debt
+  is 'Для распределения оплаты в Java - сумма долга на момент распределения по периоду';
 create index SCOTT.C_KWTP_MG_KWTP_ID on SCOTT.C_KWTP_MG (C_KWTP_ID)
   tablespace USERS
   pctfree 10

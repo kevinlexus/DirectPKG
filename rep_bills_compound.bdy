@@ -12,10 +12,56 @@ procedure main(p_sel_obj in number, -- вариант выборки: 0 - по лиц.счету, 1 - по
                p_is_closed in number, -- выводить ли закрытый фонд, если есть долг? (0-нет, 1-да)
                p_mg in params.period%type, -- период выборки
                p_sel_uk in varchar2, -- список ” 
+               p_for_arch in number default 0, -- дл€ арх.справки (0-нет, 1-да)
                p_rfcur out ccur -- исх.рефкурсор
   ) is
 begin
 
+if p_sel_obj= 2 then
+-- по ”   
+open p_rfcur for
+select k.prn_num, k.for_bill, k.lsk, k.k_lsk_id, k.opl,
+        utils.month_name(SUBSTR(p_mg, 5, 2)) || ' ' || SUBSTR(p_mg, 1, 4) || ' г.' as mg2,
+        k.kpr,
+        k.kpr_wr,
+        k.kpr_wrp,
+        k.kpr_ot,
+        k.opl,
+        t.name as st_name, -- статус
+        decode(t.cd, 'MUN','Ќаниматель','—обственник') as pers_tp,
+        s.name || ', ' || nvl(ltrim(k.nd, '0'), '0') || '-' ||
+        nvl(ltrim(k.kw, '0'), '0') as adr, -- адрес
+        p_mg as mg, scott.utils.month_name(substr(p_mg, 5, 2))||' '||substr(p_mg,1,4)||'г.' as mg_str, -- период
+        k.fio
+    from scott.arch_kart k
+      join v_lsk_tp tp on k.fk_tp=tp.id
+      left join scott.spul s on k.kul = s.id
+      left join scott.status t on k.status=t.id
+      join (select * from (select k2.lsk, -- фильтр приоритетного открытого и основного лиц счета
+               first_value(k2.lsk) over (partition by k2.k_lsk_id order by decode(k2.psch,8,1,9,1,0), tp2.npp) as lsk_main
+               from ARCH_KART k2 join v_lsk_tp tp2 on k2.fk_tp=tp2.id and k2.mg = p_mg
+               and k2.reu=p_reu) a where a.lsk=a.lsk_main
+               ) b on b.lsk=k.lsk
+   where k.mg = p_mg and 
+                k.reu=p_reu and
+                case 
+                  when p_for_arch = 1 then 1 -- либо дл€ арх.справки
+                  when p_is_closed = 1 and nvl(k.for_bill,0)=1 then 1 -- либо в т.ч.закрытые, с долгом
+                  when p_is_closed = 0 and k.psch not in (8,9) then 1 -- либо только открытые
+                  else 0 end = 1 and
+                decode(p_sel_obj, 0, p_lsk, k.lsk) >= k.lsk and  -- по лиц.счету
+                decode(p_sel_obj, 0, p_lsk1, k.lsk) <= k.lsk and -- по лиц.счету
+                decode(p_sel_obj, 1, nvl(p_kul,k.kul), k.kul) = k.kul and -- по адресу
+                decode(p_sel_obj, 1, nvl(p_nd,k.nd), k.nd) = k.nd and
+                decode(p_sel_obj, 1, nvl(p_kw,k.kw), k.kw) = k.kw and
+                k.prn_num between p_firstNum and p_lastNum -- по адресам ” , по диапазону pr_num
+                and exists (
+                  select * from arch_kart k2 where k2.mg = p_mg and k2.k_lsk_id=k.k_lsk_id 
+                     and decode(p_sel_uk, '0', 1, instr(p_sel_uk, ''''||k2.reu||''';', 1)) > 0
+                )
+   order by k.prn_num;
+else
+  -- по лиц.счету, и прочие варианты
 open p_rfcur for
 select k.prn_num, k.for_bill, k.lsk, k.k_lsk_id, k.opl,
         utils.month_name(SUBSTR(p_mg, 5, 2)) || ' ' || SUBSTR(p_mg, 1, 4) || ' г.' as mg2,
@@ -36,23 +82,22 @@ select k.prn_num, k.for_bill, k.lsk, k.k_lsk_id, k.opl,
       left join scott.status t on k.status=t.id
    where k.mg = p_mg and 
                 k.reu=p_reu and
-                case when p_is_closed = 1 and nvl(k.for_bill,0)=1 then 1 -- либо в т.ч.закрытые, с долгом
+                case 
+                  when p_for_arch = 1 then 1 -- либо дл€ арх.справки
+                  when p_is_closed = 1 and nvl(k.for_bill,0)=1 then 1 -- либо в т.ч.закрытые, с долгом
                   when p_is_closed = 0 and k.psch not in (8,9) then 1 -- либо только открытые
                   else 0 end = 1 and
                 decode(p_sel_obj, 0, p_lsk, k.lsk) >= k.lsk and  -- по лиц.счету
                 decode(p_sel_obj, 0, p_lsk1, k.lsk) <= k.lsk and -- по лиц.счету
                 decode(p_sel_obj, 1, nvl(p_kul,k.kul), k.kul) = k.kul and -- по адресу
                 decode(p_sel_obj, 1, nvl(p_nd,k.nd), k.nd) = k.nd and
-                decode(p_sel_obj, 1, nvl(p_kw,k.kw), k.kw) = k.kw and
-                case when p_sel_obj = 2 and tp.cd='LSK_TP_MAIN' and k.prn_num between p_firstNum and p_lastNum then 1 -- по адресам ” , по диапазону pr_num
-                 when p_sel_obj != 2 then 1
-                else 0 end = 1
+                decode(p_sel_obj, 1, nvl(p_kw,k.kw), k.kw) = k.kw
                 and exists (
                   select * from arch_kart k2 where k2.mg = p_mg and k2.k_lsk_id=k.k_lsk_id 
                      and decode(p_sel_uk, '0', 1, instr(p_sel_uk, ''''||k2.reu||''';', 1)) > 0
                 )
    order by k.prn_num;
-
+end if;
 /*  select k.prn_num, k.for_bill, k.lsk, k.k_lsk_id, k.opl,
         utils.month_name(SUBSTR(p_mg, 5, 2)) || ' ' || SUBSTR(p_mg, 1, 4) || ' г.' as mg2,
         k.kpr,

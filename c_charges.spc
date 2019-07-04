@@ -71,6 +71,12 @@ create or replace package scott.C_CHARGES is
                          house_id_ IN c_houses.id%TYPE,
                          p_reu     IN kart.reu%TYPE,
                          p_trest   IN kart.reu%TYPE);
+  procedure gen_charges(lsk_      VARCHAR2,
+                       lsk_end_  VARCHAR2,
+                       house_id_ c_houses.id%TYPE,
+                       p_vvod c_vvod.id%type,
+                       iscommit_ NUMBER,
+                       sendmsg_  NUMBER);
  procedure gen_charges(house_id_ c_houses.id%TYPE);
  FUNCTION gen_charges(lsk_ VARCHAR2, lsk_end_ VARCHAR2, house_id_ c_houses.id%TYPE,
     p_vvod c_vvod.id%type, iscommit_ number, sendmsg_ number)

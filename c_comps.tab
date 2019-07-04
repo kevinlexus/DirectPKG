@@ -1,12 +1,14 @@
 create table SCOTT.C_COMPS
 (
-  nkom    CHAR(3) not null,
-  nink    NUMBER not null,
-  nkvit   NUMBER not null,
-  cd      VARCHAR2(100),
-  fk_oper CHAR(3),
-  fk_org  NUMBER,
-  period  VARCHAR2(6)
+  nkom           CHAR(3) not null,
+  nink           NUMBER not null,
+  nkvit          NUMBER not null,
+  cd             VARCHAR2(100),
+  fk_oper        CHAR(3),
+  fk_org         NUMBER,
+  period         VARCHAR2(6),
+  use_java_queue NUMBER default 1,
+  cash_num       NUMBER default 1
 )
 tablespace USERS
   pctfree 1
@@ -35,6 +37,10 @@ comment on column SCOTT.C_COMPS.fk_org
   is 'Принадежность компьютера';
 comment on column SCOTT.C_COMPS.period
   is 'Текущий период работы';
+comment on column SCOTT.C_COMPS.use_java_queue
+  is 'Использовать Java очередь для распределения оплаты (0-нет,1-да) По умолчанию - 1';
+comment on column SCOTT.C_COMPS.cash_num
+  is 'При приеме оплаты налом использовать № ККМ (1,2)';
 alter table SCOTT.C_COMPS
   add constraint C_COMPS_P primary key (NKOM)
   using index 

@@ -232,12 +232,19 @@ begin
 
       insert into temp_prep(usl, org, summa)
         values (l_usl_dst, l_org_dst, c2.summa);
+        
     end loop;
 
     -- добавляем во временную таблицу
+      begin  
     insert into temp_chpenya (lsk, usl, org, summa)
       select c.lsk, t.usl, t.org, summa as summa
       from temp_prep t;
+        exception when others then
+          for c3 in (select * from temp_prep t) loop
+          Raise_application_error(-20000, 'lsk='||c.lsk||' c2.usl='||c3.usl||' c2.org='||c3.org);
+          end loop;
+      end;  
   end loop;
 
     -- добавить корректировку, разбитую по услугам    

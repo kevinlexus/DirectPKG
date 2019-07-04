@@ -1,0 +1,43 @@
+create table SCOTT.KWTP_DAY_LOG
+(
+  id           NUMBER not null,
+  fk_c_kwtp_mg NUMBER,
+  text         VARCHAR2(2000),
+  npp          NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.KWTP_DAY_LOG
+  is 'логгирование распределения оплаты KWTP_DAY';
+comment on column SCOTT.KWTP_DAY_LOG.id
+  is 'ID';
+comment on column SCOTT.KWTP_DAY_LOG.fk_c_kwtp_mg
+  is 'FK на C_KWTP_MG';
+comment on column SCOTT.KWTP_DAY_LOG.text
+  is 'Комментарий';
+comment on column SCOTT.KWTP_DAY_LOG.npp
+  is '№ п.п. распределения';
+alter table SCOTT.KWTP_DAY_LOG
+  add constraint KWTP_DAY_LOG_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

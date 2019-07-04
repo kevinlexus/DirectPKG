@@ -839,6 +839,9 @@ procedure sub_ZERO_polis_main is
   t_tmp_usl scott.tab_tmp;
   t_tmp_org scott.tab_tmp;
 begin
+  
+  Raise_application_error(-20000, 'Скрипт не работает! Использовать Scripts3.Scripts3.dist_saldo_polis!');
+
   dbms_output.enable(2000000);
 
 
@@ -1681,10 +1684,10 @@ procedure swap_sal_chpay12 is
  l_ret number;
  l_deb number;
 begin
-  l_mg:='201711'; --тек.период
-  l_cd:='swap_sal_chpay11_20171029';
+  l_mg:='201904'; --тек.период
+  l_cd:='swap_sal_chpay12_20190430';
   l_mgchange:=l_mg;
-  l_dt:=to_date('20171129','YYYYMMDD');
+  l_dt:=to_date('20190430','YYYYMMDD');
   l_mg3:=utils.add_months_pr(l_mg,1); --месяц вперед
   --l_mg3:=l_mg;
   --dbms_output.enable(2000000);
@@ -1709,47 +1712,21 @@ begin
     select s.lsk, s.usl ,s.org,
     s.summa,
     uid, l_dt, l_mg, l_mg, l_id, 0 as var
-    from saldo_usl s, kart k
-    where s.mg=l_mg3 and s.lsk=k.lsk and k.psch not in (8,9)
-    and s.usl in ('031')
-    and s.summa < 0
-    and s.org = 650;
+    from saldo_usl_script s, kart k
+    where s.mg=l_mg3 and s.lsk=k.lsk --and k.psch not in (8,9)
+    and k.reu in ('014','015')
+    and s.usl in ('004');
 
  -- поставить
   insert into t_corrects_payments
     (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
-    select s.lsk, '031' as usl , 690 as org,
+    select s.lsk, '003' as usl , s.org as org,
     -1*s.summa,
     uid, l_dt, l_mg, l_mg, l_id, 0 as var
-    from saldo_usl s, kart k
-    where s.mg=l_mg3 and s.lsk=k.lsk and k.psch not in (8,9)
-    and s.usl in ('031')
-    and s.summa < 0
-    and s.org = 650;
-
-  -- снять
-  insert into t_corrects_payments
-    (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
-    select s.lsk, s.usl ,s.org,
-    s.summa,
-    uid, l_dt, l_mg, l_mg, l_id, 0 as var
-    from saldo_usl s, kart k
-    where s.mg=l_mg3 and s.lsk=k.lsk and k.psch not in (8,9)
-    and s.usl in ('054')
-    and s.summa < 0
-    and s.org = 674;
-
- -- поставить
-  insert into t_corrects_payments
-    (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
-    select s.lsk, '054' as usl , 690 as org,
-    -1*s.summa,
-    uid, l_dt, l_mg, l_mg, l_id, 0 as var
-    from saldo_usl s, kart k
-    where s.mg=l_mg3 and s.lsk=k.lsk and k.psch not in (8,9)
-    and s.usl in ('054')
-    and s.summa < 0
-    and s.org = 674;
+    from saldo_usl_script s, kart k
+    where s.mg=l_mg3 and s.lsk=k.lsk --and k.psch not in (8,9)
+    and k.reu in ('014','015')
+    and s.usl in ('004');
 
 --убрать нули
 delete from t_corrects_payments t where t.summa = 0 and t.fk_doc=l_id;
@@ -1798,7 +1775,7 @@ begin
     select s.lsk, s.usl ,s.org,
     s.summa,
     uid, l_dt, l_mg, l_mg, l_id, 0 as var
-    from saldo_usl_script2 s, kart k
+    from saldo_usl_script s, kart k
     where s.mg=l_mg3 and s.lsk=k.lsk
     and s.usl in ('007','008','056')
     and s.summa < 0
@@ -1810,7 +1787,7 @@ begin
     select s.lsk, '007' as usl, 677 as org,
     -1*s.summa,
     uid, l_dt, l_mg, l_mg, l_id, 0 as var
-    from saldo_usl_script2 s, kart k
+    from saldo_usl_script s, kart k
     where s.mg=l_mg3 and s.lsk=k.lsk
     and s.usl in ('007','008','056')
     and s.summa < 0
@@ -1822,7 +1799,7 @@ begin
     select s.lsk, s.usl ,s.org,
     s.summa,
     uid, l_dt, l_mg, l_mg, l_id, 0 as var
-    from saldo_usl_script2 s, kart k
+    from saldo_usl_script s, kart k
     where s.mg=l_mg3 and s.lsk=k.lsk
     and s.usl in ('015','016','058')
     and s.summa < 0
@@ -1834,7 +1811,7 @@ begin
     select s.lsk, '015' as usl, 677 as org,
     -1*s.summa,
     uid, l_dt, l_mg, l_mg, l_id, 0 as var
-    from saldo_usl_script2 s, kart k
+    from saldo_usl_script s, kart k
     where s.mg=l_mg3 and s.lsk=k.lsk
     and s.usl in ('015','016','058')
     and s.summa < 0
@@ -2345,9 +2322,9 @@ procedure swap_sal_PEN is
   l_cd c_change_docs.cd_tp%type;
 begin
 --период, сальдо по которому смотрим
-mg_:='201811';
+mg_:='201904';
 --Дата переброски
-dat_:=to_date('01122018','DDMMYYYY');
+dat_:=to_date('01052019','DDMMYYYY');
 --CD переброски
 l_cd:='swap_sal_PEN_'||to_char(dat_,'DDMMYYYY')||'_1';
 
@@ -2369,7 +2346,7 @@ for c in (select k.lsk, s2.org, s2.usl,
    k1.lsk as newlsk, s2.summa as summa
      from (select usl, org, lsk, sum(t.poutsal) as summa from xitog3_lsk t where
       t.mg=mg_ --взять сальдо
-      and t.usl='026'
+      --and t.usl='026'
       group by usl, org, lsk) s2, kart k, kart k1
     where 
     k.lsk=s2.lsk
@@ -2414,9 +2391,9 @@ procedure swap_sal_PEN2 is
   l_cd c_change_docs.cd_tp%type;
 begin
 --период, сальдо по которому смотрим
-mg_:='201901';
+mg_:='201905';
 --Дата переброски
-dat_:=to_date('01012019','DDMMYYYY');
+dat_:=to_date('01062019','DDMMYYYY');
 --CD переброски
 l_cd:='swap_sal_PEN_'||to_char(dat_,'DDMMYYYY')||'_1';
 
@@ -2558,10 +2535,10 @@ procedure swap_sal_from_main_to_rso2 is
  l_ret number;
  l_deb number;
 begin
-  l_mg:='201902'; --тек.период
-  l_cd:='swap_sal_from_main_to_RSO2_20190227';
+  l_mg:='201906'; --тек.период
+  l_cd:='swap_sal_from_main_to_RSO2_20190627';
   l_mgchange:=l_mg;
-  l_dt:=to_date('20190227','YYYYMMDD');
+  l_dt:=to_date('20190627','YYYYMMDD');
   l_mg3:=utils.add_months_pr(l_mg,1); --месяц вперед
 
   select t.id into l_user from t_user t where t.cd='SCOTT';
@@ -2579,15 +2556,20 @@ begin
 
 for c in (select k.lsk as lskFrom, k2.lsk as lskTo, a.usl, a.org, 
         a.summa
-         from kart k join kart k2 on k.k_lsk_id=k2.k_lsk_id and k2.psch not in (8,9) 
-         and k2.fk_tp=3861849 and k2.reu='015' 
+         from kart k 
+         join v_lsk_tp tp on tp.cd='LSK_TP_RSO' and k.fk_tp=tp.id
+         join kart k2 on k.k_lsk_id=k2.k_lsk_id and k2.psch not in (8,9) 
+           and k2.fk_tp=tp.id
+         and k2.reu='016' -- назначение
          join 
          (select s.lsk, s.usl, s.org, sum(s.summa) as summa from (
-           select t.lsk, t.usl, t.org, t.summa from saldo_usl_script t where t.mg='201903'
+           select t.lsk, t.usl, t.org, t.summa from saldo_usl_script t where t.mg='201907'
            and t.usl in ('011','057','013','059')
                ) s
           group by s.lsk, s.usl, s.org) a on k.lsk=a.lsk and a.summa < 0
-        where k.psch not in (8,9) and k.fk_tp=673012 and k.reu='002' -- с основных
+        where --k.psch not in (8,9)
+        --and 
+        k.reu='015' -- источник
         --and k.house_id in (40106, 40126)
 ) loop
         
@@ -2600,7 +2582,7 @@ for c in (select k.lsk as lskFrom, k2.lsk as lskTo, a.usl, a.org,
       -- поставить                  
       insert into t_corrects_payments
         (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
-        select c.lskTo, c.usl, 6 as org,
+        select c.lskTo, c.usl, 11 as org,
         -1*c.summa,
         uid, l_dt, l_mg, l_mg, l_id, 0 as var from dual;
   end loop; 

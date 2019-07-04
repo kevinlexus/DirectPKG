@@ -1,15 +1,16 @@
 create global temporary table SCOTT.TEMP_KWTP_MG
 (
-  lsk   CHAR(8) not null,
-  summa NUMBER(12,2),
-  penya NUMBER(12,2),
-  oper  CHAR(3) not null,
-  dopl  CHAR(6) not null,
-  nink  NUMBER,
-  nkom  CHAR(3) not null,
-  dtek  DATE not null,
-  nkvit NUMBER,
-  ts    DATE
+  lsk     CHAR(8) not null,
+  summa   NUMBER(12,2),
+  penya   NUMBER(12,2),
+  oper    CHAR(3) not null,
+  dopl    CHAR(6) not null,
+  nink    NUMBER,
+  nkom    CHAR(3) not null,
+  dtek    DATE not null,
+  nkvit   NUMBER,
+  ts      DATE,
+  dat_ink DATE
 )
 on commit delete rows;
 

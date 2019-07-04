@@ -418,29 +418,29 @@ create or replace package body scott.p_meter is
                     on a.fk_tp = tp.id
                    and tp.cd = 'LSK_TP_MAIN'
                    and a.psch not in (8, 9)
+                  and not exists (select * from meter m, params p where m.fk_klsk_obj=k.k_lsk_id and m.fk_usl=p_usl
+                  and to_char(m.dt1,'YYYYMM') = p.period) -- кроме установленых счетчиков в тек.периоде. ред.27.05.2019
                   left join (select m.fk_klsk_obj, max(t.mg) as max_mg  -- кол-во мес€цев непередачи показаний
                             from meter m, T_OBJXPAR t, u_list s, params p where 
-                            to_char(m.dt1,'YYYYMM') < p.period -- кроме счетчиков установленных в текущем периоде
-                            and m.k_lsk_id=t.fk_k_lsk and m.fk_usl=p_usl
+                           m.k_lsk_id=t.fk_k_lsk and m.fk_usl=p_usl
                             and t.fk_list=s.id and s.cd='ins_vol_sch'
                             and t.mg>=l_mg1 and t.tp not in (1,2)
                             and t.n1 <> 0
                             group by m.fk_klsk_obj) m on k.k_lsk_id=m.fk_klsk_obj      
                  group by k.lsk, k.k_lsk_id) loop
         --¬Ќ»ћјЌ»≈!, ѕ≈–≈ѕ»—ј“№ ƒЋя  »—, ≈—Ћ» Ѕ”ƒ”“ »—ѕќЋ№«ќ¬ј“№ распределение по расходу!
-        if c.cnt_month_non_send_vol >= 3 and l_Java_Charge = 1 then
+          if c.cnt_month_non_send_vol >= 3 and l_Java_Charge = 1 then
           -- кол-во мес€цев непередачи показаний превысило 3 (не включа€ текущий) - начисл€ть нормативный объем
           -- получить нормативный объем по услуге (в начислении отключаетс€ счетчик, рассчитываетс€ нормативный объем)
           l_norm_vol := p_java.gen(p_tp        => 4,
                                    p_house_id  => null,
                                    p_vvod_id   => null,
-                                   p_reu_id    => null,
                                    p_usl_id    => p_usl,
                                    p_klsk_id   => c.k_lsk_id,
                                    p_debug_lvl => 0,
                                    p_gen_dt    => init.get_date,
                                    p_stop      => 0);
-          l_ret2     := ins_vol_meter(p_met_klsk => null,
+          l_ret2:= ins_vol_meter(p_met_klsk => null,
                                       p_lsk      => c.lsk,
                                       p_usl      => p_usl,
                                       p_vol      => round(l_norm_vol,3),
@@ -497,7 +497,7 @@ create or replace package body scott.p_meter is
               end if;
             end if;
           end if;
-        end if;
+      end if;
       
       end loop;
     elsif p_set = 0 then
@@ -509,8 +509,8 @@ create or replace package body scott.p_meter is
                    and s.cd = 'ins_vol_sch'
                    and m.fk_usl = p_usl
                    and t.fk_list = s.id
-                   and t.tp in (1) --тип - автоначислено
-                   and t.id = --последн€€ итераци€
+                   and t.tp in (1,2) --тип - автоначислено или сн€то автоначисление ред.27.05.2019
+                   /*and t.id = --последн€€ итераци€ - в корне не верно! ред.27.05.2019
                        (select max(t.id)
                           from meter m2, t_objxpar t, params p, u_list s
                          where t.fk_k_lsk = m2.k_lsk_id
@@ -519,7 +519,7 @@ create or replace package body scott.p_meter is
                            and m2.fk_usl = p_usl
                            and t.fk_list = s.id
                            and t.tp in (1) --тип - автоначислено
-                           and m2.id = m.id)) loop
+                           and m2.id = m.id)*/) loop
       
         l_ret2 := ins_vol_meter(p_met_klsk => c.k_lsk_id,
                                 p_lsk      => null,
@@ -547,7 +547,7 @@ create or replace package body scott.p_meter is
     return l_ret;
   end;
 
-  --получить код наличи€ счетчика дл€ по последней дате мес€ца дл€ kart.psch
+  --получить код наличи€ счетчика по последней дате мес€ца дл€ kart.psch
   function getpsch(p_lsk in kart.lsk%type) return number is
   begin
   

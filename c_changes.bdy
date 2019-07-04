@@ -300,20 +300,34 @@ if lsk_start_ is not null and lsk_end_ is not null then
                   and exists (select * from v_kart s2 where s2.lsk=k.lsk and
                   nvl(k.kran1,0) = 0)
                   or l_kran1 = 0)
-              and exists (select * from v_kart s2 where s2.lsk=k.lsk and
+              -- ред.02.05.2019 - не брались корректно статусы счетчика по Основому лс - переделал    
+              and exists (select * from v_lsk_priority s2 where s2.K_LSK_ID=k.K_LSK_ID and
                           (p_status = 0 or p_status = s2.status) and
-                           case when is_sch_ in (2) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег')/* m.counter='phw' */and s2.psch in (1,2) then 1 --только сч.
-                          when is_sch_ in (2) and u.cd in ('г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') /*and m.counter='pgw'*/ and s2.psch in (1,3) then 1
-                          when is_sch_ in (2) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') /*and m.counter='pel'*/ and s2.sch_el = 1 then 1
+                           case when is_sch_ in (2) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег') and s2.psch in (1,2) then 1 --только сч.
+                          when is_sch_ in (2) and u.cd in ('г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') and s2.psch in (1,3) then 1
+                          when is_sch_ in (2) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') and s2.sch_el = 1 then 1
                           when is_sch_ in (0) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег') and s2.psch in (0,3) then 1 --без сч.
                           when is_sch_ in (0) and u.cd in ('г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') and s2.psch in (0,2) then 1
                           when is_sch_ in (0) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') and s2.sch_el = 0 then 1
                           when is_sch_ in (1) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег', 'г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') then 1 --в т.ч. со сч.
                           when is_sch_ in (1) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') then 1
-                          --when m.counter is null then 1
                           when l_psch<> 1 and u.cd not in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег', 'г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег','эл.энерг.2','эл.эн.2/св.нор') then 1
                           when l_psch=1 then 1 --по закрытым л.с. производить по всем типам счетчиков
                           else 0 end = 1);
+                  
+/*              and exists (select * from v_kart s2 where s2.lsk=k.lsk and
+                          (p_status = 0 or p_status = s2.status) and
+                           case when is_sch_ in (2) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег') and s2.psch in (1,2) then 1 --только сч.
+                          when is_sch_ in (2) and u.cd in ('г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') and s2.psch in (1,3) then 1
+                          when is_sch_ in (2) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') and s2.sch_el = 1 then 1
+                          when is_sch_ in (0) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег') and s2.psch in (0,3) then 1 --без сч.
+                          when is_sch_ in (0) and u.cd in ('г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') and s2.psch in (0,2) then 1
+                          when is_sch_ in (0) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') and s2.sch_el = 0 then 1
+                          when is_sch_ in (1) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег', 'г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') then 1 --в т.ч. со сч.
+                          when is_sch_ in (1) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') then 1
+                          when l_psch<> 1 and u.cd not in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег', 'г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег','эл.энерг.2','эл.эн.2/св.нор') then 1
+                          when l_psch=1 then 1 --по закрытым л.с. производить по всем типам счетчиков
+                          else 0 end = 1)*/
     else
       --архивный период
     insert into temp_c_change2
@@ -339,30 +353,31 @@ if lsk_start_ is not null and lsk_end_ is not null then
                   and exists (select * from v_arch_kart s2 where s2.lsk=k.lsk and s2.mg=mg_ and
                   nvl(k.kran1,0) = 0)
                   or l_kran1 = 0)
-              and exists (select * from v_arch_kart s2 where s2.lsk=k.lsk and s2.mg=mg_ and
+              -- ред.02.05.2019 - не брались корректно статусы счетчика по Основому лс - переделал    
+              and exists (select * from v_lsk_priority s2 where s2.K_LSK_ID=k.K_LSK_ID and
                           (p_status = 0 or p_status = s2.status) and
-                           case when is_sch_ in (2) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег')/* m.counter='phw' */and s2.psch in (1,2) then 1 --только сч.
-                          when is_sch_ in (2) and u.cd in ('г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') /*and m.counter='pgw'*/ and s2.psch in (1,3) then 1
-                          when is_sch_ in (2) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') /*and m.counter='pel'*/ and s2.sch_el = 1 then 1
+                           case when is_sch_ in (2) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег') and s2.psch in (1,2) then 1 --только сч.
+                          when is_sch_ in (2) and u.cd in ('г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') and s2.psch in (1,3) then 1
+                          when is_sch_ in (2) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') and s2.sch_el = 1 then 1
                           when is_sch_ in (0) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег') and s2.psch in (0,3) then 1 --без сч.
                           when is_sch_ in (0) and u.cd in ('г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') and s2.psch in (0,2) then 1
                           when is_sch_ in (0) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') and s2.sch_el = 0 then 1
                           when is_sch_ in (1) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег', 'г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') then 1 --в т.ч. со сч.
                           when is_sch_ in (1) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') then 1
-                          --when m.counter is null then 1
                           when l_psch<> 1 and u.cd not in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег', 'г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег','эл.энерг.2','эл.эн.2/св.нор') then 1
                           when l_psch=1 then 1 --по закрытым л.с. производить по всем типам счетчиков
                           else 0 end = 1);
-
-/*                           case when is_sch_ in (2) and m.counter='phw' and s2.psch in (1,2) then 1 --только сч.
-                          when is_sch_ in (2) and m.counter='pgw' and s2.psch in (1,3) then 1
-                          when is_sch_ in (2) and m.counter='pel' and s2.sch_el = 1 then 1
-                          when is_sch_ in (0) and m.counter='phw' and s2.psch in (0,3) then 1 --без сч.
-                          when is_sch_ in (0) and m.counter='pgw' and s2.psch in (0,2) then 1
-                          when is_sch_ in (0) and m.counter='pel' and s2.sch_el = 0 then 1
-                          when is_sch_ in (1) and m.counter in ('phw','pgw') then 1 --в т.ч. со сч.
-                          when is_sch_ in (1) and m.counter='pel' then 1
-                          when m.counter is null then 1
+/*              and exists (select * from v_arch_kart s2 where s2.lsk=k.lsk and s2.mg=mg_ and
+                          (p_status = 0 or p_status = s2.status) and
+                           case when is_sch_ in (2) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег') and s2.psch in (1,2) then 1 --только сч.
+                          when is_sch_ in (2) and u.cd in ('г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') and s2.psch in (1,3) then 1
+                          when is_sch_ in (2) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') and s2.sch_el = 1 then 1
+                          when is_sch_ in (0) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег') and s2.psch in (0,3) then 1 --без сч.
+                          when is_sch_ in (0) and u.cd in ('г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') and s2.psch in (0,2) then 1
+                          when is_sch_ in (0) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') and s2.sch_el = 0 then 1
+                          when is_sch_ in (1) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег', 'г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') then 1 --в т.ч. со сч.
+                          when is_sch_ in (1) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') then 1
+                          when l_psch<> 1 and u.cd not in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег', 'г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег','эл.энерг.2','эл.эн.2/св.нор') then 1
                           when l_psch=1 then 1 --по закрытым л.с. производить по всем типам счетчиков
                           else 0 end = 1);*/
     if sql%rowcount = 0 then                          
@@ -411,20 +426,33 @@ else
                   and exists (select * from v_kart s2 where s2.lsk=k.lsk and
                   nvl(k.kran1,0) = 0)
                   or l_kran1 = 0)
-                and exists (select * from v_kart s2 where s2.lsk=k.lsk and
+              -- ред.02.05.2019 - не брались корректно статусы счетчика по Основому лс - переделал    
+              and exists (select * from v_lsk_priority s2 where s2.K_LSK_ID=k.K_LSK_ID and
                           (p_status = 0 or p_status = s2.status) and
-                           case when is_sch_ in (2) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег')/* m.counter='phw' */and s2.psch in (1,2) then 1 --только сч.
-                          when is_sch_ in (2) and u.cd in ('г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') /*and m.counter='pgw'*/ and s2.psch in (1,3) then 1
-                          when is_sch_ in (2) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') /*and m.counter='pel'*/ and s2.sch_el = 1 then 1
+                           case when is_sch_ in (2) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег') and s2.psch in (1,2) then 1 --только сч.
+                          when is_sch_ in (2) and u.cd in ('г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') and s2.psch in (1,3) then 1
+                          when is_sch_ in (2) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') and s2.sch_el = 1 then 1
                           when is_sch_ in (0) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег') and s2.psch in (0,3) then 1 --без сч.
                           when is_sch_ in (0) and u.cd in ('г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') and s2.psch in (0,2) then 1
                           when is_sch_ in (0) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') and s2.sch_el = 0 then 1
                           when is_sch_ in (1) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег', 'г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') then 1 --в т.ч. со сч.
                           when is_sch_ in (1) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') then 1
-                          --when m.counter is null then 1
                           when l_psch<> 1 and u.cd not in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег', 'г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег','эл.энерг.2','эл.эн.2/св.нор') then 1
                           when l_psch=1 then 1 --по закрытым л.с. производить по всем типам счетчиков
                           else 0 end = 1);
+/*                and exists (select * from v_kart s2 where s2.lsk=k.lsk and
+                          (p_status = 0 or p_status = s2.status) and
+                           case when is_sch_ in (2) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег')and s2.psch in (1,2) then 1 --только сч.
+                          when is_sch_ in (2) and u.cd in ('г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') and s2.psch in (1,3) then 1
+                          when is_sch_ in (2) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор')  and s2.sch_el = 1 then 1
+                          when is_sch_ in (0) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег') and s2.psch in (0,3) then 1 --без сч.
+                          when is_sch_ in (0) and u.cd in ('г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') and s2.psch in (0,2) then 1
+                          when is_sch_ in (0) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') and s2.sch_el = 0 then 1
+                          when is_sch_ in (1) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег', 'г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') then 1 --в т.ч. со сч.
+                          when is_sch_ in (1) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') then 1
+                          when l_psch<> 1 and u.cd not in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег', 'г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег','эл.энерг.2','эл.эн.2/св.нор') then 1
+                          when l_psch=1 then 1 --по закрытым л.с. производить по всем типам счетчиков
+                          else 0 end = 1);*/
     else
       --архивный период
     insert into temp_c_change2
@@ -448,20 +476,36 @@ else
                   and exists (select * from v_arch_kart s2 where s2.lsk=k.lsk and s2.mg=mg_ and
                   nvl(k.kran1,0) = 0)
                   or l_kran1 = 0)
+              -- ред.02.05.2019 - не брались корректно статусы счетчика по Основому лс - переделал    
+              and exists (select * from v_lsk_priority s2 where s2.K_LSK_ID=k.K_LSK_ID and
+                          (p_status = 0 or p_status = s2.status) and
+                           case when is_sch_ in (2) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег') and s2.psch in (1,2) then 1 --только сч.
+                          when is_sch_ in (2) and u.cd in ('г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') and s2.psch in (1,3) then 1
+                          when is_sch_ in (2) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') and s2.sch_el = 1 then 1
+                          when is_sch_ in (0) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег') and s2.psch in (0,3) then 1 --без сч.
+                          when is_sch_ in (0) and u.cd in ('г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') and s2.psch in (0,2) then 1
+                          when is_sch_ in (0) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') and s2.sch_el = 0 then 1
+                          when is_sch_ in (1) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег', 
+                            'г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') then 1 --в т.ч. со сч.
+                          when is_sch_ in (1) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') then 1
+                          when l_psch<> 1 and u.cd not in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег', 'г.вода', 
+                            'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег','эл.энерг.2','эл.эн.2/св.нор') then 1
+                          when l_psch=1 then 1 --по закрытым л.с. производить по всем типам счетчиков
+                          else 0 end = 1);
+/*                  
                 and exists (select * from v_arch_kart s2 where s2.lsk=k.lsk and s2.mg=mg_ and
                           (p_status = 0 or p_status = s2.status) and
-                           case when is_sch_ in (2) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег')/* m.counter='phw' */and s2.psch in (1,2) then 1 --только сч.
-                          when is_sch_ in (2) and u.cd in ('г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') /*and m.counter='pgw'*/ and s2.psch in (1,3) then 1
-                          when is_sch_ in (2) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') /*and m.counter='pel'*/ and s2.sch_el = 1 then 1
+                           case when is_sch_ in (2) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег')and s2.psch in (1,2) then 1 --только сч.
+                          when is_sch_ in (2) and u.cd in ('г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег')  and s2.psch in (1,3) then 1
+                          when is_sch_ in (2) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор')  and s2.sch_el = 1 then 1
                           when is_sch_ in (0) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег') and s2.psch in (0,3) then 1 --без сч.
                           when is_sch_ in (0) and u.cd in ('г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') and s2.psch in (0,2) then 1
                           when is_sch_ in (0) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') and s2.sch_el = 0 then 1
                           when is_sch_ in (1) and u.cd in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег', 'г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег') then 1 --в т.ч. со сч.
                           when is_sch_ in (1) and u.cd in ('эл.энерг.2','эл.эн.2/св.нор') then 1
-                          --when m.counter is null then 1
                           when l_psch<> 1 and u.cd not in ('х.вода', 'х.вода/св.нор', 'х.вода.ОДН', 'х.в. ОДН, 0 зарег', 'г.вода', 'г.вода/св.нор','г.вода.ОДН','г.в. ОДН, 0 зарег','эл.энерг.2','эл.эн.2/св.нор') then 1
                           when l_psch=1 then 1 --по закрытым л.с. производить по всем типам счетчиков
-                          else 0 end = 1);
+                          else 0 end = 1);*/
     end if;      
     --по каждому дому коммит, да, да! (иначе тормозит глухо, когда много домов)
     commit;
@@ -536,7 +580,7 @@ insert into a_charge2
 if l_h_usl > 0 and p_kan=1 then
   l_part:=0;
   loop
-    for c in (select t.lsk, b.lsk as lsk_kan, t.org, t.proc, t.mg, d.usl, d.summa, d.vol,
+    for c in (select /*+ USE_HASH(t,a,b,d) */ t.lsk, b.lsk as lsk_kan, t.org, t.proc, t.mg, d.usl, d.summa, d.vol,
        a.summa/b.summa as proc_kan, --доля услуги в канализовании (отношение объемов)
        round(t.proc * a.summa/b.summa,3) as proc_itg
          from temp_c_change2 t join usl m on t.usl = m.usl
@@ -814,6 +858,7 @@ begin
 delete from t_corrects_payments t
  where t.mg=(select p.period from params p)
   and t.fk_doc=fk_doc_;
+  delete from c_change_docs t where t.id=fk_doc_;
 commit;
 end;
 

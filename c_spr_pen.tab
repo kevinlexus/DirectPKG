@@ -29,6 +29,19 @@ comment on column SCOTT.C_SPR_PEN.reu
   is 'REU по которому определена дата начала пени';
 comment on column SCOTT.C_SPR_PEN.id
   is 'ID';
+create unique index SCOTT.C_SPR_PEN_I on SCOTT.C_SPR_PEN (MG, FK_LSK_TP, REU)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
 alter table SCOTT.C_SPR_PEN
   add constraint C_SPR_PEN_F_LSK_TP foreign key (FK_LSK_TP)
   references SCOTT.U_LIST (ID);

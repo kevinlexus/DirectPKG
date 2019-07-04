@@ -1,5 +1,5 @@
 CREATE OR REPLACE TRIGGER SCOTT.c_penya_biud_e
-  before insert or update or delete on c_penya
+  before insert on c_penya
   for each row
 begin
   if inserting then
