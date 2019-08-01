@@ -1,15 +1,18 @@
 create global temporary table SCOTT.C_KWTP_TEMP_DOLG
 (
-  mg      VARCHAR2(6),
-  charge  NUMBER,
-  payment NUMBER,
-  summa   NUMBER(12,2),
-  sal     NUMBER,
-  penya   NUMBER(12,2),
-  itog    NUMBER(12,2),
-  lsk     CHAR(8),
-  lsk_tp  VARCHAR2(96),
-  dolg2   NUMBER
+  mg             VARCHAR2(6),
+  charge         NUMBER,
+  payment        NUMBER,
+  summa          NUMBER(12,2),
+  sal            NUMBER,
+  penya          NUMBER(12,2),
+  itog           NUMBER(12,2),
+  lsk            CHAR(8),
+  lsk_tp         VARCHAR2(96),
+  dolg2          NUMBER,
+  usl_name_short VARCHAR2(50),
+  summa2         NUMBER(12,2),
+  penya2         NUMBER(12,2)
 )
 on commit delete rows;
 comment on table SCOTT.C_KWTP_TEMP_DOLG
@@ -28,4 +31,10 @@ comment on column SCOTT.C_KWTP_TEMP_DOLG.lsk
   is 'Лиц.счет';
 comment on column SCOTT.C_KWTP_TEMP_DOLG.lsk_tp
   is 'Тип лиц.счета';
+comment on column SCOTT.C_KWTP_TEMP_DOLG.usl_name_short
+  is 'Список коротких наименований услуг, по лиц.счету  (для удобного представления счета при оплате) обновляется при начислении';
+comment on column SCOTT.C_KWTP_TEMP_DOLG.summa2
+  is 'Сумма оплаты - исходное значение';
+comment on column SCOTT.C_KWTP_TEMP_DOLG.penya2
+  is 'Пеня - исходное значение';
 

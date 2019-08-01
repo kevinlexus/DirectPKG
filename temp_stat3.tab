@@ -6,5 +6,5 @@ create global temporary table SCOTT.TEMP_STAT3
   nd   CHAR(6),
   name VARCHAR2(64)
 )
-on commit delete rows;
+on commit preserve rows;
 

@@ -1,6 +1,11 @@
 create table SCOTT.LOG_ERR
 (
-  lsk CHAR(8)
+  id         NUMBER not null,
+  fk_user    NUMBER,
+  ip         VARCHAR2(100),
+  errcode    NUMBER,
+  errmessage VARCHAR2(1024),
+  dt         DATE
 )
 tablespace USERS
   pctfree 10
@@ -9,7 +14,37 @@ tablespace USERS
   storage
   (
     initial 512K
+    next 1M
+    minextents 1
+    maxextents unlimited
   );
-comment on table SCOTT.LOG_ERR
-  is 'Лог ошибок при выполнении каких-либо операций';
+comment on column SCOTT.LOG_ERR.id
+  is 'Id';
+comment on column SCOTT.LOG_ERR.fk_user
+  is 'Fk на пользователя';
+comment on column SCOTT.LOG_ERR.ip
+  is 'Ip адрес';
+comment on column SCOTT.LOG_ERR.errcode
+  is 'Код ошибки';
+comment on column SCOTT.LOG_ERR.errmessage
+  is 'Текст ошибки';
+comment on column SCOTT.LOG_ERR.dt
+  is 'Дата возникновения';
+alter table SCOTT.LOG_ERR
+  add constraint LOG_ERR_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.LOG_ERR
+  add constraint LOG_ERR_F_USER foreign key (FK_USER)
+  references SCOTT.T_USER (ID);
 

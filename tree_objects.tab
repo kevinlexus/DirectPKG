@@ -12,7 +12,8 @@ create table SCOTT.TREE_OBJECTS
   fk_house  NUMBER,
   mg1       VARCHAR2(6),
   mg2       VARCHAR2(6),
-  psch      NUMBER
+  psch      NUMBER,
+  tp_show   NUMBER
 )
 tablespace USERS
   pctfree 10
@@ -51,6 +52,8 @@ comment on column SCOTT.TREE_OBJECTS.mg2
   is 'Окончание существования объекта в данном УК';
 comment on column SCOTT.TREE_OBJECTS.psch
   is 'Признак работающего дома (на текущую дату) (1-закрыт, 0- открыт)';
+comment on column SCOTT.TREE_OBJECTS.tp_show
+  is 'Тип отображения в дереве объектов';
 create unique index SCOTT.TREE_OBJECTS_I on SCOTT.TREE_OBJECTS (FK_USER, ID)
   tablespace USERS
   pctfree 10

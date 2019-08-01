@@ -11,6 +11,9 @@ tablespace USERS
   storage
   (
     initial 576K
+    next 1M
+    minextents 1
+    maxextents unlimited
   );
 comment on table SCOTT.VARIANT_XXITO10
   is 'Варианты отчетов для xxito10';
@@ -24,5 +27,8 @@ alter table SCOTT.VARIANT_XXITO10
   storage
   (
     initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
   );
 

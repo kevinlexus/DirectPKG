@@ -1,7 +1,7 @@
 create sequence SCOTT.DEB_ID
 minvalue 1
 maxvalue 999999999999999999999999999
-start with 652201
+start with 652441
 increment by 10
 cache 20
 order;

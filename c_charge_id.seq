@@ -1,7 +1,7 @@
 create sequence SCOTT.C_CHARGE_ID
 minvalue 1
 maxvalue 999999999999999999999999999
-start with 68962516
+start with 69103910
 increment by 1
 cache 20
 order;

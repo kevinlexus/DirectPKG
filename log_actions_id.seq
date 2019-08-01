@@ -1,7 +1,7 @@
 create sequence SCOTT.LOG_ACTIONS_ID
 minvalue 1
 maxvalue 999999999999999999999999999
-start with 5792318
+start with 5795335
 increment by 1
 cache 20
 order;

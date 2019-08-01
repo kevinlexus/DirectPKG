@@ -14,5 +14,5 @@ create global temporary table SCOTT.TEMP_STAT2
   ishotpipeinsulated NUMBER,
   istowelheatexist   NUMBER
 )
-on commit delete rows;
+on commit preserve rows;
 

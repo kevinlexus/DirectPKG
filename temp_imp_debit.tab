@@ -1,0 +1,29 @@
+create global temporary table SCOTT.TEMP_IMP_DEBIT
+(
+  lsk   VARCHAR2(8 CHAR) not null,
+  db    NUMBER,
+  pn    NUMBER,
+  chrg  NUMBER,
+  pay   NUMBER,
+  paypn NUMBER,
+  mg    VARCHAR2(6 CHAR)
+)
+on commit preserve rows;
+comment on table SCOTT.TEMP_IMP_DEBIT
+  is 'Задолжность, пеня,- по л/c ';
+comment on column SCOTT.TEMP_IMP_DEBIT.lsk
+  is 'Л/C';
+comment on column SCOTT.TEMP_IMP_DEBIT.db
+  is 'Сумма задолжности';
+comment on column SCOTT.TEMP_IMP_DEBIT.pn
+  is 'Сумма пени';
+comment on column SCOTT.TEMP_IMP_DEBIT.chrg
+  is 'Начислено в т.ч. изменения';
+comment on column SCOTT.TEMP_IMP_DEBIT.pay
+  is 'Оплачено';
+comment on column SCOTT.TEMP_IMP_DEBIT.paypn
+  is 'Оплачено пени';
+comment on column SCOTT.TEMP_IMP_DEBIT.mg
+  is 'Период';
+create index SCOTT.TEMP_IMP_DEBIT_I on SCOTT.TEMP_IMP_DEBIT (LSK);
+

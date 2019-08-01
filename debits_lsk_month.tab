@@ -3,7 +3,7 @@ create table SCOTT.DEBITS_LSK_MONTH
   lsk        CHAR(8),
   reu        CHAR(3),
   kul        CHAR(4),
-  name       CHAR(25),
+  name       CHAR(35),
   nd         CHAR(6),
   kw         CHAR(7),
   fio        CHAR(55),
