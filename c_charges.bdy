@@ -1166,7 +1166,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.c_charges IS
                  p_usl_id    => null,
                  p_klsk_id   => l_klsk_id,
                  p_debug_lvl => 0,
-                 p_gen_dt    => init.get_date,
+                 p_gen_dt    => nvl(init.dtek_, gdt(32,0,0)), -- не заполнен dtek_, вернуть последний день текущего периода
                  p_stop      => 0);
       return 0;  
     end if;

@@ -86,7 +86,7 @@ procedure del_usl(usl_ in usl.usl%type);
  procedure del_price(usl_ in prices.usl%type, fk_org_ in prices.fk_org%type);
  function set_int_param(l_cd spr_params.cd%type,
      l_val spr_params.parn1%type) return spr_params.id%type;
- function get_int_param(cd_ varchar2) return spr_params.parn1%type;
+ function get_int_param(cd_ varchar2) return spr_params.parn1%type ;
  function getS_int_param(cd_ varchar2) return spr_params.parn1%type;
  function get_bool_param(cd_ varchar2) return spr_params.parn1%type;
  function getS_bool_param(cd_ varchar2) return spr_params.parn1%type;

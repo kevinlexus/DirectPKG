@@ -4,8 +4,7 @@ create table SCOTT.K_LSK
   v         NUMBER default 1 not null,
   fk_addrtp NUMBER,
   guid      VARCHAR2(32),
-  fk_ext    VARCHAR2(32),
-  elsd      VARCHAR2(32)
+  fk_ext    VARCHAR2(32)
 )
 tablespace USERS
   pctfree 1
@@ -30,20 +29,6 @@ comment on column SCOTT.K_LSK.guid
   is 'GUID объекта во внешней системе';
 comment on column SCOTT.K_LSK.fk_ext
   is 'ID объекта во внешней системе (алфавитно-цифровой)';
-comment on column SCOTT.K_LSK.elsd
-  is 'Единый лицевой счет в системе "Директ"';
-create unique index SCOTT.K_LSK_U_I on SCOTT.K_LSK (ELSD)
-  tablespace USERS
-  pctfree 10
-  initrans 2
-  maxtrans 255
-  storage
-  (
-    initial 64K
-    next 1M
-    minextents 1
-    maxextents unlimited
-  );
 alter table SCOTT.K_LSK
   add constraint K_LSK_PK primary key (ID)
   using index 

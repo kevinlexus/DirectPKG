@@ -120,12 +120,16 @@ procedure deb(p_k_lsk_id in number,
               p_rfcur out ccur
   );  
 --архивная справка, основной запрос
-procedure arch(p_k_lsk in number, p_adr in number, p_lsk in kart.lsk%type, 
+procedure arch(p_k_lsk in number, p_sel_obj in number, p_lsk in kart.lsk%type, 
                p_mg1 in params.period%type, p_mg2 in params.period%type,
+               p_sel_uk    in varchar2, -- список УК
                p_rfcur out ccur);
 --архивная справка, вспомогательный запрос
-procedure arch_supp(p_k_lsk in number, p_adr in number, p_lsk in kart.lsk%type, 
+procedure arch_supp(p_k_lsk in number, 
+               p_sel_obj in number, -- вариант выборки: 0 - по лиц.счету, 1 - по адресу, 2 - по УК
+               p_lsk in kart.lsk%type, 
                p_mg1 in params.period%type, p_mg2 in params.period%type,
+               p_sel_uk    in varchar2, -- список УК
                p_rfcur out ccur);               
 end rep_bills;
 /

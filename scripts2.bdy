@@ -2391,9 +2391,9 @@ procedure swap_sal_PEN2 is
   l_cd c_change_docs.cd_tp%type;
 begin
 --период, сальдо по которому смотрим
-mg_:='201905';
+mg_:='201906';
 --Дата переброски
-dat_:=to_date('01062019','DDMMYYYY');
+dat_:=to_date('01072019','DDMMYYYY');
 --CD переброски
 l_cd:='swap_sal_PEN_'||to_char(dat_,'DDMMYYYY')||'_1';
 
@@ -2419,9 +2419,8 @@ for c in (select k.lsk, s2.org, s2.usl,
       group by usl, org, lsk) s2 join kart k on k.lsk=s2.lsk
       left join kart k1 on k.k_lsk_id=k1.k_lsk_id and k1.reu='XXX' and k1.psch not in (8,9) -- УК назначения, если стоит k1.reu='XXX', то снять в никуда
     where 
-    exists (select * from kmp_lsk t where t.lsk=k.lsk) -- ЛС источника
-    --and k.reu in ('011','065','095','013','066','086','082','085','096','059','087','084',
-     -- '073','014','015','024','076','090','038','063','036') -- УК источника
+    --exists (select * from kmp_lsk t where t.lsk=k.lsk) -- ЛС источника
+    k.reu in ('013', '087') -- УК источника
     and nvl(s2.summa,0) <> 0
     )
 loop
@@ -2520,7 +2519,7 @@ commit;
 end swap_sal_from_main_to_rso;
 
 
--- перенести сальдо с Основного лиц.счета на счет РСО (Полыс)
+-- перенести сальдо с Основного лиц.счета на счет РСО (Полыс) или наоборот
 -- ред. 29.01.19
 procedure swap_sal_from_main_to_rso2 is
  l_mg params.period%type;
@@ -2535,10 +2534,10 @@ procedure swap_sal_from_main_to_rso2 is
  l_ret number;
  l_deb number;
 begin
-  l_mg:='201906'; --тек.период
-  l_cd:='swap_sal_from_main_to_RSO2_20190627';
+  l_mg:='201907'; --тек.период
+  l_cd:='swap_sal_from_main_to_RSO2_20190723';
   l_mgchange:=l_mg;
-  l_dt:=to_date('20190627','YYYYMMDD');
+  l_dt:=to_date('20190722','YYYYMMDD');
   l_mg3:=utils.add_months_pr(l_mg,1); --месяц вперед
 
   select t.id into l_user from t_user t where t.cd='SCOTT';
@@ -2558,18 +2557,18 @@ for c in (select k.lsk as lskFrom, k2.lsk as lskTo, a.usl, a.org,
         a.summa
          from kart k 
          join v_lsk_tp tp on tp.cd='LSK_TP_RSO' and k.fk_tp=tp.id
+         join v_lsk_tp tp2 on tp2.cd='LSK_TP_MAIN'
          join kart k2 on k.k_lsk_id=k2.k_lsk_id and k2.psch not in (8,9) 
-           and k2.fk_tp=tp.id
-         and k2.reu='016' -- назначение
+         and k2.reu='002' and k2.fk_tp=tp2.id -- назначение
          join 
          (select s.lsk, s.usl, s.org, sum(s.summa) as summa from (
-           select t.lsk, t.usl, t.org, t.summa from saldo_usl_script t where t.mg='201907'
-           and t.usl in ('011','057','013','059')
+           select t.lsk, t.usl, t.org, t.summa from saldo_usl_script t where t.mg='201908'
+           and t.usl in ('092')
                ) s
           group by s.lsk, s.usl, s.org) a on k.lsk=a.lsk and a.summa < 0
         where --k.psch not in (8,9)
         --and 
-        k.reu='015' -- источник
+        k.reu='016' -- источник
         --and k.house_id in (40106, 40126)
 ) loop
         
@@ -2582,7 +2581,7 @@ for c in (select k.lsk as lskFrom, k2.lsk as lskTo, a.usl, a.org,
       -- поставить                  
       insert into t_corrects_payments
         (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
-        select c.lskTo, c.usl, 11 as org,
+        select c.lskTo, c.usl, 2 as org,
         -1*c.summa,
         uid, l_dt, l_mg, l_mg, l_id, 0 as var from dual;
   end loop; 

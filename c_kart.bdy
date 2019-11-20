@@ -50,14 +50,15 @@ procedure set_part_kpr(p_lsk in kart.lsk%type, p_usl in usl.usl%type,
   TYPE l_rec_type IS RECORD (usl varchar2(3), sch number, chrg_round number, exist_kpr number);
   TYPE l_arr_type IS VARRAY(500) OF l_rec_type;
   l_arr l_arr_type;
-  
+
   l_kpr_wrz number;     --дни подсчитанные по вр.зарег, по нормативу
   l_kpr_wro number;     --дни подсчитанные по вр.отсут., по нормативу
   l_kpr number;
   l_kpr2 number; --дни подсчитанные для всех статусов проживающих (нужно для ОДН)
+  l_kpr_own number; -- кол-во собственников для расчета мусора, воды, для ТСЖ
 
   --округление до № знаков
-  l_round number;    
+  l_round number;
 
   --флаги счетчиков
   l_psch number;
@@ -97,10 +98,10 @@ procedure set_part_kpr(p_lsk in kart.lsk%type, p_usl in usl.usl%type,
   -- родительский лиц.счет (если установлен)
   l_lsk_parent kart.lsk%type;
   t_state tab_state;
-  
+
   -- для данных родительского лиц.счета
   t_state2 tab_state;
-  
+
   l_status_cd status.cd%type;
   -- отопительный период, для г.в.
  -- l_otop number;
@@ -110,7 +111,7 @@ procedure set_part_kpr(p_lsk in kart.lsk%type, p_usl in usl.usl%type,
   l_cap_calc_kpr_tp number;
   -- klsk лицевого счета
   l_klsk number;
-  
+
 cursor cur1 is
   select u.usl_norm, u.counter, u.usl, u.usl_type2, u.fk_calc_tp,
           case when u.cd in ('х.вода', 'г.вода', 'х.в. для гвс', 'VVD') then n.norm
@@ -123,11 +124,11 @@ cursor cur1 is
                when u.cd = 'эл.эн.учет УО' then vl.vol --k.mel
                when u.cd in ('отоп.гкал.','отоп.гараж.') and nvl(k.pot,0) <> 0 then nvl(k.mot,0) --есть ПУ ИНДИВИДУАЛЬНОГО счетчика, считать по нему! (сделал pot вместо mot)
                when u.cd in ('отоп.гкал.','отоп.гараж.') and k.opl <> 0 and d.dist_tp in (1) then nvl(n.vol,0) --есть ОДПУ по отоплению гкал, начислить по распределению
-               when u.cd in ('отоп.гкал.','отоп.гараж.') and k.opl <> 0 and d.dist_tp in (4,5) 
+               when u.cd in ('отоп.гкал.','отоп.гараж.') and k.opl <> 0 and d.dist_tp in (4,5)
                  then case when nvl(d.non_heat_per,0)=0 then l_otop2 * k.opl * nvl(n.norm,0) --есть ОДПУ по отоплению гкал, начислить по нормативу с учётом отопительного сезона
-                      else k.opl * nvl(n.norm,0) end --есть ОДПУ по отоплению гкал, начислить по нормативу                 
-                 
-               when u.cd in ('г.вода.ОДН', 'х.вода.ОДН', 'х.в. гвс как ОДН', 'эл.эн.ОДН', 
+                      else k.opl * nvl(n.norm,0) end --есть ОДПУ по отоплению гкал, начислить по нормативу
+
+               when u.cd in ('г.вода.ОДН', 'х.вода.ОДН', 'х.в. гвс как ОДН', 'эл.эн.ОДН',
                     'HW_ODN2', 'GW_ODN2', 'EL_ODN2' --новые услуги ОДН
                  ) then nvl(n.vol_add,0)
                     else null
@@ -168,7 +169,7 @@ cursor cur1 is
           order by u.usl; --order by нужен для корректного заполнения/чтения массива
 
 /*           left join (select m2.fk_usl, sum(t2.n1) as vol -- получить объем по счетчику
-                        from kart k2 
+                        from kart k2
                         join v_lsk_tp tp2 on k2.fk_tp = tp2.id and tp2.cd = 'LSK_TP_MAIN'
                         join meter m2 on m2.fk_klsk_obj = l_klsk and k2.k_lsk_id=m2.fk_klsk_obj
                         join params pm on 1=1
@@ -232,7 +233,7 @@ begin
        and tp.cd = 'Типы статусов проживающих' --необх.использовать типы u_listtp
        and t.fk_kart_pr = p.id
        --and p.lsk = coalesce(l_lsk_main, p_lsk) --ПОДСТАНОВКА!!!
-       and p.lsk = p_load_lsk 
+       and p.lsk = p_load_lsk
        and p.relat_id = r.id(+)
     union all
     --загружаем статусы счетчиков в этом л.с.
@@ -250,7 +251,7 @@ begin
                                           1 -- х.в. и г.в.
                                          when m.fk_usl is not null and
                                               m2.fk_usl is null then
-                                          2 -- х.в.   
+                                          2 -- х.в.
                                          when m.fk_usl is null and
                                               m2.fk_usl is not null then
                                           3 -- г.в.
@@ -278,7 +279,7 @@ begin
                         from t)
               group by grp, psch
               order by dt1) a;
-  
+
   end if;
 
   select t.sch_el into l_sch_el from kart t where t.lsk = p_load_lsk;
@@ -311,7 +312,7 @@ begin
                                   1 -- х.в. и г.в.
                                  when m.fk_usl is not null and
                                       m2.fk_usl is null then
-                                  2 -- х.в.   
+                                  2 -- х.в.
                                  when m.fk_usl is null and
                                       m2.fk_usl is not null then
                                   3 -- г.в.
@@ -339,7 +340,7 @@ end;
 
 --получить статусы проживающего из массива
 procedure get_prop(p_arr in l_arr_prop_type, p_fk_kart_pr in number, p_dt in date,
-                   p_prop out number, p_prop_reg out number, 
+                   p_prop out number, p_prop_reg out number,
                    p_rel_cd out relations.cd%type,
                    p_dat_rog out date) is
 begin
@@ -421,16 +422,16 @@ end;
 --получить статус из array
 function get_status(p_state in tab_state, p_dt in date, p_tp in number, p_prop in number) return number is
 begin
-  if p_state.count > 0 then       
+  if p_state.count > 0 then
     if p_tp=2 then
       --поиск по счетчикам
         --если указана конкретная дата
         for j in p_state.first..p_state.last loop
-          if p_state(j).tp=p_tp 
+          if p_state(j).tp=p_tp
             and p_dt between p_state(j).dt1 and p_state(j).dt2 then
             return p_state(j).fk_status;
           end if;
-        end loop;    
+        end loop;
     else
       --поиск по проживающим
       for j in p_state.first..p_state.last loop
@@ -438,9 +439,9 @@ begin
           and p_dt between p_state(j).dt1 and p_state(j).dt2 then
           return p_state(j).fk_status;
         end if;
-      end loop;    
+      end loop;
     end if;
-  end if;    
+  end if;
   return null;
 end;
 
@@ -452,7 +453,7 @@ l_prop2 number;
 l_prop_reg2 number;
 l_dt_tmp date;
 begin
-  
+
   --инициализация пустого массива записей
   l_arr_prop:=l_arr_prop_type();
   l_arr_prop4:=l_arr_prop_type();
@@ -506,7 +507,7 @@ begin
       l_arr_prop(j).id:=l_arr_prop2(i).id;
       -- дата, на которую получен статус
       l_arr_prop(j).dt:=l_dt_tmp;
-      -- статус наличия постоянного проживания 
+      -- статус наличия постоянного проживания
       l_arr_prop(j).prop:=l_prop2;
       -- статус наличия временной регистрации или отсутствия
       l_arr_prop(j).prop_reg:=l_prop_reg2;
@@ -514,13 +515,13 @@ begin
       l_arr_prop(j).dat_rog:=l_arr_prop2(i).dat_rog;
       -- отношение
       l_arr_prop(j).rel_cd:=l_arr_prop2(i).rel_cd;
-      
+
       j:=j+1;
       l_dt_tmp:=l_dt_tmp+1;
     end loop;
   end loop;
   end if;
-  
+
   --перебираем проживающих из родительского лиц.счета
   j:=1;
   if l_arr_prop3.count > 0 then
@@ -558,13 +559,13 @@ begin
       l_arr_prop4(j).prop_reg:=l_prop_reg2;
       l_arr_prop4(j).dat_rog:=l_arr_prop3(i).dat_rog;
       l_arr_prop4(j).rel_cd:=l_arr_prop3(i).rel_cd;
-      
+
       j:=j+1;
       l_dt_tmp:=l_dt_tmp+1;
     end loop;
   end loop;
   end if;
-  
+
 end;
 
 
@@ -575,9 +576,12 @@ begin
 --сделано для ускорения работы приложения
 
     l_Java_Charge := utils.get_int_param('JAVA_CHARGE');
-    if l_Java_Charge=1 then 
+    if l_Java_Charge=1 then
       Raise_application_error(-20000, 'Процедура не работает!');
     end if;
+
+l_kpr_own:=0;
+
 --удалить предыдущие данные
 delete from c_charge_prep t where t.lsk=p_lsk
  and t.tp in (0,1,2,3,5,6,7,8,9)
@@ -595,37 +599,38 @@ select to_date(p.period||'01','YYYYMMDD'),
 /*  странно! l_otop - не используется - закомментировал
 if l_dt_start between utils.get_date_param('MONTH_HEAT1') --обраб.отопит.период
                   and utils.get_date_param('MONTH_HEAT2') then
-   l_otop:=1;               
+   l_otop:=1;
 else
    l_otop:=0;
 end if;*/
-                           
+
 if l_dt_start between utils.get_date_param('MONTH_HEAT3') --обраб.отопит.период в домах где c_vvod.dist_tp=4
                   and utils.get_date_param('MONTH_HEAT4') then
-   l_otop2:=1;               
+   l_otop2:=1;
 else
    l_otop2:=0;
 end if;
 
---осуществить подстановку основного лиц.счета вместо дополнительного лиц.счета 
+--осуществить подстановку основного лиц.счета вместо дополнительного лиц.счета
 --чтобы использовать c_kart_pr и c_states_pr из основного счета
 l_lsk_main:=null;
 l_lsk_parent:=null;
 
-for c in (select s.cd as status_cd, k.parent_lsk, k.k_lsk_id from kart k, status s
+for c in (select s.cd as status_cd, k.parent_lsk, k.k_lsk_id, k.kpr_own from kart k, status s
                       where k.lsk=p_lsk and k.status=s.id) loop
    l_status_cd:=c.status_cd;
    l_klsk:=c.k_lsk_id;
+   l_kpr_own:=c.kpr_own;
    --если заполнен родительский лиц.счет, - используем его
    if c.parent_lsk is not null then
      l_lsk_parent:=c.parent_lsk;
-   end if;  
-end loop;                          
+   end if;
+end loop;
 
 if p_tp in ('LSK_TP_ADDIT','LSK_TP_RSO') then
   -- дополнит.счета по капрем., по РСО
   begin
-    if l_lsk_parent is null then 
+    if l_lsk_parent is null then
       select t.lsk, s.cd, k.k_lsk_id into l_lsk_main, l_status_cd, l_klsk
                             from kart k, kart t, u_list u, status s
                             where k.lsk=p_lsk and k.k_lsk_id=t.k_lsk_id
@@ -637,13 +642,13 @@ if p_tp in ('LSK_TP_ADDIT','LSK_TP_RSO') then
       select k.lsk, s.cd, k.k_lsk_id into l_lsk_main, l_status_cd, l_klsk
                             from kart k join status s on k.status=s.id
                             where k.lsk=l_lsk_parent;
-    end if;                        
+    end if;
     exception when no_data_found then
       --нет основного счета, попробовать посчитать по текущему
       l_lsk_main:=p_lsk;
     when others then
       Raise_application_error(-20000, 'Обнаружены дубли лиц.счета lsk='||p_lsk);
-      raise;                      
+      raise;
   end;
 end if;
 
@@ -663,7 +668,7 @@ l_max_days:=to_number(to_char(l_dt_end,'DD'));
 l_part_days:=1/l_max_days;
 
 -- загрузить данные родительского лиц.счета
-if l_lsk_parent is not null then 
+if l_lsk_parent is not null then
   load_temp(l_lsk_parent, t_state2);
 end if;
 
@@ -728,7 +733,7 @@ init_arr_usl;
       l_above70_owner:=0;
       l_above70:=0;
       l_under70:=0;
-      
+
       if l_arr_prop2.count > 0 then
         for i in l_arr_prop2.FIRST..l_arr_prop2.LAST
         loop
@@ -753,7 +758,7 @@ init_arr_usl;
             --постоянно, временно зарег <70 лет
             l_under70:=1;
           end if;
-            
+
 --          end if;
           --считать кол-во проживающих по услуге с данными статусами
             --(процедура в других модулях считает дни, здесь же - кол-во прож
@@ -797,38 +802,22 @@ init_arr_usl;
             and l_kpr2 = 0 and l_status_cd not in ('MUN') then
             -- поставить хоть одного проживающего для определения объема
             l_kpr2:=1;
-          end if;  
-        end if;  
-      else  
-        -- только в родительских лицевых!
-        if l_var_cnt_kpr = 0 then
-          --ВАРИАНТ Кис.
-          if c2.fk_calc_tp=49 then
-            -- услуга по обращению с ТКО (Кис.)
-            if l_kpr2 = 0 and l_status_cd not in ('MUN') then
-              -- нет проживающих и не муницип. квартира
-              l_kpr:=1;
-              l_kpr2:=1;
-            end if;
-          else
-            -- прочие услуги
-            if nvl(l_kpr_wro,0) = 0 --если нет временно отсутств.
-              and l_kpr2 = 0 and l_status_cd not in ('MUN') then
-              -- поставить хоть одного проживающего для определения объема
-              l_kpr2:=1;
-            end if;  
-          end if;       
+          end if;
         end if;
-          
-        if l_var_cnt_kpr = 1 and nvl(l_kpr_wro,0) = 0 --если нет временно отсутств.
-          and l_kpr2 = 0 then
-          --ВАРИАНТ Полыс, в т.ч. по муницип жилью.
-          -- поставить хоть одного проживающего для определения объема
-          l_kpr2:=1;
-        end if;  
+      else
+        -- только в родительских лицевых!
+          --ВАРИАНТ Кис.
+        if c2.fk_calc_tp in (49) or c2.fk_calc_tp in (38,40) and get_is_sch(c2.fk_calc_tp, l_psch, l_sch_el) = 0 then
+          -- услуга по обращению с ТКО + х.в г.в вода (норматив)
+          if l_kpr2 = 0 then
+            -- нет проживающих и не муницип. квартира
+            l_kpr:=1;
+            l_kpr2:=l_kpr_own;
+          end if;
+        end if;
 
       end if;
-      
+
       --определить соц норму по кол-ву проживающих
       --(только для определения сумм по норме и свыше соцнормы)
       l_norm:=null;
@@ -920,7 +909,7 @@ init_arr_usl;
            );
        end if;
       elsif get_is_sch(c2.fk_calc_tp, l_psch, l_sch_el) is null and c2.sch_vol <> 0 then
-        --нет счетчика, расход распределяется по услуге в nabor.vol (отоп.гкал) или 
+        --нет счетчика, расход распределяется по услуге в nabor.vol (отоп.гкал) или
         insert into temp_c_charge_prep
          (usl, vol, kpr, kprz, kpro, kpr2, sch, dt1, tp, opl)
         values
@@ -940,7 +929,7 @@ init_arr_usl;
           --Расчет норматива/свыше (для услуги например отопление, тек.содерж. м2)
 -- изменил для полыс. 19.05.14
 --          l_tmp1:=l_norm * l_max_kpr * l_part_days;
-          if l_is_1room_sn=1 and c2.komn =1 and l_kpr2 > 0 then 
+          if l_is_1room_sn=1 and c2.komn =1 and l_kpr2 > 0 then
             --в 1-комн квартире при наличии проживающих, всё идёт в соцнорму (если разрешено параметром l_is_1room_sn=1)
             l_tmp1:=c2.opl * 1/l_temp_days;
             l_tmp2:=c2.opl * 1/l_temp_days;
@@ -996,12 +985,12 @@ init_arr_usl;
                  );
             end if;
         elsif c2.norm_tp=5 then --капремонт
-          
+
           insert into temp_c_charge_prep
            (usl, vol, vol_nrm, vol_sv_nrm, kpr, kprz, kpro, kpr2, sch, dt1, tp, opl)
           values
            (c2.usl,
-           case when l_above70_owner=1 and l_above70 = 0 and l_under70=0 then 0 -- льгота одиноким собственникам > 70 лет 
+           case when l_above70_owner=1 and l_above70 = 0 and l_under70=0 then 0 -- льгота одиноким собственникам > 70 лет
                 when l_above70_owner=1 and l_above70 = 1 and l_under70=0 then 0 -- льгота собственникам > 70 лет с прожив > 70лет
                 else c2.opl * 1/l_temp_days end, --площадь в доле одного дня
            null, null,
@@ -1015,12 +1004,12 @@ init_arr_usl;
           --добавить инфу по льготе
           insert into temp_c_charge_prep
            (usl, vol, dt1, tp, fk_spk)
-          select 
+          select
            c2.usl,
            case when l_above70_owner=1 and l_under70=0 then c2.opl * 1/l_temp_days
                 else null end as vol, --площадь в доле одного дня
                l_dt as dt1, 8 as tp, t.id as fk_spk
-           from spk t where 
+           from spk t where
            case when l_above70_owner=1 and l_above70 = 0 and l_under70=0 then 'PENS_SINGLE_70'
                 when l_above70_owner=1 and l_above70 = 1 and l_under70=0 then 'PENS_70_WITH_70'
                 else null end =t.cd;
@@ -1135,7 +1124,7 @@ select p_lsk, usl, vol, vol_nrm, vol_sv_nrm, kpr, kprz, kpro, kpr2, sch, tp
 for i in l_arr.FIRST..l_arr.LAST
 loop
   l_round:=l_arr(i).chrg_round;
-  
+
   insert into temp_c_charge_prep
    (usl, vol, vol_nrm, vol_sv_nrm, kpr, kprz, kpro, kpr2, sch, tp)
   select usl, round(sum(vol), l_round),
@@ -1154,7 +1143,7 @@ loop
       union all
       select r.lsk, r.usl, r.vol, r.vol_nrm, r.vol_sv_nrm, r.kpr, r.kprz, r.kpro, r.kpr2, r.sch, r.tp from
       c_charge_prep r, nabor n, usl u where r.tp=4 and r.lsk=p_lsk
-      and r.lsk=n.lsk and r.usl=u.usl 
+      and r.lsk=n.lsk and r.usl=u.usl
       and u.fk_usl_chld=n.usl and nvl(n.koeff,0)<>0 and nvl(n.norm,0)<>0 -- вычесть только услуги, реально начисляемые
       ) t
    where t.lsk=p_lsk and t.tp in (0,4) --включая корректировки ОДН (4)
@@ -1192,7 +1181,7 @@ loop
       union all
       select r.lsk, r.usl, r.vol, r.vol_nrm, r.vol_sv_nrm, r.kpr, r.kprz, r.kpro, r.kpr2, r.sch, r.tp from
       c_charge_prep r, nabor n, usl u where r.tp=4 and r.lsk=p_lsk
-      and r.lsk=n.lsk and r.usl=u.usl 
+      and r.lsk=n.lsk and r.usl=u.usl
       and u.fk_usl_chld=n.usl and nvl(n.koeff,0)<>0 and nvl(n.norm,0)<>0 -- вычесть только услуги, реально начисляемые
       ) t
    where (t.tp in (0,4) and l_arr(i).exist_kpr=0 or
@@ -1246,7 +1235,7 @@ with r as
    where t.fk_spk is not null
      and (p_usl is null or t.usl = p_usl)
      and t.tp = 8)
-     
+
 select p_lsk as lsk, d.usl, d.fk_spk, round(sum(d.vol),2) as vol, 9 as tp, d.dt1, d.dt2
   from (
   select c.fk_spk, c.usl, c.dt1, c.dt2, r.vol
@@ -1266,7 +1255,7 @@ select p_lsk as lsk, d.usl, d.fk_spk, round(sum(d.vol),2) as vol, 9 as tp, d.dt1
                                      dt1
                                   end as grp1,
                                   case
-                                    when fk_spk = lead(fk_spk, 1) over(order by usl, dt1) and usl = lead(usl, 1) over(order by usl, dt1) 
+                                    when fk_spk = lead(fk_spk, 1) over(order by usl, dt1) and usl = lead(usl, 1) over(order by usl, dt1)
                                       then
                                      null
                                     else
@@ -1282,7 +1271,7 @@ select p_lsk as lsk, d.usl, d.fk_spk, round(sum(d.vol),2) as vol, 9 as tp, d.dt1
             ) d
  group by d.fk_spk, d.usl, d.dt1, d.dt2;
 
-/* if sql%rowcount = 0 then 
+/* if sql%rowcount = 0 then
    Raise_application_error(-20000, 'TEST1');
  end if;*/
 
@@ -1329,7 +1318,7 @@ if p_var_cnt_kpr = 0 then
       --для расчёта объема для нормативного начисления
       p_days_kpr2:=p_days_kpr2+1;
     elsif p_usl_type2 in (0,3) then
-      --услуга коммунальная (х.в., вывоз ТКО - usl_type=3) 
+      --услуга коммунальная (х.в., вывоз ТКО - usl_type=3)
       p_days:=p_days+1;
       p_days_wrz:=p_days_wrz+1;
       --для расчёта объема для нормативного начисления
@@ -1349,7 +1338,7 @@ if p_var_cnt_kpr = 0 then
       --для расчёта объема для нормативного начисления
       p_days_kpr2:=p_days_kpr2+1;
     elsif p_usl_type2 in (0,3) then
-      --услуга коммунальная (х.в., вывоз ТКО - usl_type=3) 
+      --услуга коммунальная (х.в., вывоз ТКО - usl_type=3)
       p_days_wrz:=p_days_wrz+1;
       --для расчёта объема для нормативного начисления
       p_days_kpr2:=p_days_kpr2+1;
@@ -1368,7 +1357,7 @@ if p_var_cnt_kpr = 0 then
       --для расчёта объема для нормативного начисления
       p_days_kpr2:=p_days_kpr2+1;
     elsif p_usl_type2 in (0,3) then
-      --услуга коммунальная (х.в., вывоз ТКО - usl_type=3) 
+      --услуга коммунальная (х.в., вывоз ТКО - usl_type=3)
       p_days:=p_days+1;
       --для расчёта объема для нормативного начисления
       p_days_kpr2:=p_days_kpr2+1;
@@ -1383,23 +1372,23 @@ if p_var_cnt_kpr = 0 then
       p_days:=p_days+1;
       p_days_wro:=p_days_wro+1;
     elsif p_usl_type2 in (0) then
-      --услуга коммунальная (х.в.) 
+      --услуга коммунальная (х.в.)
       --p_days:=p_days+1; - кис решили убрать 03.03.2017
       p_days_wro:=p_days_wro+1;
     elsif p_usl_type2 in (3) then
       -- вывоз ТКО - usl_type=3
       p_days_wro:=p_days_wro+1;
-      /* ред. 17.01.19: У нас в программе есть такой параметр как В.О.-врем.отсуст. ставим, чтобы на него считались коммун.услуги (х.в.,г.в.,водоотв.), 
-      если норматив и расценка как на пост.проп. С 2017 года этот параметр практически не используется, вот мы хотим, чтобы В.О. считались только на 
+      /* ред. 17.01.19: У нас в программе есть такой параметр как В.О.-врем.отсуст. ставим, чтобы на него считались коммун.услуги (х.в.,г.в.,водоотв.),
+      если норматив и расценка как на пост.проп. С 2017 года этот параметр практически не используется, вот мы хотим, чтобы В.О. считались только на
       услугу 140(считались на человека), а х.в.,г.в. и водоотв., если норматив, чтобы этого человека не учитывали. Можно так? Или лучше придумать новый параметр?
       Например Культурная 28-16, сейчас по л.сч. 13002396 считается на 1 человека, как собственника, а хотелось бы на 2(там 2 В.О.) */
-      /* ред. 28.01.19 
-      1) по услуги 140 на статус В.О. тоже не надо начислять(думали, думали и решили так. т.е. если есть такой человек, 
-      то коммун.услуги(они сейчас и так не считаются, если норматив) и услуга 140 не начисляется). 
+      /* ред. 28.01.19
+      1) по услуги 140 на статус В.О. тоже не надо начислять(думали, думали и решили так. т.е. если есть такой человек,
+      то коммун.услуги(они сейчас и так не считаются, если норматив) и услуга 140 не начисляется).
       Короче у услуги 140 заменил в usl.usl_type2 на 1
       */
       --для расчёта объема для нормативного начисления
-      p_days_kpr2:=p_days_kpr2+1; 
+      p_days_kpr2:=p_days_kpr2+1;
     elsif p_usl_type2 in (2) then
       --для расчёта макс кол-во прожив
       p_days:=p_days+1;
@@ -1412,7 +1401,7 @@ if p_var_cnt_kpr = 0 then
       --для расчёта объема для нормативного начисления
       p_days_kpr2:=p_days_kpr2+1;
     elsif p_usl_type2 in (0,3) then
-      --услуга коммунальная (х.в., вывоз ТКО - usl_type=3) 
+      --услуга коммунальная (х.в., вывоз ТКО - usl_type=3)
       p_days:=p_days+1;
       --для расчёта объема для нормативного начисления
       p_days_kpr2:=p_days_kpr2+1;
@@ -1638,14 +1627,14 @@ begin
      when p_sptarn = 3 and nvl(p_koeff, 0) <> 0 and nvl(p_norm, 0) <> 0 then
       return 1;
      else
-      return 0;
+      return 0; 
    end case;
 end;
 
 --установить параметры квартиры (в основном для ГИС ЖКХ)
 function set_kw_par(p_house_guid in varchar2, p_kw in varchar2, p_entr in number) return number is
 begin
-  for c in (select k.rowid as rd from 
+  for c in (select k.rowid as rd from
     kart k join prep_house_fias f on k.house_id=f.fk_house
       and upper(f.houseguid)=upper(p_house_guid)
       and k.kw=lpad(ltrim(p_kw), 7, '0') --пока не понятно что будет с квартирами с буквенным индексом
@@ -1657,7 +1646,7 @@ begin
   end loop;
   if sql%rowcount = 0 then
     return 1; --не найдено что обновить
-  else  
+  else
     return 0; --успешно
   end if;
 end;
@@ -1665,12 +1654,92 @@ end;
 --установить единый лиц.счет ГИС ЖКХ
 function set_elsk (p_lsk in kart.lsk%type, p_elsk in varchar2) return number is
 begin
-  update kart k set k.elsk=p_elsk where k.lsk=p_lsk;  
+  update kart k set k.elsk=p_elsk where k.lsk=p_lsk;
   if sql%rowcount = 0 then
     return 1; --не найдено что обновить
-  else  
+  else
     return 0; --успешно
   end if;
+end;
+
+-- найти "возможно" корректный лиц.счет, откуда можно взять корректный k_lsk_id и house_id
+function find_correct (p_lsk in kart.lsk%type -- лиц.счет по которому искать
+  ) return kart.lsk%type is
+begin
+   for c in (select * from kart k where k.lsk=p_lsk) loop
+      for c2 in (select * from kart k where k.fk_klsk_premise=c.fk_klsk_premise and k.lsk != p_lsk
+        order by decode(k.psch,8,1,9,1,0), k.k_lsk_id) loop -- сортировать по незакрытому, наименьшему k_lsk_id
+          return c2.lsk;  
+          exit;
+      end loop;
+   end loop;
+   -- не найдено ничего
+   return null;
+end;  
+
+-- заменить klsk на предложенный во всех таблицах 
+function replace_klsk (p_lsk in kart.lsk%type, -- лиц.счет по которому искать
+                       p_klsk_dst in number   -- klsk на который заменить
+                       ) return number is
+ l_cnt number;
+ l_cd_org t_org.cd%type;
+begin
+  l_cnt:=0; 
+  for c in (select * from kart k where k.lsk=p_lsk) loop
+  if c.k_lsk_id != p_klsk_dst then
+    -- удалить старые счетчики и t_objxpar
+    delete from meter m where m.fk_klsk_obj=c.k_lsk_id;
+    delete from t_objxpar t where t.fk_k_lsk=c.k_lsk_id;
+    update kart k set k.k_lsk_id=p_klsk_dst where k.lsk=p_lsk and k.k_lsk_id != nvl(p_klsk_dst,0);
+    if sql%rowcount = 1 then
+        l_cnt:=1; 
+    end if;    
+    update arch_kart k set k.k_lsk_id=p_klsk_dst where k.lsk=p_lsk and k.k_lsk_id != nvl(p_klsk_dst,0);
+    update exs.eolink t set t.fk_klsk_obj=p_klsk_dst where t.lsk=p_lsk and t.fk_klsk_obj != nvl(p_klsk_dst,0);
+    
+    if utils.get_int_param('HAVE_LK') = 1 then
+     -- замена klsk в ЛК
+     select o.cd into l_cd_org
+       from t_org o, t_org_tp tp
+       where tp.id=o.fk_orgtp and tp.cd='РКЦ';
+     execute immediate 'begin proc.replace_klsk@apex(:cd_org_); end;';
+    end if;     
+    logger.log_act(lsk_         => p_lsk,
+                   text_        => 'ОБНОВЛЁН KLSK! старый klsk='||c.k_lsk_id||' новый klsk='||p_klsk_dst,
+                   fk_type_act_ => 2);
+  end if;
+  if l_cnt = 1 then 
+    return 0; -- ок
+  else 
+    return 1; -- ошибка
+  end if;  
+  end loop;
+end;  
+
+-- заменить house_id на предложенный во всех таблицах 
+function replace_house_id (p_lsk in kart.lsk%type, -- лиц.счет по которому искать
+                       p_house_dst in number   -- house_id на который заменить
+                       ) return number is
+ l_cnt number;                       
+begin
+  l_cnt:=0; 
+  for c in (select * from kart k where k.lsk=p_lsk) loop
+  if c.house_id != p_house_dst then
+    update kart k set k.house_id=p_house_dst where k.lsk=p_lsk and k.house_id != nvl(p_house_dst,0);
+    if sql%rowcount = 1 then
+        l_cnt:=1; 
+    end if;    
+    update arch_kart k set k.house_id=p_house_dst where k.lsk=p_lsk and k.house_id != nvl(p_house_dst,0);
+    logger.log_act(lsk_         => p_lsk,
+                   text_        => 'ОБНОВЛЁН HOUSE_ID! старый house_id='||c.house_id||' новый house_id='||p_house_dst,
+                   fk_type_act_ => 2);
+  end if;
+  if l_cnt = 1 then 
+    return 0; -- ок
+  else 
+    return 1; -- ошибка
+  end if;  
+  end loop;
 end;  
 
 end C_KART;

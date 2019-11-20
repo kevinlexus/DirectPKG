@@ -1,10 +1,11 @@
 create table SCOTT.C_STATES_SCH
 (
-  id        NUMBER not null,
-  lsk       CHAR(8) not null,
-  fk_status NUMBER not null,
-  dt1       DATE,
-  dt2       DATE
+  id              NUMBER not null,
+  lsk             CHAR(8) not null,
+  fk_status       NUMBER not null,
+  dt1             DATE,
+  dt2             DATE,
+  fk_close_reason NUMBER
 )
 tablespace USERS
   pctfree 10
@@ -29,6 +30,8 @@ comment on column SCOTT.C_STATES_SCH.dt1
   is 'Начало периода';
 comment on column SCOTT.C_STATES_SCH.dt2
   is 'Окончание периода (поле пустое по умолчанию)';
+comment on column SCOTT.C_STATES_SCH.fk_close_reason
+  is 'Причина закрытия';
 create unique index SCOTT.C_STATES_I on SCOTT.C_STATES_SCH (LSK, DT1, DT2)
   tablespace USERS
   pctfree 10
@@ -59,4 +62,7 @@ alter table SCOTT.C_STATES_SCH
 alter table SCOTT.C_STATES_SCH
   add constraint C_STATES_SCH_F_LSK foreign key (LSK)
   references SCOTT.KART (LSK);
+alter table SCOTT.C_STATES_SCH
+  add constraint C_STATES_SCH_F_REASON foreign key (FK_CLOSE_REASON)
+  references EXS.U_LIST (ID);
 

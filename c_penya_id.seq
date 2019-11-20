@@ -1,7 +1,7 @@
 create sequence SCOTT.C_PENYA_ID
 minvalue 1
 maxvalue 999999999999999999999999999
-start with 38906
+start with 48646
 increment by 1
 cache 20
 order;

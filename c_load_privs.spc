@@ -11,6 +11,8 @@ create or replace package scott.c_load_privs is
   --подоговить таблицу соответствий домов 
   procedure prep_house;
 
+--подготовка таблицы к выгрузке - версия в одну строку по fk_klsk (фин.лиц.счету)
+  procedure prep_output2(p_mg in params.period%type, p_file in number, p_cnt out number);
   --подготовка таблицы к выгрузке
   procedure prep_output(p_mg in params.period%type, p_file in number, p_cnt out number);
   --рефкурсор для выгрузки

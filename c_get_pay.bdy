@@ -1040,6 +1040,9 @@ create or replace package body scott.C_GET_PAY is
    is
   maxmg_ c_kwtp_temp_dolg.mg%type;
   begin
+      if sysdate > gdt(15,10,2019) then
+    Raise_application_error(-20000, 'Не используется! Сообщить программисту!');
+  end if;
   --распределение излишне оплаченной суммы (чтобы не давать сдачу)
   select trim(max(t.mg)) into maxmg_ from c_kwtp_temp_dolg t;
   if maxmg_ is not null then
@@ -1062,6 +1065,9 @@ create or replace package body scott.C_GET_PAY is
     l_pay      number;
     l_last_lsk kart.lsk%type;
   begin
+      if sysdate > gdt(15,10,2019) then
+    Raise_application_error(-20000, 'Не используется! Сообщить программисту!');
+  end if;
     --распределение излишне оплаченной суммы (чтобы не давать сдачу)
     select trim(max(t.mg)) into maxmg_ from c_kwtp_temp_dolg t;
     l_summa := summa_;
@@ -1151,79 +1157,26 @@ create or replace package body scott.C_GET_PAY is
                 from c_kwtp_temp t, oper o, usl u
                where t.oper = o.oper
                  and o.fk_usl_chk = u.usl(+)) loop
-      if c.iscounter = 0 then
-        --например 01 - опер, квартплата
-        insert into c_kwtp_mg
-          (lsk, summa, penya, oper, dopl, nink, nkom, dtek, nkvit, dat_ink, ts, c_kwtp_id)
-          select lpad(lsk_, 8, '0'), t.summa, t.penya, c.oper, t.mg, 0, init.get_nkom(), init.get_date(), nkvit_, null, sysdate, id_
-            from c_kwtp_temp_dolg t
-           where (nvl(t.summa, 0) <> 0 or nvl(t.penya, 0) <> 0);
-      
-        if SQL%ROWCOUNT = 0 then
-          rollback;
-          logger.log_(null,
-                      'C_GET_PAY.GET_MONEY_NAL, Ошибка при вводе оплаты! Повторить ввод!');
-          Raise_application_error(-20000,
-                                  'Ошибка при вводе оплаты! Повторить ввод!' ||
-                                  c_kwtp_summa_ || ' ' || c_kwtp_mg_summa_);
-        end if;
-        select nvl(sum(t.summa), 0) + nvl(sum(t.penya), 0)
-          into summa_mg_
+      --например 01 - опер, квартплата
+      insert into c_kwtp_mg
+        (lsk, summa, penya, oper, dopl, nink, nkom, dtek, nkvit, dat_ink, ts, c_kwtp_id)
+        select lpad(lsk_, 8, '0'), t.summa, t.penya, c.oper, t.mg, 0, init.get_nkom(), init.get_date(), nkvit_, null, sysdate, id_
           from c_kwtp_temp_dolg t
-         where nvl(t.summa, 0) <> 0
-            or nvl(t.penya, 0) <> 0;
-      elsif c.iscounter <> 0 and c.counter is not null then
-        --расход
-        --последние показания по х.воде-г.воде (обраб в триггере)
-        execute immediate 'update kart k set k.' || c.counter ||
-                          '=:cnt_ where k.lsk=lpad(:lsk_,8,''0'')'
-          using c.cnt_sch, lsk_;
-        insert into c_kwtp_mg
-          (lsk, summa, penya, oper, dopl, cnt_sch, cnt_sch0, nink, nkom, dtek, nkvit, dat_ink, ts, c_kwtp_id)
-          select lpad(lsk_, 8, '0'), t.summa, t.penya, c.oper, p.period, t.cnt_sch, c.cnt_sch0, 0, init.get_nkom(), init.get_date(), nkvit_, null, sysdate, id_
-            from c_kwtp_temp t, params p
-           where t.oper = c.oper
-             and (nvl(t.summa, 0) <> 0 or nvl(t.penya, 0) <> 0);
-        if SQL%ROWCOUNT = 0 then
-          rollback;
-          logger.log_(null,
-                      'C_GET_PAY.GET_MONEY_NAL, Ошибка при вводе оплаты! Повторить ввод!');
-          Raise_application_error(-20000,
-                                  'Ошибка при вводе оплаты! Повторить ввод!' ||
-                                  c_kwtp_summa_ || ' ' || c_kwtp_mg_summa_);
-        end if;
-      
-        select nvl(sum(t.summa), 0) + nvl(sum(t.penya), 0)
-          into summa_mg_
-          from c_kwtp_temp t
-         where t.oper = c.oper
-           and (nvl(t.summa, 0) <> 0 or nvl(t.penya, 0) <> 0);
-      elsif c.iscounter = 2 then
-        --например каб.тел
-        insert into c_kwtp_mg
-          (lsk, summa, penya, oper, dopl, cnt_sch, cnt_sch0, nink, nkom, dtek, nkvit, dat_ink, ts, c_kwtp_id)
-          select lpad(lsk_, 8, '0'), t.summa, t.penya, c.oper, p.period, t.cnt_sch, c.cnt_sch0, 0, init.get_nkom(), init.get_date(), nkvit_, null, sysdate, id_
-            from c_kwtp_temp t, params p
-           where t.oper = c.oper
-             and (nvl(t.summa, 0) <> 0 or nvl(t.penya, 0) <> 0);
-        if SQL%ROWCOUNT = 0 then
-          rollback;
-          logger.log_(null,
-                      'C_GET_PAY.GET_MONEY_NAL, Ошибка при вводе оплаты! Повторить ввод!');
-          Raise_application_error(-20000,
-                                  'Ошибка при вводе оплаты! Повторить ввод!' ||
-                                  c_kwtp_summa_ || ' ' || c_kwtp_mg_summa_);
-        end if;
-      
-        select nvl(sum(t.summa), 0) + nvl(sum(t.penya), 0)
-          into summa_mg_
-          from c_kwtp_temp t
-         where t.oper = c.oper
-           and (nvl(t.summa, 0) <> 0 or nvl(t.penya, 0) <> 0);
-      else
+         where (nvl(t.summa, 0) <> 0 or nvl(t.penya, 0) <> 0);
+    
+      if SQL%ROWCOUNT = 0 then
+        rollback;
+        logger.log_(null,
+                    'C_GET_PAY.GET_MONEY_NAL, Ошибка при вводе оплаты! Повторить ввод!');
         Raise_application_error(-20000,
-                                'Некорректно настроен справочник операций!');
+                                'Ошибка при вводе оплаты! Повторить ввод!' ||
+                                c_kwtp_summa_ || ' ' || c_kwtp_mg_summa_);
       end if;
+      select nvl(sum(t.summa), 0) + nvl(sum(t.penya), 0)
+        into summa_mg_
+        from c_kwtp_temp_dolg t
+       where nvl(t.summa, 0) <> 0
+          or nvl(t.penya, 0) <> 0;
       c_kwtp_mg_summa_ := c_kwtp_mg_summa_ + summa_mg_;
       exit;
     end loop;
@@ -1388,14 +1341,14 @@ create or replace package body scott.C_GET_PAY is
   begin
     l_lsk  := lpad(p_lsk, 8, '0');
     l_klsk := utils.GET_K_LSK_ID_BY_LSK(l_lsk);
-  
+               
     delete from c_kwtp_temp_dolg;
     -- перебрать все лиц.счета ассоциированные с данным klsk
-    for c in (select k.lsk, substr(u.name, 1, 3) as lsk_tp, k.psch, u.name
+    for c in (select k.lsk, substr(u.name, 1, 3) as lsk_tp, k.usl_name_short, k.psch, u.name
                 from kart k, u_list u
                where k.k_lsk_id = l_klsk
                  and k.fk_tp = u.id) loop
-      if c.psch not in (8, 9) then
+      if c.psch not in (8, 9) then 
         -- начисление по открытым лиц.счетам 
         a := c_charges.gen_charges(lsk_      => c.lsk,
                                    lsk_end_  => c.lsk,
@@ -1410,11 +1363,13 @@ create or replace package body scott.C_GET_PAY is
       c_cpenya.gen_penya(c.lsk, 0, 0);
     
       insert into c_kwtp_temp_dolg
-        (lsk, lsk_tp, mg, charge, payment, summa, penya, sal, itog)
-        select c.lsk, c.lsk_tp, a.mg, nvl(b.summa, 0) as charge, nvl(c.summa,
+        (lsk, lsk_tp, usl_name_short, mg, charge, payment, summa, penya, summa2, penya2, sal, itog)
+        select c.lsk, c.lsk_tp, c.usl_name_short, a.mg, nvl(b.summa, 0) as charge, nvl(f.summa,
                     0) as payment, case when nvl(e.summa, --если совокупного долга нет, убрать сумму с предъявлено ред.04.07.2019
                     0) > 0 then d.summa else 0 end as summa
-                    , nvl(d.penya, 0) as penya, nvl(e.summa,
+                    , nvl(d.penya, 0) as penya, case when nvl(e.summa, --если совокупного долга нет, убрать сумму с предъявлено ред.04.07.2019
+                    0) > 0 then d.summa else 0 end as summa2
+                    , nvl(d.penya, 0) as penya2, nvl(e.summa,
                     0) as sal, d.summa + nvl(d.penya, 0) as itog
           from long_table a
                join params p on 1=1
@@ -1432,7 +1387,7 @@ create or replace package body scott.C_GET_PAY is
                         (select period from scott.params)
                     and lsk = c.lsk
                     and type = 1
-                  group by mg) c on a.mg = c.mg
+                  group by mg) f on a.mg = f.mg
                left join (select t.mg1,case
                           when t.penya >= 0 then
                            t.penya
@@ -1451,7 +1406,7 @@ create or replace package body scott.C_GET_PAY is
                   where lsk = c.lsk) e on 1=1--совокупный долг
          where ((nvl(b.summa, 0) = 0 and p.period = a.mg) or
                nvl(b.summa, 0) <> 0 or nvl(d.summa, 0) <> 0 or
-               nvl(c.summa, 0) <> 0);
+               nvl(f.summa, 0) <> 0);
     end loop;
   end;
 

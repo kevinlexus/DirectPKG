@@ -22,9 +22,9 @@ procedure gen_stat_usl(dat_ in date) is
     end if;
 --Формируем статистику с детализацией по лицевым счетам
 insert into statistics_lsk
-    (lsk, reu, kul, nd, kw, usl, kpr, is_empt, kpr_ot, kpr_wr, klsk, cnt, status,
+    (lsk, reu, for_reu, kul, nd, kw, usl, kpr, is_empt, kpr_ot, kpr_wr, klsk, cnt, status,
      psch, sch, org, val_group, val_group2, cnt_subs, uch, mg, dat, limit, cena, fk_tp, opl, is_vol, chng_vol)
-   select k.lsk, k.reu, k.kul, k.nd, k.kw, n.usl, a.kpr,
+   select k.lsk, k.reu, a.reu as for_reu, k.kul, k.nd, k.kw, n.usl, a.kpr,
      case when k.parent_lsk is not null then 0 -- занулить проживающих в связанном лиц.счете
           when u.is_iter = 1 and nvl(a.kpr,0)= 0 then 1  --ПОДУМАТЬ!
           when u.is_iter = 1 and nvl(a.kpr,0)<> 0 then 0
@@ -36,32 +36,43 @@ insert into statistics_lsk
        a.cnt,
        k.status,
        decode(k.psch, 9, 1, 8, 2, 0) as psch,
-       nvl(a.sch, -1) as sch, --сделал -1, так как иногда показывает в Отоплении NULL, или "норматив" а надо "нет", ред. 07.12.2105
+        case when nvl(a.cnt,0) <> 0 or n.usl not in ('011','012','015','016','013','014') then nvl(a.sch, -1) -- либо в начислении есть объем, где указан счетчик, либо услуги не х.в. г.в.
+             when n.usl in ('011','012') and k.fact_meter_tp in (1,2) or -- в начислении нет объема, взять из Kart.fact_meter_tp (заполняется в Java начислении)
+                  n.usl in ('015','016') and k.fact_meter_tp in (1,3) or
+                  n.usl in ('013','014') and k.fact_meter_tp in (1,2,3) then 1 -- водоотведение, ред.23.09.2019
+             else 0
+                end as sch,
        n.org,
-       case when n.fk_tarif is not null then b.cena else round(n.koeff, 6) end as val_group,
+       round(n.koeff, 6) as val_group,
        round(n.norm, 6) as val_group2, null as cnt_subs, c.uch,
        decode(dat_, null, mg_, null) as mg, dat_, n.limit,
        a.cena, k.fk_tp, 
        decode(lag(k.lsk || u.uslm, 1) over(order by k.lsk, u.uslm, nvl(a.kpr,0) desc, nvl(a.cnt,0) desc), k.lsk || u.uslm, null, k.opl) as opl,
-       case when nvl(a.cnt,0) <> 0 then 'Есть' else 'Нет' end as is_vol, null as vol
+       case when nvl(a.cnt,0) <> 0 then 'Есть' else 'Нет' end as is_vol, 
+         null as vol
         from arch_kart k
-             left join a_nabor2 n on k.lsk=n.lsk and mg_ between n.mgFrom and n.mgTo
-             left join a_houses c on k.house_id=c.id and c.mg=mg_
-             left join spr_tarif_prices b on n.fk_tarif = b.fk_tarif and mg_ between b.mg1 and b.mg2
+             join a_nabor2 n on k.lsk=n.lsk and mg_ between n.mgFrom and n.mgTo and k.psch not in (8,9) -- вывести набор только по действующим лс. ред.05.07.2019
+             join a_houses c on k.house_id=c.id and c.mg=mg_
+             join usl u on n.usl=u.usl
+             left join (select k2.k_lsk_id, max(k2.reu) as reu 
+                         from arch_kart k2 join v_lsk_tp tp on k2.fk_tp=tp.id
+                         and tp.cd='LSK_TP_MAIN' and k2.mg=mg_ and k2.psch not in (8,9)
+                         group by k2.k_lsk_id 
+                         ) a on k.k_lsk_id=a.k_lsk_id  -- обслуживающая фонд УК
              left join (select c.lsk, c.usl, nvl(c.sch,0) as sch,
                         sum(c.kpr) as kpr, sum(c.kprz) as kprz, sum(c.kpro) as kpro, sum(c.test_opl) as cnt,
                         max(c.test_cena) as cena
                         from a_charge2 c
                        where c.type = 1 and mg_ between c.mgFrom and c.mgTo
                        group by c.lsk, c.usl, c.sch) a on n.lsk=a.lsk and n.usl=a.usl
-             join usl u on a.usl=u.usl
+             --join usl u on a.usl=u.usl
       where k.mg=mg_; --вроде должны быть строки с отстутств. объемом
       
 --перерасчёты
 insert into statistics_lsk
-    (lsk, reu, kul, nd, kw, usl, kpr, is_empt, kpr_ot, kpr_wr, klsk, cnt, status,
+    (lsk, reu, for_reu, kul, nd, kw, usl, kpr, is_empt, kpr_ot, kpr_wr, klsk, cnt, status,
      psch, sch, org, val_group, val_group2, cnt_subs, uch, mg, dat, limit, cena, fk_tp, opl, is_vol, chng_vol)
-   select k.lsk, k.reu, k.kul, k.nd, k.kw, n.usl, null as kpr,
+   select k.lsk, k.reu, a.reu as for_reu, k.kul, k.nd, k.kw, n.usl, null as kpr,
        0 as is_empt,
        null as kpr_ot,
        null as kpr_wr,
@@ -82,6 +93,11 @@ insert into statistics_lsk
                        where c.mg=mg_
                        group by c.lsk, c.usl, c.org, c.mgchange, nvl(c.sch,0)) d
              left join arch_kart k on d.lsk=k.lsk and k.mg=d.mgchange                                
+             left join (select k2.k_lsk_id, max(k2.reu) as reu 
+                         from arch_kart k2 join v_lsk_tp tp on k2.fk_tp=tp.id
+                         and tp.cd='LSK_TP_MAIN' and k2.mg=mg_ and k2.psch not in (8,9)
+                         group by k2.k_lsk_id 
+                         ) a on k.k_lsk_id=a.k_lsk_id  -- обслуживающая фонд УК
              left join a_houses c on c.id=k.house_id and c.mg=d.mgchange
              join usl u on d.usl=u.usl
              left join a_nabor2 n on n.lsk=d.lsk and d.mgchange between n.mgFrom and n.mgTo and n.usl=d.usl;
@@ -99,14 +115,14 @@ insert into statistics_lsk
         from arch_kart k where k.mg=mg_;
 
       insert into statistics
-        (reu, kul, nd, usl, kpr, is_empt, kpr_ot, kpr_wr, klsk, cnt, cena, status, psch,
+        (reu, for_reu, kul, nd, usl, kpr, is_empt, kpr_ot, kpr_wr, klsk, cnt, cena, status, psch,
          sch, org, val_group, val_group2, cnt_lg, cnt_subs, uch, mg, dat, fk_tp, opl, is_vol, chng_vol)
-        select reu, kul, nd, usl, sum(kpr), s.is_empt, sum(kpr_ot), sum(kpr_wr),
+        select reu, for_reu, kul, nd, usl, sum(kpr), s.is_empt, sum(kpr_ot), sum(kpr_wr),
                sum(klsk), sum(cnt), cena, status, psch, sch, org, val_group, val_group2,
                sum(cnt_lg), sum(cnt_subs), uch, mg, dat, s.fk_tp, sum(s.opl) as opl, s.is_vol, sum(s.chng_vol)
           from statistics_lsk s
          where dat = dat_ and /*s.uslm is null and ред.26.06.13*/ s.usl is not null
-         group by reu, kul, nd, usl, status, psch, sch, cena, org, val_group, val_group2, uch,
+         group by reu, for_reu, kul, nd, usl, status, psch, sch, cena, org, val_group, val_group2, uch,
                   mg, dat, s.is_empt, s.fk_tp, s.is_vol;
 
       --итоговое кол-во лицевых, проживающих
@@ -134,14 +150,14 @@ insert into statistics_lsk
         from arch_kart k where k.mg=mg_;
 
       insert into statistics
-        (reu, kul, nd, usl, kpr, is_empt, kpr_ot, kpr_wr, klsk, cnt, cena, status, psch,
+        (reu, for_reu, kul, nd, usl, kpr, is_empt, kpr_ot, kpr_wr, klsk, cnt, cena, status, psch,
          sch, org, val_group, val_group2, cnt_lg, cnt_subs, uch, mg, dat, fk_tp, opl, is_vol, chng_vol)
-        select reu, kul, nd, usl, sum(kpr), s.is_empt, sum(kpr_ot), sum(kpr_wr),
+        select reu, for_reu, kul, nd, usl, sum(kpr), s.is_empt, sum(kpr_ot), sum(kpr_wr),
                sum(klsk), sum(cnt), cena, status, psch, sch, org, val_group, val_group2,
                sum(cnt_lg), sum(cnt_subs), uch, mg, dat, s.fk_tp, sum(s.opl) as opl, s.is_vol, sum(chng_vol)
           from statistics_lsk s
          where s.mg = ''||mg_||'' and /*s.uslm is null and ред.26.06.13*/ s.usl is not null
-         group by reu, kul, nd, usl, status, psch, sch, org, cena, val_group, val_group2, uch,
+         group by reu, for_reu, kul, nd, usl, status, psch, sch, org, cena, val_group, val_group2, uch,
                   mg, dat, s.is_empt, s.fk_tp, s.is_vol;
       --итоговое кол-во лицевых, проживающих
       insert into statistics
@@ -217,7 +233,9 @@ insert into statistics_lsk
     on t.usl=u.usl 
     where (mg_ is not null and t.mg=mg_ or t.dat=dat_)
                   and t.usl is not null
-          order by t.reu,t.kul,t.nd,u.uslm, case when nvl(t.cnt,0)> 0 then 0 else 1 end, u.usl_norm
+          order by t.reu,t.kul,t.nd,u.uslm, case when nvl(t.cnt,0)> 0 then 0 else 1 end, 
+          t.status, -- добавил сортировку по статусу, чтоб на арендаторов (9) в последнюю очередь ставился идентификатор
+          u.usl_norm
    ) loop
    
    if not (l_reu = c.reu and l_kul=c.kul and l_nd=c.nd and l_uslm=c.uslm-- and l_psch=c.psch

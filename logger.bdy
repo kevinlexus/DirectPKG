@@ -69,6 +69,24 @@ end log_text;
     commit;
   end log_sec_;
 
+procedure log_error(p_ip in varchar2, p_errcode in number, p_errmessage in varchar2) is
+  pragma autonomous_transaction;
+begin
+  insert into log_err(
+                      id,
+                      fk_user,
+                      ip,
+                      errcode,
+                      errmessage,
+                      dt)
+  select log_err_id.nextval, u.id as fk_user, p_ip, p_errcode, p_errmessage, sysdate
+   from t_user u where u.cd=user;  
+                     
+--  select uid, sysdate, SYS_CONTEXT('USERENV','IP_ADDRESS'),
+--   SYS_CONTEXT('USERENV','SESSION_USER'), 1 from dual;
+  commit;
+end log_error;
+
 procedure ins_period_rep(cd_ in reports.cd%type,
    mg_ in period_reports.mg%type, dat_ in period_reports.dat%type,
     signed_in_ in period_reports.signed%type) is

@@ -30,6 +30,15 @@ create or replace package scott.C_KART is
   function set_kw_par(p_house_guid in varchar2, p_kw in varchar2, p_entr in number) return number;
   --установить единый лиц.счет
   function set_elsk (p_lsk in kart.lsk%type, p_elsk in varchar2) return number;
+  function find_correct (p_lsk in kart.lsk%type -- лиц.счет по которому искать
+           ) return kart.lsk%type;
+  function replace_klsk (p_lsk in kart.lsk%type, -- лиц.счет по которому искать
+                       p_klsk_dst in number   -- klsk на который заменить
+                       ) return number;
+  function replace_house_id (p_lsk in kart.lsk%type, -- лиц.счет по которому искать
+                       p_house_dst in number   -- house_id на который заменить
+                       ) return number;
+            
 end C_KART;
 /
 

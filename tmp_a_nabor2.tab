@@ -1,6 +1,6 @@
 create global temporary table SCOTT.TMP_A_NABOR2
 (
-  lsk            CHAR(8) not null,
+  lsk            CHAR(8),
   usl            CHAR(3) not null,
   org            NUMBER(3) not null,
   koeff          NUMBER,
@@ -20,9 +20,13 @@ create global temporary table SCOTT.TMP_A_NABOR2
   kf_kpr_wro_sch NUMBER,
   limit          NUMBER,
   nrm_kpr2       NUMBER,
-  id             NUMBER not null,
+  id             NUMBER,
   mgfrom         NUMBER not null,
-  mgto           NUMBER not null
+  mgto           NUMBER not null,
+  k_lsk_id       NUMBER
 )
 on commit preserve rows;
+comment on column SCOTT.TMP_A_NABOR2.k_lsk_id
+  is '‘ин.лиц.счет';
+create index SCOTT.TMP_A_NABOR2_I on SCOTT.TMP_A_NABOR2 (K_LSK_ID);
 

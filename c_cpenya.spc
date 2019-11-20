@@ -3,8 +3,7 @@ create or replace package scott.C_CPENYA is
 
   procedure gen_charge_pay_pen;
   procedure gen_charge_pay_pen(p_dt in date);
-  procedure gen_charge_pay_pen_house(p_dt in date, --дата формир.
-                                     p_house in number);
+  procedure gen_charge_pay_pen_house(p_house in number);
   procedure gen_charge_pay_pen(
                              p_dt in date, --дата формир.
                              p_var in number --формировать пеню? (0-нет, 1-да (старый вызов)
@@ -26,7 +25,7 @@ create or replace package scott.C_CPENYA is
                       islastmonth_ in number,
                       p_commit     in number);
   procedure gen_penya(lsk_         in kart.lsk%type,
-                      dat_         in date,
+                      dat_         in date, 
                       islastmonth_ in number,
                       p_commit     in number);
 

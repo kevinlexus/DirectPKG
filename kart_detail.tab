@@ -1,0 +1,57 @@
+create table SCOTT.KART_DETAIL
+(
+  id   NUMBER not null,
+  lsk  CHAR(8) not null,
+  ord1 NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.KART_DETAIL
+  is 'Прочие, дополнительные поля kart';
+comment on column SCOTT.KART_DETAIL.id
+  is 'id';
+comment on column SCOTT.KART_DETAIL.lsk
+  is 'Лиц.счет';
+comment on column SCOTT.KART_DETAIL.ord1
+  is 'Порядок лиц.счетов, по адресу';
+alter table SCOTT.KART_DETAIL
+  add constraint KART_DETAIL_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.KART_DETAIL
+  add constraint KART_DETAIL_I unique (LSK)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.KART_DETAIL
+  add constraint KART_DETAIL_F_KART foreign key (LSK)
+  references SCOTT.KART (LSK) on delete cascade;
+

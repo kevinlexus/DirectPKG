@@ -1,94 +1,96 @@
 create table SCOTT.KART
 (
-  lsk            CHAR(8) not null,
-  kul            CHAR(4) not null,
-  nd             CHAR(6) not null,
-  kw             CHAR(7) not null,
-  fio            VARCHAR2(55),
-  kpr            NUMBER(3) not null,
-  kpr_wr         NUMBER(3) not null,
-  kpr_ot         NUMBER(3) not null,
-  kpr_cem        NUMBER(3),
-  kpr_s          NUMBER(2),
-  opl            NUMBER(7,2),
-  ppl            NUMBER(7,2),
-  pldop          NUMBER(5,1),
-  ki             NUMBER(2),
-  psch           NUMBER(1),
-  psch_dt        DATE,
-  status         NUMBER(1),
-  kwt            NUMBER(8,3),
-  lodpl          NUMBER(5,1),
-  bekpl          NUMBER(5,1),
-  balpl          NUMBER(5,1),
-  komn           NUMBER(2),
-  et             NUMBER(2),
-  kfg            NUMBER(2),
-  kfot           NUMBER(2),
-  phw            NUMBER(10,3),
-  mhw            NUMBER(8,3),
-  pgw            NUMBER(10,3),
-  mgw            NUMBER(8,3),
-  pel            NUMBER(10,3),
-  mel            NUMBER(9,3),
-  sub_nach       DATE,
-  subsidii       NUMBER(9,2),
-  sub_data       DATE,
-  polis          CHAR(8),
-  sch_el         NUMBER(1),
-  reu            CHAR(3) not null,
-  text           CHAR(35),
-  schel_dt       DATE,
-  eksub1         NUMBER(10,2),
-  eksub2         NUMBER(10,2),
-  kran           NUMBER(1),
-  kran1          NUMBER(1),
-  el             NUMBER(6,2),
-  el1            NUMBER(6,2),
-  sgku           NUMBER(9,2),
-  doppl          NUMBER(9,2),
-  subs_cor       NUMBER(9,2),
-  house_id       NUMBER not null,
-  c_lsk_id       NUMBER,
-  mg1            CHAR(6) not null,
-  mg2            CHAR(6) not null,
-  kan_sch        NUMBER,
-  subs_inf       NUMBER,
-  k_lsk_id       NUMBER not null,
-  dog_num        CHAR(35),
-  schel_end      DATE,
-  fk_deb_org     NUMBER,
-  subs_cur       NUMBER(9,2),
-  k_fam          VARCHAR2(25),
-  k_im           VARCHAR2(15),
-  k_ot           VARCHAR2(15),
-  memo           VARCHAR2(50),
-  fk_distr       NUMBER,
-  law_doc        VARCHAR2(50),
-  fk_pasp_org    NUMBER,
-  flag           NUMBER,
-  flag1          NUMBER,
-  fk_err         NUMBER,
-  law_doc_dt     DATE,
-  prvt_doc       VARCHAR2(50),
-  prvt_doc_dt    DATE,
-  cpn            NUMBER,
-  kpr_wrp        NUMBER,
-  pn_dt          DATE,
-  lsk_ext        VARCHAR2(25),
-  fk_tp          NUMBER,
-  sel1           NUMBER default 1,
-  vvod_ot        NUMBER,
-  entr           NUMBER,
-  pot            NUMBER,
-  mot            NUMBER,
-  elsk           VARCHAR2(255),
-  parent_lsk     CHAR(8),
-  fk_klsk_obj    NUMBER,
-  dt_cr          DATE default sysdate not null,
-  usl_name_short VARCHAR2(50),
-  fact_meter_tp  NUMBER,
-  kpr_own        NUMBER
+  lsk             CHAR(8) not null,
+  kul             CHAR(4) not null,
+  nd              CHAR(6) not null,
+  kw              CHAR(7) not null,
+  fio             VARCHAR2(55),
+  kpr             NUMBER(3) not null,
+  kpr_wr          NUMBER(3) not null,
+  kpr_ot          NUMBER(3) not null,
+  kpr_cem         NUMBER(3),
+  kpr_s           NUMBER(2),
+  opl             NUMBER(7,2),
+  ppl             NUMBER(7,2),
+  pldop           NUMBER(5,1),
+  ki              NUMBER(2),
+  psch            NUMBER(1),
+  psch_dt         DATE,
+  status          NUMBER(1),
+  kwt             NUMBER(8,3),
+  lodpl           NUMBER(5,1),
+  bekpl           NUMBER(5,1),
+  balpl           NUMBER(5,1),
+  komn            NUMBER(2),
+  et              NUMBER(2),
+  kfg             NUMBER(2),
+  kfot            NUMBER(2),
+  phw             NUMBER(10,3),
+  mhw             NUMBER(8,3),
+  pgw             NUMBER(10,3),
+  mgw             NUMBER(8,3),
+  pel             NUMBER(10,3),
+  mel             NUMBER(9,3),
+  sub_nach        DATE,
+  subsidii        NUMBER(9,2),
+  sub_data        DATE,
+  polis           CHAR(8),
+  sch_el          NUMBER(1),
+  reu             CHAR(3) not null,
+  text            CHAR(35),
+  schel_dt        DATE,
+  eksub1          NUMBER(10,2),
+  eksub2          NUMBER(10,2),
+  kran            NUMBER(1),
+  kran1           NUMBER(1),
+  el              NUMBER(6,2),
+  el1             NUMBER(6,2),
+  sgku            NUMBER(9,2),
+  doppl           NUMBER(9,2),
+  subs_cor        NUMBER(9,2),
+  house_id        NUMBER not null,
+  c_lsk_id        NUMBER,
+  mg1             CHAR(6) not null,
+  mg2             CHAR(6) not null,
+  kan_sch         NUMBER,
+  subs_inf        NUMBER,
+  k_lsk_id        NUMBER not null,
+  dog_num         CHAR(35),
+  schel_end       DATE,
+  fk_deb_org      NUMBER,
+  subs_cur        NUMBER(9,2),
+  k_fam           VARCHAR2(25),
+  k_im            VARCHAR2(15),
+  k_ot            VARCHAR2(15),
+  memo            VARCHAR2(50),
+  fk_distr        NUMBER,
+  law_doc         VARCHAR2(50),
+  fk_pasp_org     NUMBER,
+  flag            NUMBER,
+  flag1           NUMBER,
+  fk_err          NUMBER,
+  law_doc_dt      DATE,
+  prvt_doc        VARCHAR2(50),
+  prvt_doc_dt     DATE,
+  cpn             NUMBER,
+  kpr_wrp         NUMBER,
+  pn_dt           DATE,
+  lsk_ext         VARCHAR2(25),
+  fk_tp           NUMBER,
+  sel1            NUMBER default 1,
+  vvod_ot         NUMBER,
+  entr            NUMBER,
+  pot             NUMBER,
+  mot             NUMBER,
+  elsk            VARCHAR2(255),
+  parent_lsk      CHAR(8),
+  fk_klsk_obj     NUMBER,
+  dt_cr           DATE default sysdate not null,
+  usl_name_short  VARCHAR2(50),
+  fact_meter_tp   NUMBER,
+  kpr_own         NUMBER,
+  fk_klsk_premise NUMBER not null,
+  divided         NUMBER(1) default 0 not null
 )
 tablespace USERS
   pctfree 60
@@ -186,7 +188,7 @@ comment on column SCOTT.KART.kan_sch
 comment on column SCOTT.KART.subs_inf
   is 'Субсидия для информации';
 comment on column SCOTT.KART.k_lsk_id
-  is 'KLSK Помещения';
+  is 'KLSK Финансового лиц.счета';
 comment on column SCOTT.KART.dog_num
   is '№ договора (антенн)';
 comment on column SCOTT.KART.schel_end
@@ -196,11 +198,11 @@ comment on column SCOTT.KART.fk_deb_org
 comment on column SCOTT.KART.subs_cur
   is 'Субсидия';
 comment on column SCOTT.KART.k_fam
-  is 'Фамилия квартиросъемщика';
+  is 'Фамилия собственника';
 comment on column SCOTT.KART.k_im
-  is 'Имя квартиросъемщика';
+  is 'Имя собственника';
 comment on column SCOTT.KART.k_ot
-  is 'Отчество квартиросъемщика';
+  is 'Отчество собственника';
 comment on column SCOTT.KART.memo
   is 'Примечание по л/с';
 comment on column SCOTT.KART.fk_distr
@@ -255,6 +257,10 @@ comment on column SCOTT.KART.fact_meter_tp
   is 'Фактическое наличие счетчика, в случае отсутствия объема, для формирования статистики (1-х.в г.в, 2- х.в., 3-г.в.) Устанавливается в Java начислении';
 comment on column SCOTT.KART.kpr_own
   is 'Кол-собственников (ТСЖ, для начисления мусора, воды)';
+comment on column SCOTT.KART.fk_klsk_premise
+  is 'KLSK Помещения';
+comment on column SCOTT.KART.divided
+  is 'Разеделенный лиц.счет (ГИС ЖКХ)';
 create index SCOTT.KART_C_LSK_ID on SCOTT.KART (C_LSK_ID)
   tablespace USERS
   pctfree 10
@@ -415,6 +421,9 @@ alter table SCOTT.KART
   references SCOTT.K_LSK (ID);
 alter table SCOTT.KART
   add constraint KART_F_K_LSK_OBJ foreign key (FK_KLSK_OBJ)
+  references SCOTT.K_LSK (ID);
+alter table SCOTT.KART
+  add constraint KART_F_K_LSK_PREMISE foreign key (FK_KLSK_PREMISE)
   references SCOTT.K_LSK (ID);
 alter table SCOTT.KART
   add constraint KART_F_PARENT_LSK foreign key (PARENT_LSK)

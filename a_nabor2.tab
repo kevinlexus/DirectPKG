@@ -22,8 +22,7 @@ create table SCOTT.A_NABOR2
   nrm_kpr2       NUMBER,
   id             NUMBER not null,
   mgfrom         NUMBER not null,
-  mgto           NUMBER not null,
-  kpr            NUMBER
+  mgto           NUMBER not null
 )
 tablespace USERS
   pctfree 10
@@ -72,8 +71,6 @@ comment on column SCOTT.A_NABOR2.mgfrom
   is 'Начальный период';
 comment on column SCOTT.A_NABOR2.mgto
   is 'Конечный период';
-comment on column SCOTT.A_NABOR2.kpr
-  is 'Кол-во проживающих для расчета норматива';
 create index SCOTT.A_NABOR2_I on SCOTT.A_NABOR2 (LSK)
   tablespace USERS
   pctfree 10

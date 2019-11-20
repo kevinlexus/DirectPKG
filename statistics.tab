@@ -27,7 +27,8 @@ create table SCOTT.STATISTICS
   opl        NUMBER,
   is_vol     VARCHAR2(20),
   chng_vol   NUMBER,
-  fr         NUMBER
+  fr         NUMBER,
+  for_reu    VARCHAR2(3)
 )
 tablespace USERS
   pctfree 1
@@ -92,6 +93,8 @@ comment on column SCOTT.STATISTICS.chng_vol
   is 'Объем, полученный из перерасчета';
 comment on column SCOTT.STATISTICS.fr
   is 'Первая запись по дому по услуге (1-да, 0 -нет) - нужна в отчетах, для соединения с таблицей a_vvod';
+comment on column SCOTT.STATISTICS.for_reu
+  is 'Обслуживающая фонд УК (например: объемы РСО в фонде УК)';
 create index SCOTT.S_DAT_REU_KUL_ND_USL_ORG on SCOTT.STATISTICS (DAT, REU, KUL, ND, USL, ORG)
   tablespace USERS
   pctfree 10

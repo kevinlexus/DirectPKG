@@ -944,7 +944,7 @@ if l_summa <> 0 then --если и по конкретному периоду (без корректир.) не распр.,
      p_rec.oper, p_rec.dopl,
      p_rec.nkom, p_rec.nink, p_rec.dat_ink, 1 as priznak, p_rec.dtek
      from nabor n where n.lsk=p_rec.lsk and rownum=1;
-    if sql%rowcount <> 0 then 
+    if sql%rowcount > 0 then 
       l_summa:=0;
     end if;
 end if;
@@ -981,7 +981,10 @@ if l_summa_p <> 0 then --если и по деб сальдо не распр, кинуть всю сумму на 1 ую
      p_rec.oper, p_rec.dopl,
      p_rec.nkom, p_rec.nink, p_rec.dat_ink, 0 as priznak, p_rec.dtek
      from nabor n where n.lsk=p_rec.lsk and rownum=1 ;
-  l_summa_p:=0;   
+  if sql%rowcount > 0 then   
+    -- если было обработано
+    l_summa_p:=0;   
+  end if;
 end if;
 
 if l_summa_p > 0 then --если и по nabor не распр, кинуть на УК, тек содерж
@@ -1009,9 +1012,9 @@ select case when nvl(sum(decode(t.priznak, 1, t.summa, 0)),0) - nvl(p_rec.summa,
        into l_cnt, l_summa_err
   from kwtp_day t where t.kwtp_id=p_rec.id;
 if l_cnt = 1 then
-  Raise_application_error(-20000, 'Код ошибки #1 в л.с.='||p_rec.lsk||', kwtp_id='||p_rec.id||' Возможно нет начисления за период, разница='||l_summa_err);
+  Raise_application_error(-20000, 'Код ошибки #1 в л.с.='||p_rec.lsk||', kwtp_id='||p_rec.id||' Возможно нет начисления за период, ИЛИ надо добавить услуги в карточку ЛС! разница='||l_summa_err);
 elsif l_cnt = 2 then
-  Raise_application_error(-20000, 'Код ошибки #0 в л.с.='||p_rec.lsk||', kwtp_id='||p_rec.id||' Возможно нет начисления за период, разница='||l_summa_err);
+  Raise_application_error(-20000, 'Код ошибки #0 в л.с.='||p_rec.lsk||', kwtp_id='||p_rec.id||' Возможно нет начисления за период, ИЛИ надо добавить услуги в карточку ЛС! разница='||l_summa_err);
 end if;
 
  --выполнить редирект оплаты или пени

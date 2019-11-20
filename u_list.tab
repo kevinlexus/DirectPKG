@@ -1,14 +1,15 @@
 create table SCOTT.U_LIST
 (
-  id        NUMBER not null,
-  cd        VARCHAR2(32) not null,
-  name      VARCHAR2(96) not null,
-  nm        VARCHAR2(32),
-  fk_listtp NUMBER not null,
-  npp       NUMBER default 0,
-  val_tp    VARCHAR2(3),
-  fk_unit   NUMBER,
-  sqltext   VARCHAR2(1000)
+  id            NUMBER not null,
+  cd            VARCHAR2(32) not null,
+  name          VARCHAR2(96) not null,
+  nm            VARCHAR2(32),
+  fk_listtp     NUMBER not null,
+  npp           NUMBER default 0,
+  val_tp        VARCHAR2(3),
+  fk_unit       NUMBER,
+  sqltext       VARCHAR2(1000),
+  fk_exs_u_list NUMBER
 )
 tablespace USERS
   pctfree 1
@@ -39,6 +40,8 @@ comment on column SCOTT.U_LIST.fk_unit
   is 'Единица измерения (для параметров)';
 comment on column SCOTT.U_LIST.sqltext
   is 'SQL запрос для получения ID шника для параметра типа ID';
+comment on column SCOTT.U_LIST.fk_exs_u_list
+  is 'FK на справочник ГИС ЖКХ (Связь соответствующих элементов)';
 alter table SCOTT.U_LIST
   add constraint U_LIST_PK primary key (ID)
   using index 
@@ -67,6 +70,9 @@ alter table SCOTT.U_LIST
     minextents 1
     maxextents unlimited
   );
+alter table SCOTT.U_LIST
+  add constraint U_LIST_FK_EXS_U_LIST foreign key (FK_EXS_U_LIST)
+  references EXS.U_LIST (ID);
 alter table SCOTT.U_LIST
   add constraint U_LIST_FK_LISTTP foreign key (FK_LISTTP)
   references SCOTT.U_LISTTP (ID);

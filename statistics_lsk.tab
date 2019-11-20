@@ -30,7 +30,8 @@ create table SCOTT.STATISTICS_LSK
   fk_tp      NUMBER,
   opl        NUMBER,
   is_vol     VARCHAR2(20),
-  chng_vol   NUMBER
+  chng_vol   NUMBER,
+  for_reu    VARCHAR2(3)
 )
 tablespace USERS
   pctfree 1
@@ -105,6 +106,8 @@ comment on column SCOTT.STATISTICS_LSK.is_vol
   is 'Имеется объем по услуге (null,0-нет, 1 -да)';
 comment on column SCOTT.STATISTICS_LSK.chng_vol
   is 'Объем, полученный из перерасчета';
+comment on column SCOTT.STATISTICS_LSK.for_reu
+  is 'Обслуживающая фонд УК (например: объемы РСО в фонде УК)';
 create index SCOTT.STAT_LSK_DAT_REU on SCOTT.STATISTICS_LSK (DAT, REU, KUL, ND, USL, ORG)
   tablespace USERS
   pctfree 0

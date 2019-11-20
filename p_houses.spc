@@ -68,6 +68,7 @@ CREATE OR REPLACE PACKAGE SCOTT.P_HOUSES IS
   FUNCTION del_prog(lsk_ IN nabor_progs.lsk%TYPE, id_ IN nabor_progs.fk_tarif%TYPE) RETURN NUMBER;
   FUNCTION del_prog(lsk_ IN nabor_progs.lsk%TYPE) RETURN NUMBER;
 
+  FUNCTION ins_unq_k_lsk(p_addr_tp_cd in varchar2, p_search_holes in number) RETURN number;
   FUNCTION find_unq_lsk(p_reu IN kart.reu%type, 
                         p_lsk in kart.lsk%type --рекоммендованый лиц.сч.
                         )
@@ -83,19 +84,36 @@ CREATE OR REPLACE PACKAGE SCOTT.P_HOUSES IS
          p_del_usl_from_dst in number, -- удалить услуги из nabor источника (1-удалить,0-нет)
          p_reu in varchar2 -- если указан, применить данный код ” , если нет, оставить ”  источника
          ) return number;
-  function kart_lsk_special_add(p_lsk in kart.lsk%type,-- базовый лс 
-         p_lsk_tp in varchar2, -- тип нового лс
+function kart_lsk_group_add(p_lsk_src in kart.lsk%type,-- лс источника
+         p_lsk_tp in varchar2, -- тип нового лс (ќсновной, –—ќ и т.п.)
          p_lsk_new in kart.lsk%type, -- либо null, либо указан новый лс
-         p_forced_status in number, -- принудительно установить статус (null - не устанавливать, 0-открытый и т.п.)
-         p_del_usl_from_dst in number, -- удалить услуги из nabor источника (1-удалить,0-нет)
-         p_reu in varchar2 -- если указан, применить данный код ” 
+         p_get_usl_from_src in number, -- скопировать услуги из nabor источника (1-да,0-нет)
+         p_del_usl_from_src in number, -- удалить услуги из nabor источника (1-да,0-нет) (при создании лиц. по капрем.)
+         p_kw in varchar2, -- є квартиры
+         p_reu in varchar2, -- если указан, применить данный код ” 
+         p_close_src in number, -- закрыть лицевой источник? (1-да, 0-нет)
+         p_var in number -- 1- новый фин.лиц.счет (другой KLSK, тот же KLSK_PREMISE)
+                          -- 2- новое помещение (другой KLSK, другой KLSK_PREMISE)
+         ) return number;
+  function kart_lsk_add(p_lsk_src in kart.lsk%type,-- лс источника
+         p_lsk_tp in varchar2, -- тип нового лс (ќсновной, –—ќ и т.п.)
+         p_lsk_new in kart.lsk%type, -- либо null, либо указан новый лс
+         p_get_usl_from_src in number, -- скопировать услуги из nabor источника (1-да,0-нет)
+         p_del_usl_from_src in number, -- удалить услуги из nabor источника (1-да,0-нет) (при создании лиц. по капрем.)
+         p_var in number, -- 0- новый лиц.счет того же собственника, того же помещени€ (тот же KLSK, тот же KLSK_PREMISE), 
+                          -- 1- новый фин.лиц.счет (другой KLSK, тот же KLSK_PREMISE)
+                          -- 2- новое помещение (другой KLSK, другой KLSK_PREMISE)
+         p_kw in varchar2, -- є квартиры
+         p_reu in varchar2, -- если указан, применить данный код ” 
+         p_klsk_dst in number, -- klsk фин.лиц.счета
+         p_close_src in number, -- закрыть лицевой источник? (1-да, 0-нет)
+         p_klsk_premise_dst in number -- klsk помещени€
          ) return number;
   procedure set_g_lsk_tp(p_tp in number);
   function get_g_lsk_tp return number;
   function get_other_lsk(p_lsk in kart.lsk%type) return tab_lsk;
   --вернуть klsk по GUID дома
   function get_klsk_by_guid(p_guid in varchar2) return number;  
-  function get_next_elsd return varchar2;
 END P_HOUSES;
 /
 

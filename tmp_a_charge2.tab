@@ -1,7 +1,7 @@
 create global temporary table SCOTT.TMP_A_CHARGE2
 (
-  id            NUMBER not null,
-  lsk           CHAR(8) not null,
+  id            NUMBER,
+  lsk           CHAR(8),
   usl           CHAR(3) not null,
   summa         NUMBER,
   kart_pr_id    NUMBER,
@@ -21,7 +21,11 @@ create global temporary table SCOTT.TMP_A_CHARGE2
   kpr2          NUMBER,
   opl           NUMBER,
   mgfrom        NUMBER not null,
-  mgto          NUMBER not null
+  mgto          NUMBER not null,
+  k_lsk_id      NUMBER
 )
 on commit preserve rows;
+comment on column SCOTT.TMP_A_CHARGE2.k_lsk_id
+  is '‘ин.лиц.счет';
+create index SCOTT.TMP_A_CHARGE2_I on SCOTT.TMP_A_CHARGE2 (K_LSK_ID);
 

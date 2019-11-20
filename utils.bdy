@@ -604,90 +604,28 @@ end get_sum_str_2;
  end;
 
 procedure prep_users_tree is
- fk_ses_ number;
- maxid_ number;
- begin
+  l_fk_ses number;
+begin
+  --новая сессия
+  --заменил fk_user_ на sessionid
+  select USERENV('sessionid') into l_fk_ses from dual;
 
- --удалить сессии 3 дневной давности
- delete from t_sess t where t.dat_create < sysdate-3;
-
- --новая сессия
- --заменил fk_user_ на sessionid
- select USERENV('sessionid') into fk_ses_ from dual;
-
- -- вернуть Id сессии в глобальную переменную init.g_session_id
- -- для Java модуля. (вообще странно, использовать USERENV('sessionid')
- -- в таблицах для Директа и t_sess.id для Java TODO - сделать рефакторинг! ред.29.05.2018
- insert into t_sess(dat_create, fk_ses)
-  values (sysdate, fk_ses_)
+  -- вернуть Id сессии в глобальную переменную init.g_session_id
+  -- для Java модуля. (вообще странно, использовать USERENV('sessionid')
+  -- в таблицах для Директа и t_sess.id для Java TODO - сделать рефакторинг! ред.29.05.2018
+  insert into t_sess
+    (dat_create, fk_ses)
+  values
+    (sysdate, l_fk_ses)
   returning id into init.g_session_id;
 
- --подготовка домов для выбора пользователями
- -- удалить объекты сессии, старше 3 дней
- delete from tree_objects t
- where exists
-  (select * from t_sess s where
-    s.fk_ses=t.fk_user and s.dat_create < (sysdate-3));
- --удалить объекты, по которым нет сессий (бывает такое почему то)
- delete from tree_objects t
- where not exists
-  (select * from t_sess s where
-    s.fk_ses=t.fk_user);
- -- удалить сессии, старше 3 дней
- delete from t_sess t
- where t.dat_create < (sysdate-3);
-
-  --город
-  insert into tree_objects (id, obj_level, fk_user, sel)
-    values (0, 0, fk_ses_, 1);
-  --ЖЭО
   insert into tree_objects
-    (main_id, id, obj_level, trest, fk_user, sel)
-    select 0, rownum as rn, 1, trest, fk_ses_, 1
-      from (select distinct trest from s_reu_trest t where t.trest is not null);
-
-  select max(id) into maxid_ from tree_objects t where t.obj_level = 1
-   and t.fk_user=fk_ses_;
-
-  --РЭУ
-  insert into tree_objects
-    (main_id, id, obj_level, reu, fk_user, sel)
-    select main_id, maxid_ + rownum as rn, 2, reu, fk_ses_, 1
-      from (select distinct s.reu, t.id as main_id
-              from s_reu_trest s, tree_objects t
-             where s.trest = t.trest and t.fk_user=fk_ses_
-               and t.obj_level = 1);
-  select max(id) into maxid_ from tree_objects t where t.obj_level = 2;
-
-  --Дом
-  --ред. 01.08.12 (странно почему до этого не было домов... очень странно)
-  insert into tree_objects
-    (main_id, id, obj_level, reu, kul, nd, fk_user, fk_house, sel, mg1, mg2, psch)
-    select main_id, maxid_ + rownum as rn, 3, reu, kul, nd, fk_ses_, fk_house, 1,
-      mg1, mg2, psch
-      from (select k.reu, k.kul, s.name, k.nd, t.id as main_id,
-       k.house_id as fk_house, min(k.mg1) as mg1, max(k.mg2) as mg2, c.psch
-              from kart k, tree_objects t, spul s, c_houses c
-             where k.reu = t.reu
-               and k.kul = s.id and t.fk_user=fk_ses_
-               and t.obj_level = 2
-               and k.house_id=c.id
-               group by k.reu, k.kul, s.name, k.nd, t.id,
-               k.house_id, c.psch
-               ) a
-     order by a.reu, a.name, a.nd;
-/*  insert into tree_objects
-    (main_id, id, obj_level, reu, kul, nd, fk_user, sel)
-    select main_id, maxid_ + rownum as rn, 3, reu, kul, nd, fk_ses_, 1
-      from (select distinct k.reu, k.kul, s.name, k.nd, t.id as main_id
-              from kart k, tree_objects t, spul s
-             where k.reu = t.reu
-               and k.kul = s.id and t.fk_user=fk_ses_
-               and t.obj_level = 2) a
-     order by a.reu, a.name, a.nd;*/
-
- commit;
- end;
+    (id, obj_level, trest, reu, for_reu, kul, nd, main_id, fk_user, sel, fk_house, mg1, mg2, psch, tp_show)
+    select id, obj_level, trest, reu, for_reu, kul, nd, main_id, l_fk_ses, sel, fk_house, mg1, mg2, psch, tp_show
+      from tree_objects t
+     where t.fk_user = -1; -- взять из шаблона, который генерится в итоговом: gen.prep_template_tree_objects    
+  commit;
+end;
 
 procedure prep_users_par is
  fk_ses_ number;
@@ -742,10 +680,15 @@ function tst_krt(lsk_ in kart.lsk%type, var_ in number) return varchar2 is
   last_id_ number;
   prop_dt_ date;
   l_cd v_lsk_tp.cd%type;
+  kart_rec kart%rowtype;
 begin
 --тип счета
+select k.* into kart_rec
+ from kart k where k.lsk=lsk_;
+
 select tp.cd into l_cd
- from kart k, v_lsk_tp tp where k.fk_tp=tp.id and k.lsk=lsk_;
+ from v_lsk_tp tp where tp.id=kart_rec.fk_tp;
+
 
 --проверки только для основных счетов
 if l_cd='LSK_TP_MAIN' then
@@ -787,6 +730,24 @@ if l_cd='LSK_TP_MAIN' then
       return 'Период действия статуса проживающего пересекается с другим периодом!';
    end if;
 end if;
+
+ -- проверки разделенного ЕЛС
+ if kart_rec.divided=1 then 
+   select count(*) into cnt_ 
+     from c_kart_pr t where t.lsk=lsk_ and t.use_gis_divide_els=1;
+   if cnt_=0 then
+      return 'В разделенном лиц.счете должны быть указаны документ или СНИЛС должника и включено "для ГИС ЖКХ"!';
+   elsif cnt_>1 then
+      return 'В разделенном лиц.счете установлена отметка "для ГИС ЖКХ" более чем у одного собственника';
+   end if;  
+ else
+   select count(*) into cnt_ 
+     from c_kart_pr t where t.lsk=lsk_ and t.use_gis_divide_els=1;
+   if cnt_>=1 then
+      return 'В разделенном лиц.счете установлена отметка "для ГИС ЖКХ" у собственника, которая не будет использована';
+   end if;  
+ end if;
+ 
    --ошибок нет
    if var_=1 then
      update kart k set k.fk_err=0 where k.lsk=lsk_;
@@ -823,7 +784,7 @@ procedure set_kpr(lsk_ in kart.lsk%type) is
                         t.status in (1, 5) and --если прописан после 15 то не считать
                         nvl(t.dat_prop, to_date('19000101', 'YYYYMMDD')) >= --если нет даты прописки, то как будто бы прописан давно (в 1900 году)))
                         dat_)
-                   and t.status not in (3,6)), --не берём 6 код (временно прожив) ред.24.05.12 -- не берем код 3 - временно зарег, ред. 14.12.17
+                   and t.status not in (3,6,7)), --не берём 6 код (временно прожив) ред.24.05.12 -- не берем код 3 - временно зарег, ред. 14.12.17, 7 код ред.30.09.2019
                --без учета выбывших
               kpr_ot =
                (select count(*)
@@ -848,7 +809,7 @@ procedure set_kpr(lsk_ in kart.lsk%type) is
                (select count(*)
                   from c_kart_pr t
                  where t.lsk = lsk_
-                   and t.status not in (4,6,3)), -- убрал из подсчета 3 статус (В.З.)
+                   and t.status not in (4,6,3,7)), -- убрал из подсчета 3 статус (В.З.)
                --без учета выбывших
               kpr_ot =
                (select count(*)
@@ -868,6 +829,7 @@ procedure set_kpr(lsk_ in kart.lsk%type) is
         where k.lsk = lsk_;
      end if;
    else
+     Raise_application_error(-20000, 'Код не поддерживается, обратиться к программисту');
      --ред 24.06.11 льготники отключены
      --кол-во проживающих
      -- Кис:
@@ -1225,9 +1187,9 @@ select distinct
    null as charge_part, null as limit_part from c_spk_usl c;
 
 insert into usl_bills
-  (id, usl_id, mg1, mg2, is_vol)
+  (id, usl_id, mg1, mg2, is_vol, fk_bill_var)
 values
-  (usl_rec_.usl_, usl_rec_.usl_, '000000', '999999', 1);
+  (usl_rec_.usl_, usl_rec_.usl_, '000000', '999999', 1, 1);
 
 commit;
 
@@ -1568,7 +1530,7 @@ text="Убрал коммиты на фиг"
     exception
     when NO_DATA_FOUND then
       raise_application_error(-20001,
-                              'Параметр - '||cd_||' не зарегистрирован!');
+                              'Параметр - '||cd_||' не зарегистрирован для sessionId='||fk_ses_);
    end;
    return result_;
  end;
@@ -1619,7 +1581,7 @@ text="Убрал коммиты на фиг"
     exception
     when NO_DATA_FOUND then
       raise_application_error(-20001,
-                              'Параметр - '||cd_||' не зарегистрирован!');
+                              'Параметр - '||cd_||' не зарегистрирован для sessionId='||fk_ses_);
    end;
    return result_;
  end;
@@ -1663,7 +1625,7 @@ text="Убрал коммиты на фиг"
     exception
     when NO_DATA_FOUND then
       raise_application_error(-20001,
-                              'Параметр - '||cd_||' не зарегистрирован!');
+                              'Параметр - '||cd_||' не зарегистрирован для sessionId='||fk_ses_);
    end;
    return result_;
  end;
@@ -1707,7 +1669,7 @@ text="Убрал коммиты на фиг"
     exception
     when NO_DATA_FOUND then
       raise_application_error(-20001,
-                              'Параметр - '||cd_||' не зарегистрирован!');
+                              'Параметр - '||cd_||' не зарегистрирован для sessionId='||fk_ses_);
    end;
    return result_;
  end;
@@ -1768,7 +1730,7 @@ text="Убрал коммиты на фиг"
     exception
     when NO_DATA_FOUND then
       raise_application_error(-20001,
-                              'Параметр - '||cd_||' не зарегистрирован!');
+                              'Параметр - '||cd_||' не зарегистрирован для sessionId='||fk_ses_);
    end;
 
    begin

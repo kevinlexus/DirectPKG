@@ -2,7 +2,7 @@ create table SCOTT.PREP_HOUSE_FIAS
 (
   kul       CHAR(4),
   fk_house  NUMBER,
-  houseguid VARCHAR2(36)
+  houseguid VARCHAR2(36) not null
 )
 tablespace USERS
   pctfree 10
@@ -24,6 +24,20 @@ comment on column SCOTT.PREP_HOUSE_FIAS.fk_house
 comment on column SCOTT.PREP_HOUSE_FIAS.houseguid
   is 'GUID из справочника ФИАС';
 create unique index SCOTT.PREP_HOUSE_FIAS_IU on SCOTT.PREP_HOUSE_FIAS (FK_HOUSE)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.PREP_HOUSE_FIAS
+  add constraint PREP_HOUSE_FIAS_P primary key (HOUSEGUID)
+  using index 
   tablespace USERS
   pctfree 10
   initrans 2

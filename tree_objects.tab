@@ -13,7 +13,8 @@ create table SCOTT.TREE_OBJECTS
   mg1       VARCHAR2(6),
   mg2       VARCHAR2(6),
   psch      NUMBER,
-  tp_show   NUMBER
+  tp_show   NUMBER,
+  for_reu   VARCHAR2(3)
 )
 tablespace USERS
   pctfree 10
@@ -54,6 +55,8 @@ comment on column SCOTT.TREE_OBJECTS.psch
   is 'Признак работающего дома (на текущую дату) (1-закрыт, 0- открыт)';
 comment on column SCOTT.TREE_OBJECTS.tp_show
   is 'Тип отображения в дереве объектов';
+comment on column SCOTT.TREE_OBJECTS.for_reu
+  is 'Обслуживающая фонд УК (например: объемы РСО в фонде УК)';
 create unique index SCOTT.TREE_OBJECTS_I on SCOTT.TREE_OBJECTS (FK_USER, ID)
   tablespace USERS
   pctfree 10

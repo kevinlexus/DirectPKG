@@ -44,7 +44,7 @@ create or replace package scott.scripts is
   procedure swap_sal_chpay;
   procedure swap_sal_chpay2;
   procedure swap_sal_chpay3;
-  procedure CREATE_UK_NEW2(newreu_            in kart.reu%type,
+  procedure CREATE_UK_NEW2(p_reu_dst          in kart.reu%type, -- код УК назначения (вместо бывшего new_reu_), если не заполнен, то возьмется из лиц.счета источника
                          p_reu_src          in varchar2, -- код УК источника (если не заполнено, то любое) Заполняется если переносятся ЛС из РСО в другую РСО
                          p_lsk_tp_src       in varchar2, -- Обязательно указать, с какого типа счетов перенос!
                          p_house_src        in varchar2, -- House_id через запятую, например '3256,5656,7778,' (вконце - запятая)
@@ -59,7 +59,9 @@ create or replace package scott.scripts is
                          p_special_reu      in varchar2, -- УК дополнительного лиц.счета
                          p_mg_sal           in c_change.mgchange%type, -- период сальдо
                          p_remove_nabor_usl in varchar2 default null, -- ВНИМАНИЕ! ЗАМЕНИЛ НА ЗАПЯТУЮ! удалить данные услуги (задавать как '033,034,035,' строго!), из справочника наборов ЛС источника (null - не удалять) и перенести в назначение 
-                         p_mg_pen           in c_change.mgchange%type -- период по которому перенести пеню. null - не переносить (обычно месяц назад)
+                         p_forced_usl in varchar2 default null, -- установить данную услугу в назначении (если не указано, взять из источника)
+                         p_mg_pen           in c_change.mgchange%type, -- период по которому перенести пеню. null - не переносить (обычно месяц назад)
+                         p_move_meter       in number default 0-- перемещать показания счетчиков (Обычно Полыс) 1-да,0-нет
                          );
   --перенос информации по закрытым лиц.счетам
   procedure transfer_closed_all(p_reu in kart.reu%type,  -- рэу назначения

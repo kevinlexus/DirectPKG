@@ -14,10 +14,23 @@ procedure main(p_sel_obj in number, -- вариант выборки: 0 - по klsk, 1 - по адре
                p_is_closed in number, -- выводить ли закрытый фонд, если есть долг? (0-нет, 1-да)
                p_mg in params.period%type, -- период выборки
                p_sel_uk in varchar2, -- список УК
-               p_for_arch in number default 0, -- для арх.справки (0-нет, 1-да)
+               p_postcode  in varchar2, -- почтовый индекс (при p_sel_obj=2)
                p_rfcur out ccur -- исх.рефкурсор
   );
 
+procedure main_arch(p_sel_obj   in number, -- вариант выборки: 0 - по лиц.счету, 1 - по адресу, 2 - по УК
+               p_kul       in kart.kul%type, -- код улицы
+               p_nd        in kart.nd%type, -- № дома
+               p_kw        in kart.kw%type, -- № квартиры
+               p_lsk       in kart.lsk%type, -- лиц.начальный
+               p_lsk1      in kart.lsk%type, -- лиц.конечный
+               p_is_closed in number, -- выводить ли закрытый фонд, если есть долг? (0-нет, 1-да)
+               p_firstNum  in number, -- начальный номер счета (для печати по УК)
+               p_lastNum   in number, -- конечный номер счета
+               p_mg        in params.period%type, -- период выборки
+               p_sel_uk    in varchar2, -- список УК
+               p_rfcur     out ccur -- исх.рефкурсор
+               );
 procedure contractors(p_klsk in number, -- klsk помещения
                  p_is_closed in number, -- выводить ли закрытый фонд, если есть долг? (0-нет, 1-да)
                  p_mg in params.period%type, -- период выборки

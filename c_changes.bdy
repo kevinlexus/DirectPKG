@@ -526,7 +526,9 @@ update temp_c_change2 t set t.uslm = (select u.uslm from usl u where t.usl=u.usl
 --(чтобы запрос выполн€лс€ только по a_charge , без union all)
 delete from a_charge2 a
  where l_mg between a.mgFrom and a.mgTo
- and exists (select * from temp_c_change2 t where t.lsk=a.lsk);
+ and exists (select * from temp_c_change2 t where t.lsk=a.lsk)
+ and a.mgfrom in (select b.mg from long_table b where b.mg>=l_mg); -- бред long_table нужен дл€ ускорени€ ред.03.09.2019
+ 
 insert into a_charge2
   (lsk,
    usl,
@@ -580,6 +582,8 @@ insert into a_charge2
 if l_h_usl > 0 and p_kan=1 then
   l_part:=0;
   loop
+     -- ред.23.08.2019 - убрал условие так как стал неэффективный запрос в полыс. Ќо так странно, ведь € же его ставил год назад, чтобы выполн€лс€ быстрее...
+     -- ред.03.09.2019 - восстановил условие, так как стало тормозить в кис!
     for c in (select /*+ USE_HASH(t,a,b,d) */ t.lsk, b.lsk as lsk_kan, t.org, t.proc, t.mg, d.usl, d.summa, d.vol,
        a.summa/b.summa as proc_kan, --дол€ услуги в канализовании (отношение объемов)
        round(t.proc * a.summa/b.summa,3) as proc_itg

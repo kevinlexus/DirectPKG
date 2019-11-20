@@ -12,7 +12,13 @@ create global temporary table SCOTT.TEMP_STAT2
   dist_tp            NUMBER,
   odpu_ex            VARCHAR2(16),
   ishotpipeinsulated NUMBER,
-  istowelheatexist   NUMBER
+  istowelheatexist   NUMBER,
+  kr_soi             NUMBER,
+  fact_cons          NUMBER
 )
 on commit preserve rows;
+comment on column SCOTT.TEMP_STAT2.kr_soi
+  is 'Кр на СОИ';
+comment on column SCOTT.TEMP_STAT2.fact_cons
+  is 'Фактическое потребление';
 

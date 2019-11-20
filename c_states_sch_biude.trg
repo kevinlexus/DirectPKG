@@ -7,7 +7,7 @@ begin
     if inserting then
       if nvl(:new.dt1, to_date('01011900','DDMMYYYY'))
            > nvl(:new.dt2, to_date('01012900','DDMMYYYY')) then
-        Raise_application_error(-20000, 'Внимание! Указаная дата окончания периода действия статуса счетчиков меньше начальной!!');
+        Raise_application_error(-20000, 'Внимание! Указаная дата окончания периода действия статуса счетчиков меньше начальной!');
       end if;
       if :new.id is null then
         select scott.c_states_sch_id.nextval into :new.id from dual;
@@ -31,7 +31,7 @@ begin
     elsif updating then
       if nvl(:new.dt1, to_date('01011900','DDMMYYYY'))
            > nvl(:new.dt2, to_date('01012900','DDMMYYYY')) then
-        Raise_application_error(-20000, 'Внимание! Указаная дата окончания периода статуса счетчиков меньше начальной!!');
+        Raise_application_error(-20000, 'Внимание! Указаная дата окончания периода статуса счетчиков меньше начальной!');
       end if;
       c_charges.tb_rec_states.extend;
       c_charges.tb_rec_states(c_charges.tb_rec_states.last).id := :old.id;
@@ -74,6 +74,12 @@ begin
              else '' end||
          case when :old.dt1 is not null then ' c '||to_char(:old.dt1,'DD.MM.YYYY') else ' с неопределенной даты начала ' end||
         case when :old.dt2 is not null then ' по '||to_char(:old.dt2,'DD.MM.YYYY') else ' по неопределенную дату окончания ' end, 2);
+    end if;
+    
+    if inserting or updating then
+      if :new.fk_status in (8,9) and :new.fk_close_reason is null then
+        Raise_application_error(-20000, 'Внимание! Не заполнена причина закрытия лиц.счета!');
+      end if;
     end if;
 end c_states_sch_biude;
 /

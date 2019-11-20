@@ -206,9 +206,9 @@ if var_ = 1 then
 */
   delete from scott.exp_kart;
   insert into scott.exp_kart t
-  (k_lsk_id, lsk, cd_org, kul, nd, kw, phw, mhw, pgw, mgw, pel, mel, psch, cd_lsk_tp, house_id)
+  (k_lsk_id, lsk, cd_org, kul, nd, kw, phw, mhw, pgw, mgw, pel, mel, psch, cd_lsk_tp, house_id, usl_name_short)
   select k.k_lsk_id, k.lsk, o.cd, k.kul,
-   k.nd, k.kw, k2.phw, k2.mhw, k2.pgw, k2.mgw, k2.pel, k2.mel, k.psch, tp.cd as cd_lsk_tp, k.house_id
+   k.nd, k.kw, k2.phw, k2.mhw, k2.pgw, k2.mgw, k2.pel, k2.mel, k.psch, tp.cd as cd_lsk_tp, k.house_id, k.usl_name_short
    from scott.kart k join scott.t_org o on k.reu=o.reu
    join scott.v_lsk_tp tp on k.fk_tp=tp.id
    join scott.v_lsk_tp tp2 on tp2.cd='LSK_TP_MAIN'
@@ -221,10 +221,10 @@ if var_ = 1 then
   execute immediate 'delete from imp_kart@apex t';
 
   execute immediate 'insert into imp_kart@apex t
-  (k_lsk_id, lsk, cd_org, kul, nd, kw, phw, mhw, pgw, mgw, pel, mel, psch, cd_lsk_tp, house_id)
+  (k_lsk_id, lsk, cd_org, kul, nd, kw, phw, mhw, pgw, mgw, pel, mel, psch, cd_lsk_tp, house_id, usl_name_short)
   select k.k_lsk_id, k.lsk, k.cd_org, k.kul,
    k.nd, k.kw,
-   k.phw, k.mhw, k.pgw, k.mgw, k.pel, k.mel, k.psch, k.cd_lsk_tp, k.house_id
+   k.phw, k.mhw, k.pgw, k.mgw, k.pel, k.mel, k.psch, k.cd_lsk_tp, k.house_id, k.usl_name_short
    from scott.exp_kart k';
 
   logger.log_(null, 'Apex_new: экспорт л/с, отправлено строк: '||to_char(SQL%ROWCOUNT));
@@ -300,24 +300,25 @@ if var_ = 1 then
 
    --текущие долги, с пенёй на текущую дату
   --здесь должен быть где то расчёт пени на текущий день...
-  execute immediate 'delete from imp_debit@apex t';
-
-  execute immediate 'insert into imp_debit@apex t
-   (lsk, db, pn, chrg, pay, paypn, mg)
-   select m.lsk, t.summa as db, t.penya as pn, c.summa as chrg,
+  delete from temp_imp_debit;
+  insert into temp_imp_debit
+  (lsk, db, pn, chrg, pay, paypn, mg)
+   select  m.lsk, t.summa as db, t.penya as pn, c.summa as chrg,
      c2.summa as pay, c2.summap as pay_pen, m.mg
       from (
       select k.lsk, t.mg from scott.kart k, scott.long_table t
         where exists
         (select * from scott.t_objxpar x where x.fk_k_lsk=k.k_lsk_id
-          and x.fk_list='||l_list||') --только там, где установлен параметр login-pass
-      ) m,
-      scott.c_penya t,
-      scott.c_chargepay c, scott.c_chargepay c2
-      where
-      m.mg=c.mg(+) and m.lsk=c.lsk(+) and c.type(+)=0 and c.period(+)='''||l_mg||'''
-      and m.mg=c2.mg(+) and m.lsk=c2.lsk(+) and c2.type(+)=1 and c2.period(+)='''||l_mg||'''
-      and m.mg=t.mg1(+) and m.lsk=t.lsk(+)';
+          and x.fk_list=l_list) --только там, где установлен параметр login-pass
+      ) m 
+      left join scott.c_penya t on m.mg=t.mg1 and m.lsk=t.lsk
+      left join scott.c_chargepay c on m.mg=c.mg and m.lsk=c.lsk and c.type=0 and c.period=l_mg
+      left join scott.c_chargepay c2 on m.mg=c2.mg and m.lsk=c2.lsk and c2.type=1 and c2.period=l_mg;
+      
+  execute immediate 'delete from imp_debit@apex t';
+  execute immediate 'insert into imp_debit@apex t
+   (lsk, db, pn, chrg, pay, paypn, mg)
+   select lsk, db, pn, chrg, pay, paypn, mg from temp_imp_debit';
   logger.log_(null, 'Apex_new: загрузка движения по л/c-начало');
 
   --сперва чистим временные таблицы
@@ -384,7 +385,7 @@ if var_ = 1 then
             t.test_cena, t.test_tarkoef,
             t.test_spk_koef, t.main, :p_mg as mg, t.lg_doc_id, t.npp, t.sch
             from scott.a_charge2 t
-          where :p_mg between t.mgFrom and t.mgTo and exists
+          where :p_mg between t.mgFrom and t.mgTo and t.type=1 and exists
             (select * from scott.t_objxpar x, scott.kart k where x.fk_k_lsk=k.k_lsk_id
               and k.lsk=t.lsk
               and x.fk_list=:l_list) --только там, где установлен параметр login-pass'

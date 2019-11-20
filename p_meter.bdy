@@ -53,8 +53,10 @@ create or replace package body scott.p_meter is
           --сохранить последние показания в счетчике
           update meter m set m.n1 = p_n1 where m.k_lsk_id = c.klsk;
           --обновить показания в kart
+          --Raise_application_error(-20000, 'update kart k set k.' || l_counter || '=nvl(' || p_n1 ||
+          --                  ',0) where k.lsk=' || l_lsk);
           execute immediate 'update kart k set k.' || l_counter || '=nvl(' || p_n1 ||
-                            ',0) where k.lsk=' || l_lsk;
+                            ',0) where k.lsk=''' || l_lsk||'''';
         end if;
         --вернуть klsk нового счетчика
         return c.klsk;
@@ -770,7 +772,7 @@ create or replace package body scott.p_meter is
   
     logger.log_(time_     => null,
                 comments_ => 'p_meter.del_broken_meters: окончание обработки неисправных счетчиков');
-  
+  /* закомментировал 08.07.2019 после разговора с Полыс, что не должны переходить счетчики по которым не передают показания
     logger.log_(time_     => null,
                 comments_ => 'p_meter.del_broken_meters: начало обработки счетчиков по которым не передают показания');
   
@@ -826,7 +828,7 @@ create or replace package body scott.p_meter is
                      ', > 6 месяцов, установлен норматив',
                      2);
     
-    end loop;
+    end loop;*/
   
     commit;
   end;

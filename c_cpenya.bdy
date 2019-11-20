@@ -13,31 +13,18 @@ begin
 end;
 
 --формирование по домам, в потоках
-procedure gen_charge_pay_pen_house(p_dt in date, --дата формир.
-                             p_house in number) is
- l_dt date;
+procedure gen_charge_pay_pen_house(p_house in number) is
  l_is_lstdt number;
 begin
-/*  if p_dt is null then
-    --по концу месяца
-    l_is_lstdt:=1;
-    l_dt:=init.get_dt_end;
-  else
-    --на заданную дату
-    l_is_lstdt:=0;
-    l_dt:=p_dt;
-  end if; */
   -- здесь всегда по концу месяца
   l_is_lstdt:=1;
-  l_dt:=null;
-
   logger.log_(time_, 'gen_charge_pay_pen_house начало: p_house='||p_house);
 
   for c in (select lsk from kart k where k.house_id=p_house) loop
     --пеня, на дату, с коммитом
     --движение работает внутри
     --logger.log_(time_, 'gen_charge_pay_pen_house начало: p_lsk='||c.lsk);
-    gen_penya(lsk_ => c.lsk, dat_ => l_dt, islastmonth_ => l_is_lstdt, p_commit => 1);
+    gen_penya(lsk_ => c.lsk, dat_ => null, islastmonth_ => l_is_lstdt, p_commit => 1);
     --logger.log_(time_, 'gen_charge_pay_pen_house окончание: p_lsk='||c.lsk);
   end loop;
   logger.log_(time_, 'gen_charge_pay_pen_house окончание: p_house='||p_house);
@@ -404,7 +391,7 @@ begin
   delete from temp_pen_chrg t;
 
   --узнать, начислять ли вообще пеню по данному лс?
-  select k.pn_dt, k.fk_tp, k.reu into l_pn_dt, l_lsk_tp, l_reu from kart k
+  select k.pn_dt, k.fk_tp, k.reu into l_pn_dt, l_lsk_tp, l_reu from kart k 
     where k.lsk=lsk_;
 
   --текущий период
@@ -448,17 +435,17 @@ begin
       union all
       select t.summa, t.summa as summa_deb, l_mg, null as dtek, 2 as tp 
         from c_charge t where t.lsk=lsk_ and t.type=1--начисление
-      union all
+      union all 
       select -1*t.summa, 0 as summa_deb, t.dopl, t.dtek as dtek, 3 as tp 
         from c_kwtp_mg t where t.lsk=lsk_ 
       union all
       select 0 as summa, -1*t.summa as summa_deb, t.dopl, t.dtek as dtek, 4 as tp 
         from c_kwtp_mg t where t.lsk=lsk_
-      union all
+      union all 
       select t.summa, t.summa as summa_deb, t.mgchange, t.dtek as dtek, 5 as tp 
-        from c_change t where t.lsk=lsk_
-      union all
-      select t.summa, -1*t.summa as summa_deb, t.dopl, null as dtek, 6 as tp 
+        from c_change t where t.lsk=lsk_  
+      union all   
+      select -1*t.summa, -1*t.summa as summa_deb, t.dopl, null as dtek, 6 as tp 
         from t_corrects_payments t--корректировки оплаты
                    where t.lsk=lsk_ and t.mg=l_mg; --здесь не смотрим dtek (пусть с начала месяца считает)
                    

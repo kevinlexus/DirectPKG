@@ -509,7 +509,7 @@ begin
                 end
               ,
               parse_row_txt(buffer, 6),
-              parse_row_txt(buffer, 7)
+              regexp_replace(parse_row_txt(buffer, 7), '[^0-9]', '')
                 );
      exception
        when others then

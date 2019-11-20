@@ -1,24 +1,25 @@
 create table SCOTT.EXP_KART
 (
-  k_lsk_id  NUMBER not null,
-  lsk       VARCHAR2(8 CHAR) not null,
-  cd_org    VARCHAR2(32 CHAR),
-  kul       VARCHAR2(4 CHAR) not null,
-  nd        VARCHAR2(6 CHAR) not null,
-  kw        VARCHAR2(7 CHAR) not null,
-  phw       NUMBER,
-  mhw       NUMBER,
-  pgw       NUMBER,
-  mgw       NUMBER,
-  pel       NUMBER,
-  mel       NUMBER,
-  psch      NUMBER,
-  cd_inet   VARCHAR2(4 CHAR),
-  house_id  NUMBER,
-  cd_lsk_tp VARCHAR2(32 CHAR),
-  hw_dis    NUMBER,
-  gw_dis    NUMBER,
-  el_dis    NUMBER
+  k_lsk_id       NUMBER not null,
+  lsk            VARCHAR2(8 CHAR) not null,
+  cd_org         VARCHAR2(32 CHAR),
+  kul            VARCHAR2(4 CHAR) not null,
+  nd             VARCHAR2(6 CHAR) not null,
+  kw             VARCHAR2(7 CHAR) not null,
+  phw            NUMBER,
+  mhw            NUMBER,
+  pgw            NUMBER,
+  mgw            NUMBER,
+  pel            NUMBER,
+  mel            NUMBER,
+  psch           NUMBER,
+  cd_inet        VARCHAR2(4 CHAR),
+  house_id       NUMBER,
+  cd_lsk_tp      VARCHAR2(32 CHAR),
+  hw_dis         NUMBER,
+  gw_dis         NUMBER,
+  el_dis         NUMBER,
+  usl_name_short VARCHAR2(50)
 )
 tablespace USERS
   pctfree 10
@@ -42,4 +43,6 @@ comment on column SCOTT.EXP_KART.gw_dis
   is 'Не рабочий счетчик Г.В. (неисправен, другая причина) (0, null - рабочий, 1-не раб.)';
 comment on column SCOTT.EXP_KART.el_dis
   is 'Не рабочий счетчик Эл.Эн. (неисправен, другая причина) (0, null - рабочий, 1-не раб.)';
+comment on column SCOTT.EXP_KART.usl_name_short
+  is 'Список коротких наименований услуг, по лиц.счету  (для удобного представления счета при оплате) обновляется при начислении';
 

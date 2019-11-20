@@ -62,7 +62,10 @@ begin
              sum(t.test_opl) as vol, -- объем
              max(t.test_cena) as price -- расценка
             from a_charge2 t  -- начисление
-             where t.type = 1 and p_mg between t.mgFrom and t.mgTo
+             where t.type = 1
+              and t.mgfrom in (select b.mg from long_table b where b.mg>=p_mg) -- добавлено 04.08.2019
+              and t.mgto <= p_mg
+             -- and p_mg between t.mgFrom and t.mgTo
               and t.lsk=p_lsk
              group by t.mgFrom, t.mgTo, t.usl) a on
                    u.usl=a.usl and k.mg between a.mgFrom and a.mgTo
@@ -73,7 +76,10 @@ begin
            group by t.usl) sl on u.usl=sl.usl
       left join
       (select t.usl, sum(t.kub) as kub -- объем ОДПУ
-            from a_vvod t join a_nabor2 a on a.fk_vvod=t.id and p_mg between a.mgFrom and a.mgTo
+            from a_vvod t join a_nabor2 a on a.fk_vvod=t.id 
+              and a.mgfrom in (select b.mg from long_table b where b.mg>=p_mg) -- добавлено 04.08.2019
+              and a.mgto <= p_mg
+              -- and p_mg between a.mgFrom and a.mgTo
             and t.mg = p_mg and a.lsk=p_lsk
            group by t.usl) d on u.usl=d.usl
       left join (select t.usl, sum(t.summa) as pay -- текущая оплата по услугам

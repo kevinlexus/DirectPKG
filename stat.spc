@@ -1,6 +1,7 @@
 CREATE OR REPLACE PACKAGE SCOTT.stat IS
   TYPE rep_refcursor IS REF CURSOR;
   PROCEDURE rep_stat(reu_           IN VARCHAR2,
+                     p_for_reu      IN VARCHAR2, -- для статы, УК содержащая фонд
                      kul_           IN VARCHAR2,
                      nd_            IN VARCHAR2,
                      trest_         IN VARCHAR2,

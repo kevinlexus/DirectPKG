@@ -351,7 +351,7 @@ create or replace package body scott.P_THREAD is
                (select nvl(count(*), 0)
                   from c_kart_pr t
                  where t.lsk = k.lsk
-                   and t.status not in (3, 6) --не берём 6 код (временно прожив) ред.24.05.12 -- не берем код 3 - временно зарег, ред. 14.12.17
+                   and t.status not in (3, 6, 7) --не берём 6 код (временно прожив) ред.24.05.12 -- не берем код 3 - временно зарег, ред. 14.12.17, код 7 не берем ред.01.10.2019
                    and (case
                          when nvl(rec_params.is_fullmonth, 0) = 0 and
                               t.status = 4 and --если выписан до 15 то не считать
@@ -457,7 +457,8 @@ create or replace package body scott.P_THREAD is
                    from c_kwtp t
                   where t.dat_ink between init.g_dt_start and init.g_dt_end) a, (select sum(summa) as summa
                    from kwtp_day t
-                  where t.dat_ink between
+                  where t.nkom<>'999' and -- кроме корректировок ред. 05.08.2019
+                        t.dat_ink between
                         init.g_dt_start and
                         init.g_dt_end) b
          where nvl(a.summa, 0) - nvl(b.summa, 0) <> 0;
