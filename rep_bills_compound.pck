@@ -14,10 +14,23 @@ procedure main(p_sel_obj in number, -- вариант выборки: 0 - по klsk, 1 - по адре
                p_is_closed in number, -- выводить ли закрытый фонд, если есть долг? (0-нет, 1-да)
                p_mg in params.period%type, -- период выборки
                p_sel_uk in varchar2, -- список УК
-               p_for_arch in number default 0, -- для арх.справки (0-нет, 1-да)
+               p_postcode  in varchar2, -- почтовый индекс (при p_sel_obj=2)
                p_rfcur out ccur -- исх.рефкурсор
   );
 
+procedure main_arch(p_sel_obj   in number, -- вариант выборки: 0 - по лиц.счету, 1 - по адресу, 2 - по УК
+               p_kul       in kart.kul%type, -- код улицы
+               p_nd        in kart.nd%type, -- № дома
+               p_kw        in kart.kw%type, -- № квартиры
+               p_lsk       in kart.lsk%type, -- лиц.начальный
+               p_lsk1      in kart.lsk%type, -- лиц.конечный
+               p_is_closed in number, -- выводить ли закрытый фонд, если есть долг? (0-нет, 1-да)
+               p_firstNum  in number, -- начальный номер счета (для печати по УК)
+               p_lastNum   in number, -- конечный номер счета
+               p_mg        in params.period%type, -- период выборки
+               p_sel_uk    in varchar2, -- список УК
+               p_rfcur     out ccur -- исх.рефкурсор
+               );
 procedure contractors(p_klsk in number, -- klsk помещения
                  p_is_closed in number, -- выводить ли закрытый фонд, если есть долг? (0-нет, 1-да)
                  p_mg in params.period%type, -- период выборки
@@ -57,147 +70,205 @@ end rep_bills_compound;
 
 create or replace package body scott.rep_bills_compound is
 
-procedure main(p_sel_obj in number, -- вариант выборки: 0 - по лиц.счету, 1 - по адресу, 2 - по УК
-               p_reu in kart.reu%type, -- код УК
-               p_kul in kart.kul%type, -- код улицы
-               p_nd in kart.nd%type,   -- № дома
-               p_kw in kart.kw%type,   -- № квартиры
-               p_lsk in kart.lsk%type, -- лиц.начальный
-               p_lsk1 in kart.lsk%type,-- лиц.конечный
-               p_firstNum in number, -- начальный номер счета (для печати по УК)
-               p_lastNum in number,  -- конечный номер счета
+procedure main(p_sel_obj   in number, -- вариант выборки: 0 - по лиц.счету, 1 - по адресу, 2 - по УК
+               p_reu       in kart.reu%type, -- код УК
+               p_kul       in kart.kul%type, -- код улицы
+               p_nd        in kart.nd%type, -- № дома
+               p_kw        in kart.kw%type, -- № квартиры
+               p_lsk       in kart.lsk%type, -- лиц.начальный
+               p_lsk1      in kart.lsk%type, -- лиц.конечный
+               p_firstNum  in number, -- начальный номер счета (для печати по УК)
+               p_lastNum   in number, -- конечный номер счета
                p_is_closed in number, -- выводить ли закрытый фонд, если есть долг? (0-нет, 1-да)
-               p_mg in params.period%type, -- период выборки
-               p_sel_uk in varchar2, -- список УК
-               p_for_arch in number default 0, -- для арх.справки (0-нет, 1-да)
-               p_rfcur out ccur -- исх.рефкурсор
-  ) is
+               p_mg        in params.period%type, -- период выборки
+               p_sel_uk    in varchar2, -- список УК
+               p_postcode  in varchar2, -- почтовый индекс (при p_sel_obj=2)
+               p_rfcur     out ccur -- исх.рефкурсор
+               ) is
 begin
+    if p_sel_obj = 2 then
+      -- по УК
+      open p_rfcur for
+        select k.prn_num, k.for_bill, k.lsk, k.k_lsk_id, k.opl, utils.month_name(SUBSTR(p_mg,
+                                        5,
+                                        2)) || ' ' ||
+                SUBSTR(p_mg,
+                       1,
+                       4) ||
+                ' г.' as mg2, k.kpr, k.kpr_wr, k.kpr_wrp, k.kpr_ot, k.opl, t.name as st_name, -- статус
+               decode(t.cd,
+                       'MUN',
+                       'Наниматель',
+                       'Собственник') as pers_tp, s.name || ', ' ||
+                nvl(ltrim(k.nd, '0'), '0') || '-' ||
+                nvl(ltrim(k.kw, '0'), '0') as adr, -- адрес
+               p_mg as mg, scott.utils.month_name(substr(p_mg, 5, 2)) || ' ' ||
+                substr(p_mg, 1, 4) || 'г.' as mg_str, -- период
+               k.fio
+          from scott.arch_kart k
+          join u_list tp
+            on k.fk_tp = tp.id
+          left join scott.spul s
+            on k.kul = s.id
+          left join scott.status t
+            on k.status = t.id
+          join scott.c_houses h on k.house_id=h.id
+          join (select *
+                  from (select k2.lsk, -- фильтр приоритетного открытого и основного лиц счета
+                                first_value(k2.lsk) over(partition by k2.k_lsk_id order by decode(k2.psch, 8, 1, 9, 1, 0), tp2.npp) as lsk_main
+                           from ARCH_KART k2
+                           join u_list tp2
+                             on k2.fk_tp = tp2.id
+                            and k2.mg = p_mg
+                            and k2.reu = p_reu) a
+                 where a.lsk = a.lsk_main) b
+            on b.lsk = k.lsk
+         where k.mg = p_mg
+           and k.reu = p_reu
+           and case
+                 when p_is_closed = 1 and nvl(k.for_bill, 0) = 1 then
+                  1 -- либо в т.ч.закрытые, с долгом
+                 when p_is_closed = 0 and k.psch not in (8, 9) then
+                  1 -- либо только открытые
+                 else
+                  0
+               end = 1
+           and decode(p_sel_obj, 0, p_lsk, k.lsk) >= k.lsk
+           and -- по лиц.счету
+               decode(p_sel_obj, 0, p_lsk1, k.lsk) <= k.lsk
+           and -- по лиц.счету
+               decode(p_sel_obj, 1, nvl(p_kul, k.kul), k.kul) = k.kul
+           and -- по адресу
+               decode(p_sel_obj, 1, nvl(p_nd, k.nd), k.nd) = k.nd
+           and decode(p_sel_obj, 1, nvl(p_kw, k.kw), k.kw) = k.kw
+               -- по почтовому индексу
+           and coalesce(p_postcode, h.postcode, 'x') = coalesce(h.postcode,'x')
+           and k.prn_num between p_firstNum and p_lastNum -- по адресам УК, по диапазону pr_num
+           and exists
+         (select *
+                  from arch_kart k2
+                 where k2.mg = p_mg
+                   and k2.k_lsk_id = k.k_lsk_id
+                   and decode(p_sel_uk,
+                              '0',
+                              1,
+                              instr(p_sel_uk, '''' || k2.reu || ''';', 1)) > 0)
+         order by k.prn_num;
+    else
+      -- по лиц.счету
+      open p_rfcur for
+        select k.prn_num, k.for_bill, k.lsk, k.k_lsk_id, k.opl, utils.month_name(SUBSTR(p_mg,
+                                        5,
+                                        2)) || ' ' ||
+                SUBSTR(p_mg,
+                       1,
+                       4) ||
+                ' г.' as mg2, k.kpr, k.kpr_wr, k.kpr_wrp, k.kpr_ot, k.opl, t.name as st_name, -- статус
+               decode(t.cd,
+                       'MUN',
+                       'Наниматель',
+                       'Собственник') as pers_tp, s.name || ', ' ||
+                nvl(ltrim(k.nd, '0'), '0') || '-' ||
+                nvl(ltrim(k.kw, '0'), '0') as adr, -- адрес
+               p_mg as mg, scott.utils.month_name(substr(p_mg, 5, 2)) || ' ' ||
+                substr(p_mg, 1, 4) || 'г.' as mg_str, -- период
+               k.fio
+          from scott.arch_kart k
+          join u_list tp
+            on k.fk_tp = tp.id
+          left join scott.spul s
+            on k.kul = s.id
+          left join scott.status t
+            on k.status = t.id
+         where k.mg = p_mg
+           and nvl(p_reu, k.reu) = k.reu
+           and -- ред 05.08.2019
+               case
+                 when p_is_closed = 1 and nvl(k.for_bill, 0) = 1 then
+                  1 -- либо в т.ч.закрытые, с долгом
+                 when p_is_closed = 0 and k.psch not in (8, 9) then
+                  1 -- либо только открытые
+                 else
+                  0
+               end = 1
+           and decode(p_sel_obj, 0, p_lsk, k.lsk) >= k.lsk
+           and -- по лиц.счету
+               decode(p_sel_obj, 0, p_lsk1, k.lsk) <= k.lsk
+           and -- по лиц.счету
+               decode(p_sel_obj, 1, nvl(p_kul, k.kul), k.kul) = k.kul
+           and -- по адресу
+               decode(p_sel_obj, 1, nvl(p_nd, k.nd), k.nd) = k.nd
+           and decode(p_sel_obj, 1, nvl(p_kw, k.kw), k.kw) = k.kw
+           and exists
+         (select *
+                  from arch_kart k2
+                 where k2.mg = p_mg
+                   and k2.k_lsk_id = k.k_lsk_id
+                   and decode(p_sel_uk,
+                              '0',
+                              1,
+                              instr(p_sel_uk, '''' || k2.reu || ''';', 1)) > 0)
+         order by k.prn_num;
+    end if;
+end;
 
-if p_sel_obj= 2 then
--- по УК  
-open p_rfcur for
-select k.prn_num, k.for_bill, k.lsk, k.k_lsk_id, k.opl,
-        utils.month_name(SUBSTR(p_mg, 5, 2)) || ' ' || SUBSTR(p_mg, 1, 4) || ' г.' as mg2,
-        k.kpr,
-        k.kpr_wr,
-        k.kpr_wrp,
-        k.kpr_ot,
-        k.opl,
-        t.name as st_name, -- статус
-        decode(t.cd, 'MUN','Наниматель','Собственник') as pers_tp,
-        s.name || ', ' || nvl(ltrim(k.nd, '0'), '0') || '-' ||
-        nvl(ltrim(k.kw, '0'), '0') as adr, -- адрес
-        p_mg as mg, scott.utils.month_name(substr(p_mg, 5, 2))||' '||substr(p_mg,1,4)||'г.' as mg_str, -- период
-        k.fio
-    from scott.arch_kart k
-      join v_lsk_tp tp on k.fk_tp=tp.id
-      left join scott.spul s on k.kul = s.id
-      left join scott.status t on k.status=t.id
-      join (select * from (select k2.lsk, -- фильтр приоритетного открытого и основного лиц счета
-               first_value(k2.lsk) over (partition by k2.k_lsk_id order by decode(k2.psch,8,1,9,1,0), tp2.npp) as lsk_main
-               from ARCH_KART k2 join v_lsk_tp tp2 on k2.fk_tp=tp2.id and k2.mg = p_mg
-               and k2.reu=p_reu) a where a.lsk=a.lsk_main
-               ) b on b.lsk=k.lsk
-   where k.mg = p_mg and 
-                k.reu=p_reu and
-                case 
-                  when p_for_arch = 1 then 1 -- либо для арх.справки
-                  when p_is_closed = 1 and nvl(k.for_bill,0)=1 then 1 -- либо в т.ч.закрытые, с долгом
-                  when p_is_closed = 0 and k.psch not in (8,9) then 1 -- либо только открытые
-                  else 0 end = 1 and
-                decode(p_sel_obj, 0, p_lsk, k.lsk) >= k.lsk and  -- по лиц.счету
-                decode(p_sel_obj, 0, p_lsk1, k.lsk) <= k.lsk and -- по лиц.счету
-                decode(p_sel_obj, 1, nvl(p_kul,k.kul), k.kul) = k.kul and -- по адресу
-                decode(p_sel_obj, 1, nvl(p_nd,k.nd), k.nd) = k.nd and
-                decode(p_sel_obj, 1, nvl(p_kw,k.kw), k.kw) = k.kw and
-                k.prn_num between p_firstNum and p_lastNum -- по адресам УК, по диапазону pr_num
-                and exists (
-                  select * from arch_kart k2 where k2.mg = p_mg and k2.k_lsk_id=k.k_lsk_id 
-                     and decode(p_sel_uk, '0', 1, instr(p_sel_uk, ''''||k2.reu||''';', 1)) > 0
-                )
-   order by k.prn_num;
-else
-  -- по лиц.счету, и прочие варианты
-open p_rfcur for
-select k.prn_num, k.for_bill, k.lsk, k.k_lsk_id, k.opl,
-        utils.month_name(SUBSTR(p_mg, 5, 2)) || ' ' || SUBSTR(p_mg, 1, 4) || ' г.' as mg2,
-        k.kpr,
-        k.kpr_wr,
-        k.kpr_wrp,
-        k.kpr_ot,
-        k.opl,
-        t.name as st_name, -- статус
-        decode(t.cd, 'MUN','Наниматель','Собственник') as pers_tp,
-        s.name || ', ' || nvl(ltrim(k.nd, '0'), '0') || '-' ||
-        nvl(ltrim(k.kw, '0'), '0') as adr, -- адрес
-        p_mg as mg, scott.utils.month_name(substr(p_mg, 5, 2))||' '||substr(p_mg,1,4)||'г.' as mg_str, -- период
-        k.fio
-    from scott.arch_kart k
-      join v_lsk_tp tp on k.fk_tp=tp.id
-      left join scott.spul s on k.kul = s.id
-      left join scott.status t on k.status=t.id
-   where k.mg = p_mg and 
-                k.reu=p_reu and
-                case 
-                  when p_for_arch = 1 then 1 -- либо для арх.справки
-                  when p_is_closed = 1 and nvl(k.for_bill,0)=1 then 1 -- либо в т.ч.закрытые, с долгом
-                  when p_is_closed = 0 and k.psch not in (8,9) then 1 -- либо только открытые
-                  else 0 end = 1 and
-                decode(p_sel_obj, 0, p_lsk, k.lsk) >= k.lsk and  -- по лиц.счету
-                decode(p_sel_obj, 0, p_lsk1, k.lsk) <= k.lsk and -- по лиц.счету
-                decode(p_sel_obj, 1, nvl(p_kul,k.kul), k.kul) = k.kul and -- по адресу
-                decode(p_sel_obj, 1, nvl(p_nd,k.nd), k.nd) = k.nd and
-                decode(p_sel_obj, 1, nvl(p_kw,k.kw), k.kw) = k.kw
-                and exists (
-                  select * from arch_kart k2 where k2.mg = p_mg and k2.k_lsk_id=k.k_lsk_id 
-                     and decode(p_sel_uk, '0', 1, instr(p_sel_uk, ''''||k2.reu||''';', 1)) > 0
-                )
-   order by k.prn_num;
-end if;
-/*  select k.prn_num, k.for_bill, k.lsk, k.k_lsk_id, k.opl,
-        utils.month_name(SUBSTR(p_mg, 5, 2)) || ' ' || SUBSTR(p_mg, 1, 4) || ' г.' as mg2,
-        k.kpr,
-        k.kpr_wr,
-        k.kpr_wrp,
-        k.kpr_ot,
-        k.opl,
-        t.name as st_name, -- статус
-        decode(t.cd, 'MUN','Наниматель','Собственник') as pers_tp,
-        s.name || ', ' || nvl(ltrim(k.nd, '0'), '0') || '-' ||
-        nvl(ltrim(k.kw, '0'), '0') as adr, -- адрес
-        p_mg as mg, scott.utils.month_name(substr(p_mg, 5, 2))||' '||substr(p_mg,1,4)||'г.' as mg_str, -- период
-        k.fio
-    from scott.arch_kart k
-      join v_lsk_tp tp on k.fk_tp=tp.id
-      left join scott.spul s on k.kul = s.id
-      left join scott.status t on k.status=t.id
-      join (select * from (-- фильтр по: открытый лиц.счет + NPP в v_lsk_tp выбрать приоритетный лиц.счет
-              select k2.lsk,
-               first_value(k2.lsk) over (partition by k2.k_lsk_id order by decode(k2.psch,8,1,9,1,0), tp2.npp) as lsk_main
-               from ARCH_KART k2 join v_lsk_tp tp2 on k2.fk_tp=tp2.id and k2.mg = p_mg
-               where
-                decode(p_sel_uk, '0', 1, instr(p_sel_uk, ''''||k2.reu||''';', 1)) > 0 -- фильтр по УК
-                and case when p_is_closed = 1 and nvl(k2.for_bill,0)=1 then 1 -- либо в т.ч.закрытые, с долгом
-                  when p_is_closed = 0 and k2.psch not in (8,9) then 1 -- либо только открытые
-                  else 0 end = 1 and
-                decode(p_sel_obj, 0, p_lsk, k2.lsk) >= k2.lsk and  -- по лиц.счету
-                decode(p_sel_obj, 0, p_lsk1, k2.lsk) <= k2.lsk and -- по лиц.счету
-                decode(p_sel_obj, 1, nvl(p_kul,k2.kul), k2.kul) = k2.kul and -- по адресу
-                decode(p_sel_obj, 1, nvl(p_nd,k2.nd), k2.nd) = k2.nd and
-                decode(p_sel_obj, 1, nvl(p_kw,k2.kw), k2.kw) = k2.kw
-                and exists (
-                  select * from arch_kart k3 where k3.mg = p_mg and k3.k_lsk_id=k2.k_lsk_id and k3.psch not in (8,9) and
-                  case when p_sel_obj = 2 and k3.reu=p_reu and k3.prn_num between p_firstNum and p_lastNum then 1 -- по адресам УК, по диапазону pr_num
-                       when p_sel_obj != 2 then 1
-                      else 0 end = 1
-                )
-              ) a where a.lsk=a.lsk_main) b on k.lsk=b.lsk
-   where k.mg = p_mg 
-   and decode(p_sel_uk, '0', 1, instr(p_sel_uk, ''''||k.reu||''';', 1)) > 0 -- фильтр по УК
-   order by k.prn_num;
-   */
-
+-- для арх.справки
+procedure main_arch(p_sel_obj   in number, -- вариант выборки: 0 - по лиц.счету, 1 - по адресу, 2 - по УК
+               p_kul       in kart.kul%type, -- код улицы
+               p_nd        in kart.nd%type, -- № дома
+               p_kw        in kart.kw%type, -- № квартиры
+               p_lsk       in kart.lsk%type, -- лиц.начальный
+               p_lsk1      in kart.lsk%type, -- лиц.конечный
+               p_is_closed in number, -- выводить ли закрытый фонд, если есть долг? (0-нет, 1-да)
+               p_firstNum  in number, -- начальный номер счета (для печати по УК)
+               p_lastNum   in number, -- конечный номер счета
+               p_mg        in params.period%type, -- период выборки (для арх.справки-обычно текущий период)
+               p_sel_uk    in varchar2, -- список УК
+               p_rfcur     out ccur -- исх.рефкурсор
+               ) is
+begin
+    -- по лиц.счету, и прочие варианты
+    open p_rfcur for
+      select k.k_lsk_id, s.name || ', ' ||
+                nvl(ltrim(k.nd, '0'), '0') || '-' ||
+                nvl(ltrim(k.kw, '0'), '0') as adr, k.lsk, k.kpr, k.opl, decode(st.cd,
+                       'MUN',
+                       'Наниматель',
+                       'Собственник') as pers_tp, k.fio, o.name as name_uk
+        from scott.arch_kart k
+          left join scott.spul s
+            on k.kul = s.id
+          left join scott.status st
+            on k.status = st.id
+          join t_org o on k.reu=o.reu
+          join (select *
+                  from (select k2.lsk, -- фильтр приоритетного открытого и основного лиц счета
+                                first_value(k2.lsk) over(partition by k2.k_lsk_id order by decode(k2.psch, 8, 1, 9, 1, 0), tp2.npp) as lsk_main
+                           from KART k2
+                           join u_list tp2
+                             on k2.fk_tp = tp2.id
+                           where decode(p_sel_obj, 0, p_lsk, k2.lsk) = k2.lsk
+                              --and k2.mg = p_mg
+                            ) a
+                 where a.lsk = a.lsk_main) b
+            on b.lsk = k.lsk
+       where k.mg = p_mg --and k.lsk='00000007'
+         and decode(p_sel_obj, 0, p_lsk, k.lsk) >= k.lsk
+         and -- по лиц.счету
+             decode(p_sel_obj, 0, p_lsk1, k.lsk) <= k.lsk
+         and -- по лиц.счету
+             decode(p_sel_obj, 1, nvl(p_kul, k.kul), k.kul) = k.kul
+         and -- по адресу
+             decode(p_sel_obj, 1, nvl(p_nd, k.nd), k.nd) = k.nd
+         and decode(p_sel_obj, 1, nvl(p_kw, k.kw), k.kw) = k.kw
+         and k.prn_num between p_firstNum and p_lastNum -- по адресам УК, по диапазону pr_num
+         group by k.k_lsk_id, s.name || ', ' ||
+                nvl(ltrim(k.nd, '0'), '0') || '-' ||
+                nvl(ltrim(k.kw, '0'), '0'), k.lsk, k.kpr, k.opl, decode(st.cd,
+                       'MUN',
+                       'Наниматель',
+                       'Собственник'), k.fio, o.name
+         order by k_lsk_id;
 end;
 
 -- исполнители по ПД
@@ -229,7 +300,7 @@ open p_rfcur for
         o3.adr_www,
         k.psch, stp.cd as lsk_tp, stp.npp as lsk_tp_npp, k.prn_num, k.prn_new
     from scott.arch_kart k
-      join scott.v_lsk_tp stp on k.fk_tp=stp.id
+      join scott.u_list stp on k.fk_tp=stp.id
       join scott.spul s on k.kul = s.id
       join scott.status t on k.status=t.id
       join scott.t_org_tp tp on tp.cd='РКЦ'
@@ -264,10 +335,10 @@ procedure getQr(p_klsk in number, -- klsk помещения
 begin
 
 open p_rfcur for
-  select 
+  select
    'ST00012'||'|Name='||a.full_name||'|PersonalAcc='||a.raschet_schet||
    '|BankName='||a.bank||'|BIC='||a.bik||'|CorrespAcc='||a.k_schet
-   ||'|PayeeINN='||a.inn||'|persAcc='||a.lsk||'|' as QR, 
+   ||'|PayeeINN='||a.inn||'|persAcc='||a.lsk||'|' as QR,
    case when lsk_tp='LSK_TP_ADDIT' then 'Фонд капремонта' else a.uk_name end as uk_name
   from (
   select k.lsk, k.k_lsk_id, k.opl,
@@ -293,7 +364,7 @@ open p_rfcur for
       join scott.t_org_tp tp2 on tp2.cd='Город'
       join scott.t_org o2 on tp2.id=o2.fk_orgtp
       join scott.t_org o3 on k.reu=o3.reu
-      join scott.v_lsk_tp stp on k.fk_tp=stp.id and -- фильтр по типу лиц.счетов
+      join scott.u_list stp on k.fk_tp=stp.id and -- фильтр по типу лиц.счетов
            case when p_sel_tp=0 and stp.cd not in 'LSK_TP_ADDIT' then 1 -- все, кроме капремонта
                 when p_sel_tp=1 and stp.cd in 'LSK_TP_ADDIT' then 1 -- капрем.
                 when p_sel_tp=3 and stp.cd in 'LSK_TP_MAIN' then 1 -- основные
@@ -356,7 +427,7 @@ open p_rfcur for
       join scott.t_org_tp tp2 on tp2.cd='Город'
       join scott.t_org o2 on tp2.id=o2.fk_orgtp
       join scott.t_org o3 on k.reu=o3.reu
-      join scott.v_lsk_tp stp on k.fk_tp=stp.id and -- фильтр по типу лиц.счетов
+      join scott.u_list stp on k.fk_tp=stp.id and -- фильтр по типу лиц.счетов
            case when p_sel_tp=0 and stp.cd not in 'LSK_TP_ADDIT' then 1 -- все, кроме капремонта
                 when p_sel_tp=1 and stp.cd in 'LSK_TP_ADDIT' then 1 -- капрем.
                 when p_sel_tp=3 and stp.cd in 'LSK_TP_MAIN' and k.psch not in (8,9) then 1 -- основные КРОМЕ ЗАКРЫТЫХ ТОЛЬКО в этом p_sel_tp=3!!! (Бред ред.29.12.18)
@@ -383,8 +454,13 @@ open p_rfcur for
            where l.mg=p_mg
            group by l.lsk) p5 on k.lsk=p5.lsk
       left join (select l.lsk, sum(l.summa) as charge -- начисление текущее
-            from scott.a_charge2 l
-           where p_mg between l.mgFrom and l.mgTo and l.type=1
+            --from scott.tmp_a_charge l join kart t on l.lsk=t.lsk and t.k_lsk_id=p_klsk
+            from scott.a_charge2 l  -- ВРЕМЕННОЕ РЕШЕНИЕ
+           where
+              p_mg between l.mgFrom and l.mgTo and
+              l.type=1
+              --and l.mgfrom in (select b.mg from long_table b where b.mg>=p_mg) -- добавлено 04.08.2019 -- некорректное условие ред.11.02.2020
+              --and p_mg <=l.mgto -- ред. 11.02.2020 - стояло неправильное условие
            group by l.lsk) p6 on k.lsk=p6.lsk
       left join (select l.lsk, sum(l.summa) as change -- перерасчеты
             from scott.a_change l
@@ -461,7 +537,7 @@ procedure funds_flow_by_klsk(
 begin
 
   tab:= tab_bill_detail();
-  for c in (select k.lsk, k.psch from arch_kart k join scott.v_lsk_tp stp on k.fk_tp=stp.id and -- фильтр по типу лиц.счетов
+  for c in (select k.lsk, k.psch from kart k join scott.u_list stp on k.fk_tp=stp.id and -- фильтр по типу лиц.счетов ред.05.03.20 - убрал здесь arch_kart
                      case when p_sel_tp=0 and stp.cd not in 'LSK_TP_ADDIT' then 1 -- все, кроме капремонта
                           when p_sel_tp=1 and stp.cd in 'LSK_TP_ADDIT' then 1 -- капрем.
                           when p_sel_tp=3 and stp.cd in 'LSK_TP_MAIN' then 1 -- основные
@@ -471,7 +547,7 @@ begin
                           when p_sel_flt_tp=1 and stp.cd in ('LSK_TP_MAIN','LSK_TP_ADDIT') then 1 -- Основной+капрем.
                           when p_sel_flt_tp=2 and stp.cd in ('LSK_TP_RSO') then 1 -- Только РСО
                           else 0 end = 1
-                     where k.k_lsk_id=p_klsk and k.mg=p_mg
+                     where k.k_lsk_id=p_klsk-- and k.mg=p_mg ред.05.03.20 - убрал arch_kart, убрал условие
                           and decode(p_sel_uk, '0', 1, instr(p_sel_uk, ''''||k.reu||''';', 1)) > 0 -- фильтр по УК
                    ) loop
 

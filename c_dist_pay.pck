@@ -156,7 +156,7 @@ insert into c_deb_usl
 end;
 
 -- перенос переплаты на следующие периоды ред.20.02.2018 по просьбе Полыс
-procedure transfer_overpay(p_lsk in kart.lsk%type) is 
+procedure transfer_overpay(p_lsk in kart.lsk%type) is
   l_dt_start date;
   l_dt_end date;
   l_mg1 params.period%type;
@@ -166,30 +166,30 @@ begin
  -- перебрать все лс, усл, орг
  for c in (select distinct t.lsk, t.usl, t.org from c_deb_usl t, params p where t.period=p.period
             and nvl(p_lsk, t.lsk)=t.lsk) loop
-   l_overpay:=0;    
-   -- перебрать все периоды по данному усл, орг     
-   for c2 in (select t.summa, t.mg, lead(t.lsk,1) over (order by t.mg) as is_last, t.rowid from c_deb_usl t, params p 
+   l_overpay:=0;
+   -- перебрать все периоды по данному усл, орг
+   for c2 in (select t.summa, t.mg, lead(t.lsk,1) over (order by t.mg) as is_last, t.rowid from c_deb_usl t, params p
                      where t.period=p.period and t.lsk=c.lsk and t.usl=c.usl and t.org=c.org
                      and nvl(t.summa,0) <> 0
                      order by t.mg
                      ) loop
-   if c2.summa+l_overpay <= 0 and c2.is_last is not null then 
+   if c2.summa+l_overpay <= 0 and c2.is_last is not null then
      -- найдена переплата, сохранить, если период не последний
      l_overpay:=c2.summa+l_overpay;
      -- удалить ноль задолжности по данному периоду
        delete from c_deb_usl t where t.rowid=c2.rowid;
-   else 
+   else
      -- обновить сумму задолжности
      if c2.summa+l_overpay <> c2.summa then
-       update c_deb_usl t set t.summa = c2.summa+l_overpay 
+       update c_deb_usl t set t.summa = c2.summa+l_overpay
          where t.rowid=c2.rowid;
-     end if;  
+     end if;
      l_overpay:=0;
-   end if; 
-   
-   
+   end if;
+
+
    end loop;
-            
+
  end loop;
 
 end;
@@ -198,14 +198,14 @@ procedure dist_pay_all is
 l_rec c_kwtp_mg%rowtype;
 begin
   --распределение всех не распределенных платежей
-for c in (select k.reu, t.*, t.rowid as rw from c_kwtp_mg t, kart k where/*t.lsk='06002298'
-  and */ t.lsk=k.lsk
+for c in (select k.reu, t.*, t.rowid as rw from c_kwtp_mg t, kart k where t.lsk='06017161'
+  and t.lsk=k.lsk
   and not exists (select * from kwtp_day k where k.kwtp_id=t.id
      and k.dtek between init.g_dt_start and init.g_dt_end)
   )
 loop
 
- select t.lsk, t.summa, t.penya, t.oper, t.dopl, t.nink, t.nkom, t.dtek, t.nkvit, 
+ select t.lsk, t.summa, t.penya, t.oper, t.dopl, t.nink, t.nkom, t.dtek, t.nkvit,
  t.dat_ink, t.ts, t.c_kwtp_id, t.cnt_sch, t.cnt_sch0, t.id, null, t.debt
   into l_rec from c_kwtp_mg t where t.id=c.id
   and t.rowid=c.rw
@@ -269,7 +269,7 @@ begin
           and t.type=1
         group by n.usl, n.org
         having sum(t.summa) > 0); --только по начислению > 0
-    elsif p_distr in (14,15,18,19) then
+    elsif p_distr in (14,15,18,19,20) then
     --по деб сальдо - не проверять!
       l_cnt:=1;
     end if;
@@ -284,8 +284,8 @@ begin
       select rec_summ(b.usl, b.org, b.summa, 0) bulk collect --убрал редирект - тормозит у полыс
           into t_summ
           from (
-          select a.usl, a.org, sum(a.summa) as summa from   
-            (select t.usl, t.org, t.charges as summa from  
+          select a.usl, a.org, sum(a.summa) as summa from
+            (select t.usl, t.org, t.charges as summa from
                 xitog3_lsk t
               where t.mg = p_mg
               and t.lsk=p_rec.lsk
@@ -296,13 +296,13 @@ begin
       select rec_summ(b.usl, b.org, b.summa, 0) bulk collect --убрал редирект - тормозит у полыс
           into t_summ
           from (
-          select a.usl, a.org, sum(a.summa) as summa from   
-            (select t.usl, t.org, t.charges as summa from  
+          select a.usl, a.org, sum(a.summa) as summa from
+            (select t.usl, t.org, t.charges as summa from
                 xitog3_lsk t
               where t.mg = p_mg
               and t.lsk=p_rec.lsk
             union all
-            select t.usl, t.org, t.summa from  
+            select t.usl, t.org, t.summa from
                 (
          select /*+ INDEX (k A_NABOR2_I)*/
           p.lsk, p.summa, p.usl, t.fk_org2 as org, p.mgchange
@@ -462,8 +462,8 @@ begin
               from xitog3_lsk t, kart k, params p --взять входящее деб сальдо
               where t.lsk=p_rec.lsk and t.lsk=k.lsk
               and t.mg=p.period
-              and exists 
-              (select * from spr_proc_pay r where 
+              and exists
+              (select * from spr_proc_pay r where
                  decode(r.reu, '**', k.reu, r.reu)=k.reu -- либо все **, либо указанный УК
                  and r.usl=t.usl and r.org=t.org
                  and p_mg between r.mg1 and r.mg2)
@@ -482,7 +482,7 @@ begin
               from xitog3_lsk t, kart k, params p --взять входящее деб сальдо
               where t.lsk=p_rec.lsk and t.lsk=k.lsk
               and t.mg=p.period
-              and not exists 
+              and not exists
               (select * from nabor n where n.lsk=t.lsk and n.usl=t.usl and n.org=t.org)) d
              group by d.usl, d.org
              having  sum(summa ) > 0;
@@ -490,8 +490,30 @@ begin
       --нет записей, вернуться
       return 0;
     end if;
+  elsif p_distr in (20) then
+    --по кред сальдо, без учёта принятой оплаты, и без корректировочной проводки
+    select rec_summ(d.usl, d.org, sum(d.summa), 0) bulk collect
+          into t_summ from
+            (select t.usl, t.org, nvl(t.indebet,0)+nvl(t.inkredit,0) as summa
+              from xitog3_lsk t, params p --взять входящее сальдо
+              where t.lsk=p_rec.lsk
+              and t.mg=p.period
+            union all
+            select n.usl, o.fk_org2 as org, t.summa --убрал редирект - тормозит у полыс
+              from c_charge t, nabor n, t_org o  --прибавить текущее начисление
+              where t.lsk=p_rec.lsk and n.org=o.id
+              and t.lsk=n.lsk
+              and t.usl=n.usl
+              and t.type=1
+             ) d
+             group by d.usl, d.org
+             having  sum(summa ) < 0;
+    if sql%rowcount =0 then
+      --нет записей, вернуться
+      return 0;
+    end if;
   end if;
-  
+
   else
     --подготовить для распределения пени по уже выполненному платежу
     select rec_summ(t.usl, t.org, sum(t.summa), 0) bulk collect
@@ -524,7 +546,7 @@ begin
   if p_kwtp_mg_id is null then
   if utils.get_int_param('RESTRICT_BY_SAL') = 1 and -- стоит 1 у КИС
      utils.get_int_param('RESTRICT_WITH_CHNG') = 0 and -- стоит 0 у КИС
-     p_distr not in (15,16,17) then
+     p_distr not in (15,16,17,20) then
       --без перерасчетов
       insert into temp_prep  --поставил 20.04.15 в 15:08
         (usl, org, summa, tp_cd)
@@ -554,7 +576,7 @@ begin
         select a.usl, a.org, nvl(b.summa,0)-nvl(a.summa,0) as diff, 4 as tp_cd from a
               left join b on a.usl=b.usl and a.org=b.org
               where nvl(b.summa,0)-nvl(a.summa,0) <0; --где распределение породит кредитовое сальдо
-   elsif utils.get_int_param('RESTRICT_BY_SAL') = 1 and utils.get_int_param('RESTRICT_WITH_CHNG') = 1 and p_distr not in (15,16,17,18) then 
+   elsif utils.get_int_param('RESTRICT_BY_SAL') = 1 and utils.get_int_param('RESTRICT_WITH_CHNG') = 1 and p_distr not in (15,16,17,18,20) then
       -- не работает в КИС!
       --с перерасчетами
       insert into temp_prep  --поставил 20.04.15 в 15:08
@@ -570,7 +592,7 @@ begin
             union all
         select t.usl, t.org, t.summa
         from (
-        
+
         select lsk, sum(summa) as summa, org, usl, type
         from (
           select /*+ INDEX (k A_NABOR2_I)*/
@@ -596,7 +618,7 @@ begin
             and p.org is null  -- где не указан код орг и старые периоды
             and k.org=t.id
             and not exists             --и где НЕ найдена услуга в архивном справочнике
-            (select /*+ INDEX (n A_NABOR2_I)*/ * from a_nabor2 n 
+            (select /*+ INDEX (n A_NABOR2_I)*/ * from a_nabor2 n
                where n.lsk=k.lsk and n.lsk = p_rec.lsk and p.mg2 between n.mgFrom and n.mgTo and n.usl=k.usl)
             and p.mg2 < m.period
             and to_char(p.dtek, 'YYYYMM') = m.period
@@ -621,8 +643,8 @@ begin
             and p.org is not null  -- где указан код орг и не важно какой период
             and to_char(p.dtek, 'YYYYMM') = m.period)
              group by lsk, org, usl, type
-        
-        
+
+
         ) t where t.lsk=p_rec.lsk and t.org is not null --добавить перерасчеты
             union all
             select n.usl, o.fk_org2 as org, t.summa
@@ -717,6 +739,7 @@ begin
 --17 - распределено по дебетовому сальдо, без коррект проводки и без учета оплаты
 --18 - нетекущий период распределить сперва по списку закрытых услуг и орг (чтобы закрывались сальдо)
 --19 - распределить по дебетовому сальдо тех организаций, которые уже не работают в текущем периоде
+--20 - распределено по дебетовому сальдо, без коррект проводки и без учета оплаты
 
 --ВНИМАНИЕ!!! СНЯТИЕ ОПЛАТЫ ДЕЛАТЬ В точности по + ОПЛАТЫ (зеркальная обратная операция)
 select rec_redir(t.reu, t.fk_usl_src, t.fk_usl_dst, t.fk_org_src, t.fk_org_dst, t.tp)
@@ -741,16 +764,16 @@ l_summa_old:=l_summa;
 -- блок только для Полыс, для того чтобы сперва закрывалось дебетовое сальдо неработающих уже орг.
 if utils.get_int_param('DIST_PAY_OLD_DEB') = 1 --and p_rec.lsk ='06004135'
    then
-l_summa_tmp:=0;     
+l_summa_tmp:=0;
     loop
       l_dist:=19; --по деб сальдо уже неработающих организаций
       if l_summa > 0 then
         l_summa_tmp:=dist(l_mg, l_summa, 1, l_dist, null);
-      else 
-        exit;  
-      end if;  
+      else
+        exit;
+      end if;
       l_summa:=l_summa-l_summa_tmp;
-      if abs(l_summa_old-l_summa)=0 then 
+      if abs(l_summa_old-l_summa)=0 then
         --сумма оплаты не распределяется, выйти
         exit;
       else
@@ -759,7 +782,7 @@ l_summa_tmp:=0;
       end if;
     end loop;
 end if;
-  
+
 
 l_summap_old:=l_summa_p;
 l_flag:=0;
@@ -875,13 +898,13 @@ if utils.get_int_param('PAY_ORD1') = 1 then
 else
   -- вариант КИС по УК '13','14' с 15.12.2017:
   /* КИС:
-  блииин, мое начальство подумало и решило, что вы правы и кинуть все на содержание слишком "жирно", 
+  блииин, мое начальство подумало и решило, что вы правы и кинуть все на содержание слишком "жирно",
   поэтому пока по УК 14 и 15 просто меняем пункты местами вместо 3 ставим 4.
   вариант КИС по всем УК с 19.12.2017:
-  Л.Н. скинула в Новую папку файл "УК остальные старые услуги и организации".Добавите в справочник. 
+  Л.Н. скинула в Новую папку файл "УК остальные старые услуги и организации".Добавите в справочник.
   И после этого можно поменять в распределении оплаты с 3, 4 на 4, 3 для всех остальных УК (для 14 и 15 уже так сделали в понедельник помоему)?
   */
-  
+
  -- if p_reu in ('13','14') then
     --пункт 4
     if l_summa <> 0 then
@@ -948,18 +971,30 @@ else
         end loop;
       end if;
     end if;
-    
+
   end if;*/
 
 end if;
 
 
 if l_summa <> 0 then
-  --если прям совсем невозможно распред по конкретному периоду (срезается по сальдо) , 
-  --то распределить по дебетовому сальдо, без учёта принятой оплаты, и без корректировочной проводки
+  --если прям совсем невозможно распред по конкретному периоду (срезается по сальдо),
+  --то распределить по Дебетовому сальдо, без учёта принятой оплаты, и без корректировочной проводки
   i:=0;
   loop
     l_summa_tmp:=dist(p_rec.dopl, l_summa, 1, 17, null);
+    l_summa:=l_summa-l_summa_tmp;
+    i:=i+1;
+    exit when l_summa =0 or i >=500 ;
+  end loop;
+end if;
+
+if l_summa <> 0 then
+  --если прям совсем невозможно распред по конкретному периоду,
+  --то распределить по Кредитовому сальдо, без учёта принятой оплаты, и без корректировочной проводки
+  i:=0;
+  loop
+    l_summa_tmp:=dist(p_rec.dopl, l_summa, 1, 20, null);
     l_summa:=l_summa-l_summa_tmp;
     i:=i+1;
     exit when l_summa =0 or i >=500 ;
@@ -974,7 +1009,7 @@ if l_summa <> 0 then --если и по конкретному периоду (без корректир.) не распр.,
      p_rec.oper, p_rec.dopl,
      p_rec.nkom, p_rec.nink, p_rec.dat_ink, 1 as priznak, p_rec.dtek
      from nabor n where n.lsk=p_rec.lsk and rownum=1;
-    if sql%rowcount <> 0 then 
+    if sql%rowcount > 0 then
       l_summa:=0;
     end if;
 end if;
@@ -1011,7 +1046,10 @@ if l_summa_p <> 0 then --если и по деб сальдо не распр, кинуть всю сумму на 1 ую
      p_rec.oper, p_rec.dopl,
      p_rec.nkom, p_rec.nink, p_rec.dat_ink, 0 as priznak, p_rec.dtek
      from nabor n where n.lsk=p_rec.lsk and rownum=1 ;
-  l_summa_p:=0;   
+  if sql%rowcount > 0 then
+    -- если было обработано
+    l_summa_p:=0;
+  end if;
 end if;
 
 if l_summa_p > 0 then --если и по nabor не распр, кинуть на УК, тек содерж
@@ -1039,9 +1077,9 @@ select case when nvl(sum(decode(t.priznak, 1, t.summa, 0)),0) - nvl(p_rec.summa,
        into l_cnt, l_summa_err
   from kwtp_day t where t.kwtp_id=p_rec.id;
 if l_cnt = 1 then
-  Raise_application_error(-20000, 'Код ошибки #1 в л.с.='||p_rec.lsk||', kwtp_id='||p_rec.id||' Возможно нет начисления за период, разница='||l_summa_err);
+  Raise_application_error(-20000, 'Код ошибки #1 в л.с.='||p_rec.lsk||', kwtp_id='||p_rec.id||' Возможно нет начисления за период, ИЛИ надо добавить услуги в карточку ЛС! разница='||l_summa_err);
 elsif l_cnt = 2 then
-  Raise_application_error(-20000, 'Код ошибки #0 в л.с.='||p_rec.lsk||', kwtp_id='||p_rec.id||' Возможно нет начисления за период, разница='||l_summa_err);
+  Raise_application_error(-20000, 'Код ошибки #0 в л.с.='||p_rec.lsk||', kwtp_id='||p_rec.id||' Возможно нет начисления за период, ИЛИ надо добавить услуги в карточку ЛС! разница='||l_summa_err);
 end if;
 
  --выполнить редирект оплаты или пени
@@ -1159,7 +1197,7 @@ begin
 --принудительное распределение Авансовых платежей
 --удалить распределение авансовых
 logger.log_(null, 'scott.c_dist_pay.dist_pay_lsk_avnc_force : Начало перераспределения авансовых платежей');
-delete from kwtp_day t where 
+delete from kwtp_day t where
   exists (select * from c_kwtp_mg m, params p
    where m.id=t.kwtp_id and (m.summa > 0 or m.penya >0) and m.dopl >= p.period);
 

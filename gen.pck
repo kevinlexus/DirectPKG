@@ -75,9 +75,9 @@ create or replace package body scott.gen is
   l_mg1 params.period%type;
   rec_params cur_params%rowtype;
   begin
-  
+
   return;
-      
+
   Raise_application_error(-20000, 'НЕ РАБОТАЕТ БЛОК!');
   --нет ошибок
   err_:=0;
@@ -85,14 +85,14 @@ create or replace package body scott.gen is
   select o.cd into l_cd_org
    from scott.t_org o, scott.t_org_tp tp
    where tp.id=o.fk_orgtp and tp.cd='РКЦ';
-  
-  
+
+
   open cur_params;
   fetch cur_params
     into rec_params;
   close cur_params;
-  
-  
+
+
   l_mg1:=utils.add_months_pr(rec_params.period, 1);
 
   --проверка до и во время формирования
@@ -114,10 +114,10 @@ create or replace package body scott.gen is
      return;
    end if;
 
-    --проверяем кол-во проживающих в карточках (кроме дополнительных счетов, - там не проверять! ред. 03.11.2015) 
+    --проверяем кол-во проживающих в карточках (кроме дополнительных счетов, - там не проверять! ред. 03.11.2015)
    cnt_:=0;
     select nvl(count(*),0) into cnt_ from kart k, v_lsk_tp tp where -- +++
-        k.fk_tp=tp.id and tp.cd='LSK_TP_MAIN' 
+        k.fk_tp=tp.id and tp.cd='LSK_TP_MAIN'
         and k.psch not in (8,9) -- ред 05.12.18
         and k.kpr <>(select nvl(count(*),0)
                        from c_kart_pr t
@@ -179,7 +179,7 @@ create or replace package body scott.gen is
        return;
      end if;
    end if;
-   
+
 
    select nvl(a.summa,0)-nvl(b.summa,0) into cnt_ -- +++
      from (select nvl(sum(summa),0)+nvl(sum(penya),0) as summa from c_kwtp t
@@ -193,11 +193,11 @@ create or replace package body scott.gen is
      err_:=6;
      return;
    end if;
-   
-  select count(*), 
+
+  select count(*),
     rtrim(xmlagg(xmlelement(e, a.nkom,',').extract('//text()')),',') -- +++
      into cnt_, l_str
-   from (select distinct t.nkom from c_kwtp t where nvl(t.nink, 0) = 0) a; 
+   from (select distinct t.nkom from c_kwtp t where nvl(t.nink, 0) = 0) a;
 --если раскомментировать, то будет мешать при формировании (не проверит, что выполнена инкассация)
 --     and c.dat_ink between init.g_dt_start and init.g_dt_end;
    if cnt_ <> 0 then
@@ -205,7 +205,7 @@ create or replace package body scott.gen is
      err_:=4;
      return;
    end if;
-   
+
   select count(*) into cnt_ from ALL_TAB_COLUMNS t -- +++
    where t.TABLE_NAME='A_CHARGE_PREP2' and lower(t.OWNER)='scott';
    if cnt_ <> 18 then
@@ -229,12 +229,12 @@ create or replace package body scott.gen is
      err_:=4;
      return;
    end if;
-      
+
  elsif var_ =2 then
-  select count(*), 
+  select count(*),
     rtrim(xmlagg(xmlelement(e, a.nkom,',').extract('//text()')),',')
      into cnt_, l_str
-   from (select distinct t.nkom from c_kwtp t where nvl(t.nink, 0) = 0) a; 
+   from (select distinct t.nkom from c_kwtp t where nvl(t.nink, 0) = 0) a;
 --если раскомментировать, то будет мешать при формировании (не проверит, что выполнена инкассация)
 --     and c.dat_ink between init.g_dt_start and init.g_dt_end;
    if cnt_ <> 0 then
@@ -243,10 +243,10 @@ create or replace package body scott.gen is
      return;
    end if;
  elsif var_ =3 then
-  select count(*), 
+  select count(*),
     rtrim(xmlagg(xmlelement(e, a.nkom,',').extract('//text()')),',')
      into cnt_, l_str
-   from (select distinct t.nkom from c_kwtp t where nvl(t.nink, 0) = 0) a; 
+   from (select distinct t.nkom from c_kwtp t where nvl(t.nink, 0) = 0) a;
 --если раскомментировать, то будет мешать при формировании (не проверит, что выполнена инкассация)
 --     and c.dat_ink between init.g_dt_start and init.g_dt_end;
    if cnt_ <> 0 then
@@ -275,8 +275,8 @@ create or replace package body scott.gen is
   --проверки до ПЕРЕХОДА!
   --проверка, что сальдо исх идёт (бывает, когда удалят платёж без переформирования) +++
    select nvl(count(*),0) into cnt_
-    from (select * from xitog3_lsk where mg=rec_params.period) t 
-     full outer join 
+    from (select * from xitog3_lsk where mg=rec_params.period) t
+     full outer join
          (select * from saldo_usl where mg=l_mg1) s
     on t.lsk=s.lsk and t.usl=s.usl and t.org=s.org
     where nvl(t.outdebet,0)+nvl(t.outkredit,0) <> nvl(s.summa,0);
@@ -285,22 +285,22 @@ create or replace package body scott.gen is
       err_:=13;
       return;
     end if;
-    
+
   -- проверка, что не идет долг в c_chargepay с a_penya +++
-  select nvl(count(*),0) into cnt_ from 
-  (select t.lsk, sum(summa) as summa from a_PENYA t 
+  select nvl(count(*),0) into cnt_ from
+  (select t.lsk, sum(summa) as summa from a_PENYA t
           where t.mg=rec_params.period group by t.lsk) a join
-  (select t.lsk, sum(summa) as summa from v_chargepay t 
+  (select t.lsk, sum(summa) as summa from v_chargepay t
           where t.period=rec_params.period group by t.lsk) b on a.lsk=b.lsk
   where nvl(a.summa,0)<>nvl(b.summa,0);
 
   --проверка, что начисление идёт с начислением в оборотке (да, да, без учёта перерасчетов - не получилось с ними) +++
    select nvl(count(*),0) into cnt_
-    from (select * from xitog3_lsk where mg=rec_params.period) t 
-     full outer join 
+    from (select * from xitog3_lsk where mg=rec_params.period) t
+     full outer join
          (select r.lsk, r.usl, o.fk_org2 as org, sum(r.summa) as summa
-           from c_charge r, nabor n, t_org o 
-           where r.lsk=n.lsk and r.type=1 and r.usl=n.usl 
+           from c_charge r, nabor n, t_org o
+           where r.lsk=n.lsk and r.type=1 and r.usl=n.usl
            and n.org=o.id
            group by r.lsk, r.usl, o.fk_org2
            ) s
@@ -314,8 +314,8 @@ create or replace package body scott.gen is
 
   --проверка, что перерасчет идёт в совокупности с начислением в оборотке +++
    select nvl(count(*),0) into cnt_
-    from (select lsk, nvl(sum(changes),0)+nvl(sum(changes2),0) as summa from xitog3_lsk where mg=rec_params.period group by lsk) t 
-     full outer join 
+    from (select lsk, nvl(sum(changes),0)+nvl(sum(changes2),0) as summa from xitog3_lsk where mg=rec_params.period group by lsk) t
+     full outer join
          (select r.lsk, sum(r.summa) as summa
            from c_change r
            group by r.lsk
@@ -330,8 +330,8 @@ create or replace package body scott.gen is
 
   --проверка, что оплата идёт с оплатой в оборотке +++
    select nvl(count(*),0) into cnt_
-    from (select * from xitog3_lsk where mg=rec_params.period) t 
-     full outer join 
+    from (select * from xitog3_lsk where mg=rec_params.period) t
+     full outer join
          (select r.lsk, r.usl, r.org, sum(r.summa) as summa
            from kwtp_day r where r.priznak=1
            and r.dat_ink between init.g_dt_start and init.g_dt_end
@@ -444,8 +444,8 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
       err_:=10;
       return;
    end if;
-   
-   
+
+
  elsif var_ =5 then
   --проверка перед формированием корректности л.с. +++
    select nvl(count(*),0) into cnt_ from kart k where nvl(k.fk_err,0)<>0;
@@ -462,14 +462,14 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
         group by c.lsk, c.mg1
       union all
      select c.lsk, c.dopl, c.penya  -- прибавить корректировку пени за месяц
-          from c_pen_corr c            
+          from c_pen_corr c
       )) a,
     (select sum(summa) as summa from t_chpenya_for_saldo c) b;
-   
+
    if cnt_ <> 0 then
     err_:=12;
    end if;
-   
+
  elsif var_ =7 then
   --проверка до итогового формирования, перехода, на получение всех показаний счетчиков +++
   --(при наличии ЛК)
@@ -543,9 +543,9 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
    if cnt_ <> 0 then
     err_:=12;
    end if;
- 
+
    -- проверка сальдо по пене в оборотке +++
-  select count(*) into cnt_ from 
+  select count(*) into cnt_ from
    (select t.lsk, t.usl, t.org, sum(t.pinsal) as pinsal, sum(t.pcur) as pcur, sum(t.pn) as pn,
      sum(t.poutsal) as poutsal
     from xitog3_lsk t join params p on t.mg=p.period
@@ -554,21 +554,21 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
    if cnt_ <> 0 then
     err_:=12;
    end if;
-    
+
    -- проверка что исх.сальдо по пене идёт в двух таблицах +++
    select count(*) into cnt_ from (
-      select t.lsk, sum(t.penya) as summa from A_PENYA t where 
+      select t.lsk, sum(t.penya) as summa from A_PENYA t where
       t.mg=rec_params.period
       group by t.lsk) a
-      full join 
-      (select t.lsk, sum(t.poutsal) as summa from xitog3_lsk t where 
+      full join
+      (select t.lsk, sum(t.poutsal) as summa from xitog3_lsk t where
       t.mg=rec_params.period
       group by t.lsk) b on a.lsk=b.lsk
       where nvl(a.summa,0)<>nvl(b.summa,0);
    if cnt_ <> 0 then
     err_:=12;
    end if;
-   
+
  end if;
  end;
 
@@ -576,7 +576,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
                            prep_refcursor IN OUT rep_refcursor) is
   begin
   Raise_application_error(-20000, 'НЕ РАБОТАЕТ БЛОК!');
-    
+
   --проверка перед формированием, с выводом л.с.
   --содержащих ошибки
   if var_=12 then
@@ -596,7 +596,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
   procedure smpl_chk (p_var in number,
                            prep_refcursor IN OUT rep_refcursor) is
   begin
-    
+
  -- Raise_application_error(-20000, 'TST');
   --проверка перед формированием, с выводом л.с.
   --содержащих ошибки
@@ -1792,13 +1792,25 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
     time1_ date;
     time_ date;
   begin
+    -- ВРЕМЕННОЕ решение
+    -- ВРЕМЕННОЕ решение
+    -- ВРЕМЕННОЕ решение
+   /* delete from tmp_a_charge;
+    insert into tmp_a_charge
+      (id, lsk, usl, summa, kart_pr_id, spk_id, type, test_opl, test_cena, test_tarkoef, test_spk_koef, main, lg_doc_id, npp, sch, kpr, kprz, kpro, kpr2, opl, mgfrom, mgto)
+    select t.id, lsk, usl, summa, kart_pr_id, spk_id, type, test_opl, test_cena, test_tarkoef, test_spk_koef, main, lg_doc_id, npp, sch, kpr, kprz, kpro, kpr2, opl, mgfrom, mgto
+    from a_charge2 t, params p
+    where p.period between t.mgfrom and t.mgto;*/
+    -- ВРЕМЕННОЕ решение
+    -- ВРЕМЕННОЕ решение
+    -- ВРЕМЕННОЕ решение
     
     -- вначале провести корректировки в kwtp_day
     c_gen_pay.dist_pay_del_corr(lsk_);
-    c_gen_pay.dist_pay_add_corr(var_ => 0, p_lsk=>lsk_);    
-  
+    c_gen_pay.dist_pay_add_corr(var_ => 0, p_lsk=>lsk_);
+
     select period into mg_ from params p;
-    
+
     --Вычисляем следующий месяц
     mg1_ := to_char(add_months(to_date(mg_ || '01', 'YYYYMMDD'), 1),
                     'YYYYMM');
@@ -1873,7 +1885,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
       --1 часть - для формирования сальдо
       insert into t_changes_for_saldo
         (lsk, summa, org, usl, type)
-      select t.lsk, t.summa, t.org, t.usl, t.type  
+      select t.lsk, t.summa, t.org, t.usl, t.type
         from v_changes_for_saldo t;
       --2 часть - для формирования задолжности по периодам
       commit;
@@ -2105,7 +2117,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
     mg1_ := to_char(add_months(to_date(mg_ || '01', 'YYYYMMDD'), 1),
                     'YYYYMM');
 
-    prep_template_tree_objects; -- формирование объектов для меню OLAP, воткнул пока сюда.ред.29.07.2019                
+    prep_template_tree_objects; -- формирование объектов для меню OLAP, воткнул пока сюда.ред.29.07.2019
     --Добавляем во временную таблицу
     execute immediate 'TRUNCATE TABLE t_saldo_lsk';
     insert into t_saldo_lsk
@@ -2154,7 +2166,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
        indebet,
        inkredit,
        charges,
-       pinsal,   -- входящее сальдо по пене 
+       pinsal,   -- входящее сальдо по пене
        poutsal, -- исходящее сальдо по пене
        pcur,     -- текущее начисление пени
        changes,
@@ -2226,7 +2238,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
              t_subsidii_for_saldo g,
              t_payment_for_saldo h,
              t_penya_for_saldo j, -- оплаченная пеня
-             (select t.lsk, t.org, t.usl, 
+             (select t.lsk, t.org, t.usl,
                  sum(t.poutsal) as summa from xitog3_lsk t, v_params v
                 where t.mg = v.period3
                 group by t.lsk, t.org, t.usl) m, --вх.сальдо по пене
@@ -2579,9 +2591,9 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
                  case when a.psch not in (8,9) and nvl(b.summa,0) <> 0 then
                       a.cnt_month
                      when a.psch in (8,9) and nvl(b.summa,0) = 0 and nvl(a.dolg,0)  > 0 --по закрытым например
-                     then 2 --ставим 2 мес.задолжности  (поправил 2 мес. для кис 07.08.2015) 
+                     then 2 --ставим 2 мес.задолжности  (поправил 2 мес. для кис 07.08.2015)
                      else 0
-                     end 
+                     end
                      as cnt_month,
                      nvl(a.dolg,0) /* долг же уже с учетом оплаты и изменений ред 22.03.12 - nvl(c.summa, 0) + nvl(e.summa, 0)*/
                      as dolg, --долг с учетом оплаты
@@ -2600,7 +2612,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
                         t.fio, t.status, t.opl, e.dolg as dolg,
                         e.penya as penya, e.cnt_month
                    from arch_kart t,
-                        (select k.k_lsk_id, sum(a.summa) as dolg, sum(penya) as penya, 
+                        (select k.k_lsk_id, sum(a.summa) as dolg, sum(penya) as penya,
                             sum(case when a.penya >0 then 1 else 0 end) as cnt_month
                             from kart k, a_penya a, v_lsk_tp tp
                            where k.lsk=a.lsk and a.mg = mg_
@@ -2650,32 +2662,32 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
           from (select t.psch, t.lsk, t.fk_deb_org, t.reu, t.kul, t.nd, t.kw,
                         t.fio, t.status, t.opl, e.dolg,
                         b.pen_in, d.pen_cur, f.pen_cor, e.penya, e.cnt_month
-                   from arch_kart t left join 
+                   from arch_kart t left join
                         (select k.lsk, count(*) as cnt_month,  --исх.сальдо по пене
                         sum(a.summa) as dolg, sum(penya) as penya
                             from kart k, a_penya a
                            where k.lsk=a.lsk and a.mg = mg_
-                           and (var_=4 and nvl(a.summa,0) > 0  and a.mg1<>mg_ --кроме текущего --and nvl(a.penya,0) <> 0 
+                           and (var_=4 and nvl(a.summa,0) > 0  and a.mg1<>mg_ --кроме текущего --and nvl(a.penya,0) <> 0
                            or var_<>4) --поправил по просьбе Своб., 14.04.2016
                            group by k.lsk) e on t.lsk = e.lsk
-                        left join 
+                        left join
                         (select a.lsk,  --вх.сальдо по пене
                              sum(penya) as pen_in
                             from a_penya a
                            where a.mg = mg3_ --период -1 мес
-                           group by a.lsk) b on t.lsk = b.lsk   
-                        left join 
+                           group by a.lsk) b on t.lsk = b.lsk
+                        left join
                         (select a.lsk,  --тек.начисл. пеня
                              round(sum(penya),2) as pen_cur
                             from a_pen_cur a
                            where a.mg = mg_
-                           group by a.lsk) d on t.lsk = d.lsk   
-                        left join 
+                           group by a.lsk) d on t.lsk = d.lsk
+                        left join
                         (select a.lsk,  --тек.коррект. пени
                              sum(penya) as pen_cor
                             from a_pen_corr a
                            where a.mg = mg_
-                           group by a.lsk) f on t.lsk = f.lsk   
+                           group by a.lsk) f on t.lsk = f.lsk
                         join v_lsk_tp tp on t.fk_tp=tp.id --and tp.cd in ('LSK_TP_MAIN','LSK_TP_RSO') убрал фильтр 12.07.2019 по просьбе Кис - не выгружалась задолжн по капрем
                   where t.mg = mg_
                     ) a,
@@ -2704,7 +2716,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
     -- ПОЛЫС: (задолжностью считается всё что -1 месяц назад глядя на пеню), задолжность по л.с. (реально кол-во мес)
     -- и задолжностью считается не текущий период, а период по которому начислена пеня
     -- ред.09.04.2019
-    
+
     -- по совокупности долга по помещению
     insert into debits_lsk_month
         (lsk, k_lsk_id, reu, kul, name, nd, kw, fk_deb_org, fio, status, opl,
@@ -2755,7 +2767,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
            and a.k_lsk_id = e.k_lsk_id(+)
            and nvl(a.dolg,0) > 0;
 
-    -- по лиц.счетам       
+    -- по лиц.счетам
     insert into debits_lsk_month
         (lsk, reu, kul, name, nd, kw, fk_deb_org, fio, status, opl,
          cnt_month, dolg, cnt_month2, dolg2, nachisl, penya, payment, mg, dat, var)
@@ -2930,7 +2942,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
       c_cpenya.gen_penya(c.lsk, nvl(pen_last_month_,0), 0);
       --порядок листов в счете
       upd_arch_kart2(k_lsk_id_, null);
-      
+
     end loop;
     commit;
   end;
@@ -3048,7 +3060,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
                c.annul,
                p.period
           from c_kwtp c, params p
-         where 
+         where
          c.dat_ink between init.g_dt_start and init.g_dt_end;
     else
       delete from a_kwtp a
@@ -3233,7 +3245,8 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
                p.period, -- одинаковые периоды!
                p.period,
          c.kpr, c.kprz, c.kpro, c.kpr2, c.opl
-          from c_charge c, params p;
+          from kart k, c_charge c, params p
+          where k.lsk=c.lsk;
     else
       delete /*+ INDEX (a A_CHARGE2_I)*/ from a_charge2 a
        where a.lsk=lsk_ and mg_ between a.mgFrom and a.mgTo;
@@ -3274,8 +3287,8 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
                p.period, --одинак. период!
                p.period,
          c.kpr, c.kprz, c.kpro, c.kpr2, c.opl
-          from c_charge c, params p
-         where c.lsk = lsk_;
+          from kart k, c_charge c, params p
+         where k.lsk=c.lsk and c.lsk = lsk_;
     end if;
 
     --архив изменения начисления
@@ -3318,8 +3331,8 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
                p.period,
                c.mg2,
                c.vol
-          from c_change c, params p
-         where to_char(c.dtek, 'YYYYMM') = p.period; --по дате
+          from kart k, c_change c, params p
+         where k.lsk=c.lsk and to_char(c.dtek, 'YYYYMM') = p.period; --по дате
     else
       delete from a_change a
        where a.lsk=lsk_ and a.mg = mg_;
@@ -3360,9 +3373,9 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
                p.period,
                c.mg2,
                c.vol
-          from c_change c, params p
+          from kart k, c_change c, params p
          where to_char(c.dtek, 'YYYYMM') = p.period
-           and c.lsk = lsk_; --по дате
+           and k.lsk=c.lsk and c.lsk = lsk_; --по дате
     end if;
 
     --архив документов по изменению начисления
@@ -3554,7 +3567,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
       trunc_part('a_kart_pr', mg_);
       insert into a_kart_pr
         (id, lsk, fio, status, dat_rog, pol, dok, dok_c, dok_n,
-        dok_d, dok_v, dat_prop, dat_ub, relat_id,
+        dok_d, dok_v, dok_snils, dat_prop, dat_ub, relat_id,
         status_datb, status_dat, status_chng, k_fam, k_im, k_ot,
         fk_doc_tp, fk_nac, b_place, fk_frm_cntr, fk_frm_regn,
         fk_frm_distr, frm_town, frm_dat, fk_frm_kul, frm_nd,
@@ -3562,7 +3575,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
         fk_to_distr, to_town, fk_to_kul, to_nd, to_kw,
         fk_citiz, fk_milit, fk_milit_regn, priv_proc, mg)
         select c.id, c.lsk, c.fio, c.status, c.dat_rog, c.pol, c.dok, c.dok_c, c.dok_n,
-          c.dok_d, c.dok_v, c.dat_prop, c.dat_ub, c.relat_id,
+          c.dok_d, c.dok_v, c.dok_snils, c.dat_prop, c.dat_ub, c.relat_id,
           c.status_datb, c.status_dat, c.status_chng, c.k_fam, c.k_im, c.k_ot,
           c.fk_doc_tp, c.fk_nac, c.b_place, c.fk_frm_cntr, c.fk_frm_regn,
           c.fk_frm_distr, c.frm_town, c.frm_dat, c.fk_frm_kul, c.frm_nd,
@@ -3708,7 +3721,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
       delete /*+ INDEX (a A_NABOR2_I)*/ from a_nabor2 a
        where mg_ between a.mgFrom and a.mgTo;
       insert into a_nabor2
-        (id, 
+        (id,
          lsk,
          usl,
          org,
@@ -3728,7 +3741,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
          kf_kpr_wrz_sch,
          kf_kpr_wro_sch,
          limit)
-        select a_nabor_id.nextval, 
+        select a_nabor_id.nextval,
                c.lsk,
                c.usl,
                c.org,
@@ -3776,7 +3789,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
          kf_kpr_wrz_sch,
          kf_kpr_wro_sch,
          limit)
-        select a_nabor_id.nextval, 
+        select a_nabor_id.nextval,
                c.lsk,
                c.usl,
                c.org,
@@ -3947,7 +3960,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
           where c.mg=old_mg_
           group by c.lsk) d,
       (select a.lsk, sum(a.summa) as summa
-       from scott.c_charge a where 
+       from scott.c_charge a where
        nvl(a.summa,0) <>0
        and a.type=1
        group by a.lsk) e --полное начисление (по тарифу)
@@ -3955,7 +3968,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
       and k.lsk=b.lsk(+)
       and k.lsk=d.lsk(+)
       and k.lsk=e.lsk(+);
-      --обновление № листов (важен порядок вызова процедур!)              
+      --обновление № листов (важен порядок вызова процедур!)
       upd_arch_kart2(null, p_mg => mg_);
     else
       upd_acrh_kart(p_lsk => lsk_,
@@ -4092,7 +4105,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
     logger.ins_period_rep('92', mg_, null, 0);
     logger.ins_period_rep('93', mg_, null, 0);
     logger.ins_period_rep('94', mg_, null, 0);
-    
+
     logger.log_(time_, 'gen.prepare_arch');
     end if;
 /*    if lsk_ is not null then
@@ -4168,7 +4181,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
           where c.mg=p_old_mg
           and c.lsk = p_lsk) d,
       (select a.lsk, sum(a.summa) as summa
-       from scott.c_charge a where 
+       from scott.c_charge a where
        nvl(a.summa,0) <>0
        and a.type=1
        group by a.lsk) e --полное начисление (по тарифу)
@@ -4182,7 +4195,7 @@ procedure upd_arch_kart2(p_klsk in number, p_mg in params.period%type) is
  k_lsk_old number;
  l_mg params.period%type;
 begin
---обновление порядк номера листа для печати 
+--обновление порядк номера листа для печати
 --выполняется только для всех счетов!!! (для лиц. счета - не имеет смысла)
 
 if p_mg is null then
@@ -4195,20 +4208,20 @@ end if;
 if p_klsk is null then
   update arch_kart t set t.prn_num=null
     where t.mg=l_mg;
-end if;  
+end if;
 
   i:=0;
   if p_klsk is null then
     for c in (select t.rowid as rd, t.k_lsk_id, tp.cd as lsk_tp
-      from arch_kart t, spul s, v_lsk_tp tp where t.mg=l_mg 
+      from arch_kart t, spul s, v_lsk_tp tp where t.mg=l_mg
       and t.fk_tp=tp.id --and t.for_bill=1 ред.05.06.2019 - нарушается порядок вывода лиц.счетов (смотреть переписку с Кис. от 05.06.2019 в skype)
       and t.kul=s.id and nvl(p_klsk, t.k_lsk_id)=t.k_lsk_id
       order by s.name, scott.utils.f_ord_digit(t.nd),
-       scott.utils.f_ord3(t.nd) desc, 
+       scott.utils.f_ord3(t.nd) desc,
        scott.utils.f_ord_digit(t.kw),
-       scott.utils.f_ord3(t.kw) desc, 
+       scott.utils.f_ord3(t.kw) desc,
         t.k_lsk_id, tp.npp
-    ) 
+    )
   loop
     -- тупо порядок печати
     i:=i+1;
@@ -4218,7 +4231,7 @@ end if;
   end loop;
   end if;
 end;
-  
+
   procedure gen_stat_debits is
     stmt varchar2(2500);
     type_otchet constant number := 22; --тип отчета
@@ -4317,7 +4330,7 @@ end;
     --c_cpenya.gen_charge_pay_pen;
     --logger.log_(null, 'Повторное формирование движения, окончание');
     ---
-    
+
     -- чистим итоговые таблицы
     logger.log_(null, 'Очистка итоговых таблиц, начало');
     gen.gen_clear_tables;
@@ -4366,7 +4379,7 @@ end;
     init.g_dt_end:=last_day(init.g_dt_start);
 
     --нулим текущий период компьютеров
-    update c_comps t set t.period=null 
+    update c_comps t set t.period=null
       where t.period is not null;
     delete from period_reports p
      where p.id in (type_otchet_)
@@ -4422,13 +4435,13 @@ end;
   logger.log_(null, 'Переход-распределение оплаты, принятой будущим периодом, начало');
      if utils.get_int_param('DIST_PAY_TP') = 0 then
      --по-сальдовый способ распределения оплаты
-       c_gen_pay.dist_pay_lsk_force; 
+       c_gen_pay.dist_pay_lsk_force;
      else
      --по-периодный способ распределения оплаты
        null; --пока не написал
      end if;
     logger.log_(null, 'Переход-распределение оплаты, принятой будущим периодом, окончание');
-  */   
+  */
     logger.log_(null, 'Переход-установка признаков закрытых домов начало');
     update c_houses t set t.psch=1
      where nvl(t.psch,0)=0 and
@@ -4469,13 +4482,13 @@ end;
     --подготовка послепереходной информации
     -- ред.24.04.2019 - убрал нафиг
     --l_cnt:=c_charges.gen_charges(null, null, null, null, 1, 0);
-    
+
     --сформировать оборотную ведомость обязательно!
     --иначе будут некорректно распределяться платежи в c_dist_pay (xitog3_lsk нужен текущего периода)
     -- ред.24.04.2019 - убрал нафиг
     --gen_saldo(null);
     --gen_saldo_houses;
-    
+
     --ЗАЧЕМ здесь выполнять формирование движения и пени??
     --если при вызове л.с, и прочем они всё равно рассчитываются
     --(тем более что помечены как для пересчета выше)
@@ -4487,13 +4500,13 @@ end;
     --for c in (select distinct lsk from kart) loop
     --  c_cpenya.gen_penya(c.lsk, 0, 0);
     --end loop;
-    
+
     commit;
     -- ПОСЛЕ КОММИТА ОБНОВИТЬ PARAMS В JAVA Обязательно! Иначе может формировать Итоговое некорректно! ред.04.06.2019
     logger.log_(null, 'Переход: обновление Params в Java - начало');
     p_java.reloadParams;
     logger.log_(null, 'Переход: обновление Params в Java - окончание');
-    
+
     logger.log_(null, 'Окончание II - фазы перехода...');
   end;
 
@@ -4564,6 +4577,7 @@ end;
            c.kub_ar = 0,
            c.kub_ar_fact = 0,
            c.kub_dist = 0,
+           c.kub_fact_upnorm=0,
            c.nrm = null;
 
     --чистка таблиц от информации текущего месяца
@@ -4595,11 +4609,11 @@ end;
            (select add_months(to_date(period, 'YYYYMM'), -1) from params)
            and t.mg is null;
 
-    /*delete from xxito14 t --не надо чистить эту таблицу, так как mg is not null и dat is not null!
+    /*delete from xxito14 t -- ред. 10.03.20 не надо чистить эту таблицу, так как данные по дням используются при запросе за месяц!
      where dat <
            (select add_months(to_date(period, 'YYYYMM'), -1) from params)
            and t.mg is null;*/
-           
+
     delete from debits_kw
      where dat <
            (select add_months(to_date(period, 'YYYYMM'), -1) from params);
@@ -4613,7 +4627,7 @@ end;
     delete from period_reports s
      where dat <
            (select add_months(to_date(period, 'YYYYMM'), -1) from params)
-       and not exists (select * from reports r where r.id=s.id 
+       and not exists (select * from reports r where r.id=s.id
        and r.cd in ('2', '3', '4', '5', '7', '14', '15', '17', '35', '61'));
     -- удалить определенные типы из t_objxpar, позднее 3 лет
     delete from t_objxpar t where exists
@@ -4654,7 +4668,7 @@ end;
  make_part('a_kwtp_mg', 'arch', 'MG' || l_period1, l_period1);
  make_part('a_lg_docs', 'arch', 'MG' || l_period1, l_period1);
  make_part('a_lg_pr', 'arch', 'MG' || l_period1, l_period1);
- 
+
  --a_nabor теперь партицирован по LSK!
  --make_part('a_nabor', 'arch', 'MG' || l_period1, l_period1);
  make_part('a_penya', 'arch', 'MG' || l_period1, l_period1);
@@ -4673,7 +4687,7 @@ end;
  make_part('xxito12', 'arch', 'MG' || l_period1, l_period1);
  make_part('xxito14', 'arch', 'MG' || l_period1, l_period1);
  make_part('xxito14_lsk', 'arch', 'MG' || l_period1, l_period1);
- 
+
  --a_charge_prep теперь партицирован по LSK!
  --make_part('a_charge_prep', 'arch', 'MG' || l_period1, l_period1);
  make_part('a_kwtp_day', 'arch', 'MG' || l_period1, l_period1);
@@ -4891,6 +4905,7 @@ end;
 -- подготовить дерево объектов для древовидного меню в OLAP отчетах -- TODO: перекинуть вызов в Java из gen_saldo_houses!
 procedure prep_template_tree_objects is
   l_max_id number;
+  l_main_id number;
 begin
   -- удалить объекты сессии, старше 3 дней
   delete from tree_objects t
@@ -4924,18 +4939,38 @@ begin
    where t.obj_level = 1
      and t.fk_user = -1;
 
-  -- РЭУ
+  -- УК
   for c in (select main_id, reu
               from (select distinct s.reu, t.id as main_id
-                       from s_reu_trest s, tree_objects t
-                      where s.trest = t.trest
+                       from s_reu_trest s, tree_objects t, t_org o
+                      where s.trest = t.trest and s.reu=o.reu
                         and t.fk_user = -1
+                        and o.org_tp_gis in (1) and s.reu is not null
                         and t.obj_level = 1)) loop
     l_max_id := l_max_id + 1;
     insert into tree_objects
       (main_id, id, obj_level, reu, fk_user, sel)
     values
       (c.main_id, l_max_id, 2, c.reu, -1, 1);
+  end loop;
+
+  -- добавить корневой узел РСО
+  l_max_id := l_max_id + 1;
+  l_main_id:=l_max_id;
+  insert into tree_objects
+    (main_id, id, obj_level, fk_user, sel)
+  values
+    (0, l_max_id, -1, -1, 1); -- obj_level пришлось сделать -1, так как вот так потом фильтруется датасет: DM_Olap.Uni_tree_objects.Filter := 'obj_level<=' + inttostr(max_level_);
+                              -- и после фильтрации не виден уровень ред.15.08.2019
+  -- РСО
+  for c in (select distinct s.reu
+                       from t_org s
+                      where s.org_tp_gis in (2,3) and s.reu is not null) loop
+    l_max_id := l_max_id + 1;
+    insert into tree_objects
+      (main_id, id, obj_level, reu, fk_user, sel)
+    values
+      (l_main_id, l_max_id, 2, c.reu, -1, 1);
   end loop;
 
   -- Дом
@@ -4947,7 +4982,7 @@ begin
                         and t.obj_level = 2
                         and k.house_id = c.id
                       group by k.reu, k.kul, k.nd, t.id, k.house_id, c.psch) a) loop
-  
+
     l_max_id := l_max_id + 1;
     insert into tree_objects
       (main_id, id, obj_level, reu, kul, nd, fk_user, fk_house, sel, mg1, mg2, psch)
@@ -4955,33 +4990,58 @@ begin
       (c.main_id, l_max_id, 3, c.reu, c.kul, c.nd, -1, c.fk_house, 1, c.mg1, c.mg2, c.psch);
   end loop;
 
-  -- добавить РСО дома, при наличии
-  for c in (select *
+  for c in (select distinct t.*
               from tree_objects t
+              join t_org o
+                on t.reu = o.reu
+               and o.org_tp_gis = 1 -- УК содержащее фонд, имеющее открытые лиц.счета
+              join kart k on k.reu=o.reu and k.psch not in (8,9)
              where t.fk_user = -1
-               and t.obj_level = 3) loop
-  
-    for c2 in (select c.id, a.reu, a.kul, a.nd, a.fk_house, a.mg1, a.mg2, a.psch
-                 from (select k.reu, k.kul, k.nd, k.house_id as fk_house, min(k.mg1) as mg1, max(k.mg2) as mg2, h.psch
-                          from kart k
-                          join v_lsk_tp tp
-                            on k.fk_tp = tp.id
-                           and tp.cd <> 'LSK_TP_MAIN'
-                          join c_houses h
-                            on k.house_id = h.id
-                         where k.kul = c.kul
-                           and k.nd = c.nd
-                           and k.reu <> c.reu
-                         group by k.reu, k.kul, k.nd, k.house_id, h.psch) a) loop
-    
+               and t.obj_level = 2) loop
+
+    -- добавить в УК РСО организации, обслуживающие фонд
+    for c2 in (select /*+ USE_HASH(k, tp, k2, tp2) */distinct k.reu
+                 from kart k
+                 join v_lsk_tp tp
+                   on k.fk_tp = tp.id
+                  and tp.cd <> 'LSK_TP_MAIN'
+                 join kart k2
+                   on k2.k_lsk_id = k.k_lsk_id
+                 join v_lsk_tp tp2
+                   on k2.fk_tp = tp2.id
+                  and tp2.cd = 'LSK_TP_MAIN'
+                where k2.reu = c.reu and k.reu <> c.reu) loop
+
       l_max_id := l_max_id + 1;
       insert into tree_objects
-        (main_id, id, obj_level, reu, kul, nd, fk_user, fk_house, sel, mg1, mg2, psch, tp_show)
+        (main_id, id, obj_level, reu, for_reu, fk_user, sel, tp_show)
       values
-        (c2.id, l_max_id, 3, c2.reu, c2.kul, c2.nd, -1, c2.fk_house, 1, c2.mg1, c2.mg2, c2.psch, 1);
+        (c.id, l_max_id, 2, c2.reu, c.reu, -1, 1, 1);
+      l_main_id:=l_max_id;
+      -- добавить дома по РСО
+      for c3 in (select a.reu, a.kul, a.nd, a.fk_house, a.mg1, a.mg2, a.psch
+                   from (select /*+ USE_HASH(k, tp, k2, tp2, h) */k.reu, k.kul, k.nd, k.house_id as fk_house, min(k.mg1) as mg1, max(k.mg2) as mg2, h.psch
+                           from kart k
+                           join v_lsk_tp tp
+                             on k.fk_tp = tp.id
+                            and tp.cd <> 'LSK_TP_MAIN'
+                           join kart k2
+                             on k2.k_lsk_id = k.k_lsk_id
+                           join v_lsk_tp tp2
+                             on k2.fk_tp = tp2.id
+                            and tp2.cd = 'LSK_TP_MAIN'
+                           join c_houses h on k.house_id=h.id
+                           where k2.reu = c.reu and k.reu = c2.reu
+                           group by k.reu, k.kul, k.nd, k.house_id, h.psch) a) loop
+
+        l_max_id := l_max_id + 1;
+        insert into tree_objects
+          (main_id, id, obj_level, reu, for_reu, kul, nd, fk_user, fk_house, sel, mg1, mg2, psch)
+        values
+          (l_main_id, l_max_id, 3, c3.reu, c.reu, c3.kul, c3.nd, -1, c3.fk_house, 1, c3.mg1, c3.mg2, c3.psch);
+      end loop;
     end loop;
   end loop;
-
 end;
 
 end gen;

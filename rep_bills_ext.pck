@@ -61,18 +61,19 @@ procedure detail(p_lsk  IN KART.lsk%TYPE, -- лиц.счет
   r_bill_row rec_bill_row;
   l_lsk_tp u_list.cd%type;
   l_cnt number;
+  l_mg number := p_mg; -- период в Number
   rec rec_bill_detail := rec_bill_detail(0, null, 0, null, 0,0,0,0,0,0,0,0,0,0,0,0,0);
 begin
   -- если есть запись в иерархии по дому (usl_tree), то строить детализацию по ней
   begin
   select o.fk_bill_var, k.house_id, nvl(uh.tp,0), tp.cd into l_bill_var, l_house_id, l_tp, l_lsk_tp
-      from arch_kart k
-      join v_lsk_tp tp on k.fk_tp=tp.id
+      from kart k -- ред.05.03.20 - убрал здесь arch_kart
+      join u_list tp on k.fk_tp=tp.id
       left join (select distinct 1 as tp, u.fk_house from usl_tree u) uh -- признак наличия иерархии по дому
         on k.house_id=uh.fk_house
       join t_org o on k.reu=o.reu
-        and k.lsk=p_lsk
-        and k.mg=p_mg;
+        and k.lsk=p_lsk;
+        --and k.mg=p_mg;  -- ред.05.03.20 - убрал arch_kart, убрал условие
   exception when no_data_found then
     -- случается, если на входе p_lsk is null
     l_bill_var:=null;
@@ -88,7 +89,7 @@ begin
        bulk collect
        into t_bill_row
      from
-      arch_kart k
+      kart k --arch_kart k заменил 17.03.20
       join t_org o on k.reu=o.reu
       join usl_tree u on l_tp=0 and u.fk_bill_var=o.fk_bill_var or l_tp=1 and u.fk_house=k.house_id
       join usl u2 on u.usl=u2.usl
@@ -98,10 +99,11 @@ begin
              sum(t.test_opl) as vol, -- объем
              max(t.test_cena) as price -- расценка
             from a_charge2 t  -- начисление
-             where t.type = 1 and p_mg between t.mgFrom and t.mgTo
+             where t.type = 1
+              and l_mg between t.mgFrom and t.mgTo
               and t.lsk=p_lsk
              group by t.mgFrom, t.mgTo, t.usl) a on
-                   u.usl=a.usl and k.mg between a.mgFrom and a.mgTo
+                   u.usl=a.usl --and k.mg between a.mgFrom and a.mgTo --убрал 17.03.20
       left join
       (select t.usl, sum(t.summa) as deb -- входящее сальдо
             from saldo_usl t
@@ -109,7 +111,8 @@ begin
            group by t.usl) sl on u.usl=sl.usl
       left join
       (select t.usl, sum(t.kub) as kub -- объем ОДПУ
-            from a_vvod t join a_nabor2 a on a.fk_vvod=t.id and p_mg between a.mgFrom and a.mgTo
+            from a_vvod t join a_nabor2 a on a.fk_vvod=t.id 
+              and p_mg between a.mgFrom and a.mgTo
             and t.mg = p_mg and a.lsk=p_lsk
            group by t.usl) d on u.usl=d.usl
       left join (select t.usl, sum(t.summa) as pay -- текущая оплата по услугам
@@ -125,14 +128,16 @@ begin
             a_change t where nvl(t.show_bill,0)<>1 and t.mg = p_mg
             and t.lsk=p_lsk
             group by t.usl) r on u.usl=r.usl
-      where k.mg=p_mg and k.lsk=p_lsk;
+      where --k.mg=p_mg and --убрал 17.03.20
+      k.lsk=p_lsk;
 
   tab:= tab_bill_detail();
-  -- начать с корневой записи, рекурсивно
-  r_bill_row:=procRow(0, '000', t_bill_row, l_bill_var, l_house_id, l_tp);
-  --select count(*) into l_cnt from table(t_bill_row) t where t.usl='003';
-  --or (l_lsk_tp='LSK_TP_MAIN' and t.usl='003' or l_lsk_tp='LSK_TP_ADDIT' and t.usl='033')
-
+  if sql%rowcount > 0 then
+    -- начать с корневой записи, рекурсивно
+    r_bill_row:=procRow(0, '000', t_bill_row, l_bill_var, l_house_id, l_tp);
+    --select count(*) into l_cnt from table(t_bill_row) t where t.usl='003';
+    --or (l_lsk_tp='LSK_TP_MAIN' and t.usl='003' or l_lsk_tp='LSK_TP_ADDIT' and t.usl='033')
+  end if;
   select count(*) into l_cnt from table(tab) t
        where t.price<>0 or t.charge<>0 
        or t.change1<>0 or t.change2<>0 or t.amnt <>0 or t.deb<>0 or t.pay<>0;
@@ -187,6 +192,9 @@ begin
                        or t.fk_house=p_house_id) -- либо по организации, либо по дому
                    order by t.npp
                    ) loop
+    if c.usl='123' then
+      null;
+    end if;               
     -- получить строку
     r_bill_row_main:=getRow(c.usl, t_bill_row);
     if c.tp in (0) then
@@ -252,8 +260,11 @@ begin
       end if;  
     end if;  
       
-    
+    --begin
     r_bill_row_main.charge:=r_bill_row_main.charge+r_bill_row.charge;
+    --exception when others then
+    --  Raise_application_error(-20000, r_bill_row.charge);
+    --end;
     r_bill_row_main.change1:=r_bill_row_main.change1+r_bill_row.change1;
     r_bill_row_main.change2:=r_bill_row_main.change2+r_bill_row.change2;
     r_bill_row_main.deb:=r_bill_row_main.deb+r_bill_row.deb;

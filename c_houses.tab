@@ -62,6 +62,18 @@ comment on column SCOTT.C_HOUSES.postcode
   is 'Почтовый индекс';
 comment on column SCOTT.C_HOUSES.guid
   is 'GUID по справочнику ФИАС';
+create unique index SCOTT.C_HOUSES_I on SCOTT.C_HOUSES (GUID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
 alter table SCOTT.C_HOUSES
   add constraint C_HOUSES_P primary key (ID)
   using index 

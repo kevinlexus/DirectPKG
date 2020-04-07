@@ -1,6 +1,7 @@
 CREATE OR REPLACE PACKAGE SCOTT.stat IS
   TYPE rep_refcursor IS REF CURSOR;
   PROCEDURE rep_stat(reu_           IN VARCHAR2,
+                     p_for_reu      IN VARCHAR2, -- для статы, УК содержащая фонд
                      kul_           IN VARCHAR2,
                      nd_            IN VARCHAR2,
                      trest_         IN VARCHAR2,
@@ -33,6 +34,7 @@ END stat;
 
 CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
   PROCEDURE rep_stat(reu_           IN VARCHAR2,
+                     p_for_reu      IN VARCHAR2, -- для статы, УК содержащая фонд
                      kul_           IN VARCHAR2,
                      nd_            IN VARCHAR2,
                      trest_         IN VARCHAR2,
@@ -81,6 +83,8 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
     l_sel_id number;
     l_period_tp number;
     l_char_dat_mg varchar2(6);
+    l_str_dat varchar2(10);
+    l_str_dat1 varchar2(10);
 --    TYPE l_cur_type IS REF CURSOR;
 --    l_cur sys_refcursor;
 /*    TYPE l_rec_type IS RECORD ( fld1 VARCHAR2(100),
@@ -118,6 +122,14 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
       l_prev_period := to_char(add_months(to_date(mg_ || '01', 'YYYYMMDD'), -1),
                       'YYYYMM');
     end if;
+    -- конвертировать в формат строки дату
+    if dat_ is not null then
+          l_str_dat:=to_char(dat_, 'DD.MM.YYYY');        
+    end if;              
+    if dat1_ is not null then
+          l_str_dat1:=to_char(dat1_, 'DD.MM.YYYY');        
+    end if;              
+
     --Вычисляем следующий месяц
     if mg_ is not null then
       l_mg_next := to_char(add_months(to_date(mg_ || '01', 'YYYYMMDD'), 1),
@@ -144,7 +156,6 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
       sqlstr_ := 's.dat between TO_DATE(''' || TO_CHAR(dat_, 'DDMMYYYY') ||
                  ''',''DDMMYYYY'') and TO_DATE(''' || TO_CHAR(dat1_, 'DDMMYYYY') ||
                  ''',''DDMMYYYY'')';
-    --Весьма извращенно передавать из курсора такой объем статичной информации
       period_:='с '||to_char(dat_,'DD.MM.YYYY')||' по '||to_char(dat1_,'DD.MM.YYYY');
       sqlstr3_ := 'd.dat between TO_DATE(''' || TO_CHAR(dat_, 'DDMMYYYY') ||
                  ''',''DDMMYYYY'') and TO_DATE(''' || TO_CHAR(dat1_, 'DDMMYYYY') ||
@@ -154,7 +165,6 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
     elsif dat_ is not null and dat1_ is null then
       sqlstr_ := 's.dat = TO_DATE('' ' || TO_CHAR(dat_, 'DDMMYYYY') ||
                  ' '',''DDMMYYYY'')';
-    --Весьма извращенно передавать из курсора такой объем статичной информации
       period_:='с '||to_char(dat_,'DD.MM.YYYY')||' по '||to_char(dat1_,'DD.MM.YYYY');
       sqlstr3_ := 'd.dat between TO_DATE(''' || TO_CHAR(dat_, 'DDMMYYYY') ||
                  ''',''DDMMYYYY'') and TO_DATE(''' || TO_CHAR(dat1_, 'DDMMYYYY') ||
@@ -162,7 +172,6 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
       sqlstr2_ := 's.period between ''' || to_char(dat_, 'YYYYMM') || ''' and ''' || to_char(dat_, 'YYYYMM')||'''';
       l_period_tp:=1;
     else
-    --Весьма извращенно передавать из курсора такой объем статичной информации
       if mg_ = mg1_ then
         period_:=utils.month_name(substr(mg_, 5, 2))||' '||substr(mg_,1,4)||'г.';
       else
@@ -222,6 +231,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
 
     ELSIF сd_ = '13' THEN
       --Статистика по услугам
+      l_sel_id:=utils.getS_list_param('REP_TP_SCH_SEL');
    IF det_ = 3 then
      kpr1_:=utils.getS_int_param('REP_RNG_KPR1');
      kpr2_:=utils.getS_int_param('REP_RNG_KPR2');
@@ -230,7 +240,8 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
         OPEN prep_refcursor FOR select s.lsk, s.org, coalesce(r.fk_org_dst,s.org) as fk_org2, u.uslm, s.usl, s.kul,
     t.trest, s.reu, k.name,
     k.name||', '||NVL(LTRIM(s.nd,'0'),'0')||'-'||NVL(LTRIM(s.kw,'0'),'0') AS predpr_det,
-    utils.f_order(s.nd,6) as ord1, utils.f_order2(s.nd) as ord3, utils.f_order(s.kw,7) as ord2,
+    --utils.f_order(s.nd,6) as ord1, utils.f_order2(s.nd) as ord3, utils.f_order(s.kw,7) as ord2,
+    det.ord1,
     k1.fio,
     s.status, s.psch as psch,
     s.sch as sch, s.val_group, s.val_group2,
@@ -241,15 +252,17 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
     null as name_gr, null as odpu_ex, 0 as odpu_kub, 0 as kub_dist, 0 as kub_fact,0 as kub_fact_upnorm, 
     tp.name as lsk_tp, s.opl, s.is_vol, s.chng_vol,
     null as isHotPipe,
-    null as isTowel
+    null as isTowel,
+    null as kr_soi,
+    null as fact_cons
     FROM STATISTICS_LSK s
          join USL u on s.USL=u.USL
          join S_REU_TREST t on s.reu=t.reu
          join SPUL k on s.kul=k.id
          join kart k1 on s.lsk=k1.lsk
+         join kart_detail det on k1.lsk=det.lsk
          left join v_lsk_tp tp on s.fk_tp=tp.id
          left join redir_pay r on s.org=r.fk_org_src and s.mg between r.mg1 and r.mg2
-         --join t_org o on coalesce(r.fk_org_dst,s.org)=o.id
     WHERE
     exists
        (select * from list_c i, spr_params p where i.fk_ses=fk_ses_
@@ -262,10 +275,17 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
             and i.sel_id=s.status
         and i.sel=1)
     and ((var_=3 and
-           s.reu = reu_
+           s.reu = reu_ and case when s.for_reu is null then 1
+                                             when p_for_reu is null then 1
+                                             when s.for_reu = p_for_reu then 1
+                                             else 0 end =1  
            and s.kul = kul_
            and s.nd = nd_)
-          or (var_=2 and s.reu=reu_)
+          or (var_=2 and s.reu=reu_ and case when s.for_reu is null then 1
+                                             when p_for_reu is null then 1
+                                             when s.for_reu = p_for_reu then 1
+                                             else 0 end =1  
+           )                        
           or (var_=1 and t.trest=trest_)
           or var_=0)
     and exists
@@ -274,13 +294,15 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
        and (kpr1_ is not null and st.kpr >=kpr1_ or kpr1_ is null)
        and (kpr2_ is not null and st.kpr <=kpr2_ or kpr2_ is null)
       )
-    AND s.mg between  mg_  and mg1_
+    and (l_sel_id = 0 or l_sel_id <> 0 and l_sel_id = s.fk_tp)
+    and s.mg between  mg_  and mg1_
     union all
     select null as lsk, null as org, null as fk_org2, '000' as uslm, '000' as usl, s.kul,
     t.trest, s.reu, k.name,
-    k.name||', '||NVL(LTRIM(s.nd,'0'),'0')||'-'||NVL(LTRIM(kw,'0'),'0') AS predpr_det,
-    utils.f_order(s.nd,6) as ord1, utils.f_order2(s.nd) as ord3, utils.f_order(s.kw,7) as ord2,
-    s.fio as fio,
+    k.name||', '||NVL(LTRIM(s.nd,'0'),'0')||'-'||NVL(LTRIM(s.kw,'0'),'0') AS predpr_det,
+    --utils.f_order(s.nd,6) as ord1, utils.f_order2(s.nd) as ord3, utils.f_order(s.kw,7) as ord2,
+    det.ord1,
+    k1.fio,
     s.status, s.psch as psch,
     s.sch as sch, s.val_group, s.val_group2,
     s.cnt AS cnt, s.klsk AS klsk, s.kpr AS kpr, decode(s.is_empt,1,'да',0,'нет', null) as is_empt, s.kpr_ot AS kpr_ot,
@@ -290,11 +312,16 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
     null as name_gr, null as odpu_ex, 0 as odpu_kub, 0 as kub_dist, 0 as kub_fact, 0 as kub_fact_upnorm, 
     tp.name as lsk_tp, s.opl, s.is_vol, s.chng_vol,
     null as isHotPipe,
-    null as isTowel
-    FROM STATISTICS_LSK s, S_REU_TREST t, SPUL k, v_lsk_tp tp
-    WHERE s.reu=t.reu and s.fk_tp=tp.id(+)
-    AND s.USL is null
-    AND s.kul=k.id
+    null as isTowel,
+    null as kr_soi,
+    null as fact_cons
+    FROM STATISTICS_LSK s 
+    join S_REU_TREST t on s.reu=t.reu
+    join SPUL k on s.kul=k.id
+    left join v_lsk_tp tp on s.fk_tp=tp.id
+    join kart_detail det on s.lsk=det.lsk
+    join kart k1 on s.lsk=k1.lsk
+    WHERE s.USL is null
     and exists
        (select * from list_c i, spr_params p where i.fk_ses=fk_ses_
             and p.id=i.fk_par and p.cd='REP_USL'
@@ -306,7 +333,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
             and i.sel_id=s.status
         and i.sel=1)
     and ((var_=3 and
-           s.reu = reu_
+           s.reu = reu_ 
            and s.kul = kul_
            and s.nd = nd_)
           or (var_=2 and s.reu=reu_)
@@ -315,16 +342,51 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
     --неоднозначность какая то... если по услугам то фильтр по кол-ву прожив один, а если по итогам - по другому принципу...
     and (kpr1_ is not null and s.kpr >=kpr1_ or kpr1_ is null)
     and (kpr2_ is not null and s.kpr <=kpr2_ or kpr2_ is null)
-    AND s.mg between mg_ and mg1_ order by name, ord1, ord3, ord2; --не убирайте пожалста порядок сортировки и если что сделайте дополнительный селект сверху select * from () order by ord1, ord2
+    and (l_sel_id = 0 or l_sel_id <> 0 and l_sel_id = s.fk_tp)
+    AND s.mg between mg_ and mg1_ 
+    order by ord1; --не убирай порядок сортировки!
     ELSIF det_ = 2 then
     -- -------------------------------------------------------------------------------------------------
     -- ВНИМАНИЕ! В КИС  A_NABOR2 - ПАРТИЦИРОВАННАЯ ТАБЛИЦА ПО MGFROM С ВЛОЖЕННОЙ СУБПАРТИЦИЕЙ ПО MGTO!!!
     -- -------------------------------------------------------------------------------------------------
     -- из за того, что тормозил внутренний запрос, пришлось вынести в temporary table ред.26.10.2017
     delete from temp_stat2;      
+/*    insert into temp_stat2
+      (kub, kub_dist, kub_fact_upnorm, kub_fact, usl, mg, reu, kul, nd, dist_tp, 
+       odpu_ex, ishotpipeinsulated, istowelheatexist, kr_soi, fact_cons)
+      select --для отображения объемов по ОДПУ
+                        sum(d.kub), sum(d.kub_dist), sum(d.kub_fact_upnorm), 
+                        sum(decode(d.dist_tp, 4, null, d.kub_fact)) as kub_fact, -- не показывать объем, если 4 (нет ОДПУ) ред.05.03.2017
+                        d.usl, d.mg, h.reu, h.kul, h.nd, d.dist_tp as dist_tp,
+                        case when d.dist_tp<>4 and nvl(d.kub,0) = 0 then 'есть, нет объема'
+                        when d.dist_tp<>4 and nvl(d.kub,0) <> 0 then 'есть'
+                        else 'нет' end as odpu_ex, nvl(d.ishotpipeinsulated,0) as ishotpipeinsulated, 
+                        nvl(d.istowelheatexist,0) as istowelheatexist, 
+                        sum(d.kub - (d.kub_norm + d.kub_sch + d.kub_ar)) as kr_soi, -- кр на сои
+                        sum(d.kub_norm + d.kub_sch + d.kub_ar) as fact_cons -- факт.потребление
+                        from a_vvod d, arch_kart h, a_nabor2 n, s_reu_trest s,
+                        usl u
+                  where h.house_id=d.house_id and h.mg=d.mg and d.mg between mg_ and mg1_
+                        and d.usl=u.usl
+                        and d.id=n.fk_vvod and d.usl=n.usl and h.lsk=n.lsk and d.mg between n.mgFrom and n.mgTo
+                        and h.psch not in (8,9)
+                        and h.reu=s.reu 
+                        and case when var_=3 and h.reu = reu_
+                           and h.kul = kul_
+                           and h.nd = nd_ then 1
+                           when var_=2 and h.reu=reu_ then 1
+                           when var_=1 and s.trest=trest_ then 1
+                           when var_=0 then 1
+                           end = 1
+                  group by 
+                        d.usl, d.mg, h.reu, h.kul, h.nd, d.dist_tp,
+                        case when d.dist_tp<>4 and nvl(d.kub,0) = 0 then 'есть, нет объема'
+                        when d.dist_tp<>4 and nvl(d.kub,0) <> 0 then 'есть'
+                        else 'нет' end, nvl(d.ishotpipeinsulated,0), 
+                        nvl(d.istowelheatexist,0);*/
     insert into temp_stat2
       (kub, kub_dist, kub_fact_upnorm, kub_fact, usl, mg, reu, kul, nd, dist_tp, 
-       odpu_ex, ishotpipeinsulated, istowelheatexist)
+       odpu_ex, ishotpipeinsulated, istowelheatexist, kr_soi, fact_cons)
       select --для отображения объемов по ОДПУ
                         distinct d.kub, d.kub_dist, d.kub_fact_upnorm, 
                         decode(d.dist_tp, 4, null, d.kub_fact) as kub_fact, -- не показывать объем, если 4 (нет ОДПУ) ред.05.03.2017
@@ -332,7 +394,10 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
                         case when d.dist_tp<>4 and nvl(d.kub,0) = 0 then 'есть, нет объема'
                         when d.dist_tp<>4 and nvl(d.kub,0) <> 0 then 'есть'
                         else 'нет' end as odpu_ex, nvl(d.ishotpipeinsulated,0) as ishotpipeinsulated, 
-                        nvl(d.istowelheatexist,0) as istowelheatexist
+                        nvl(d.istowelheatexist,0) as istowelheatexist, 
+                        case when d.usl not in ('053','054') then d.kub - (d.kub_norm + d.kub_sch + d.kub_ar)
+                          else 0 end as kr_soi, -- кр на сои (только для первой строки) и не для 053 и 054 услуг
+                        d.kub_norm + d.kub_sch + d.kub_ar as fact_cons  -- факт.потребление (только для первой строки)
                         from a_vvod d, arch_kart h, a_nabor2 n, s_reu_trest s,
                         usl u
                   where h.house_id=d.house_id and h.mg=d.mg and d.mg between mg_ and mg1_
@@ -347,6 +412,8 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
                            when var_=1 and s.trest=trest_ then 1
                            when var_=0 then 1
                            end = 1;
+                           
+                           
    delete from temp_stat3;
    insert into temp_stat3
      (mg, reu, kul, nd, name)
@@ -381,17 +448,16 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
     decode(s.fr, 1, h2.kub_fact_upnorm, 0) as kub_fact_upnorm, 
     tp.name as lsk_tp, s.opl, s.is_vol, s.chng_vol,
     decode(h5.ishotpipeinsulated,1,'да','нет') as isHotPipe,
-    decode(h5.istowelheatexist,1,'да','нет') as isTowel
-    FROM /*(select s1.*, u2.uslm, u2.npp, nvl(u2.parent_usl, s1.usl) as parent_usl
-           from STATISTICS s1, usl u2
-          where s1.usl=u2.usl) s*/
+    decode(h5.istowelheatexist,1,'да','нет') as isTowel,
+    decode(s.fr, 1, h2.kr_soi, 0) as kr_soi, 
+    decode(s.fr, 1, h2.fact_cons, 0) as fact_cons
+    FROM 
           STATISTICS s
           join usl u on s.usl=u.usl
           join S_REU_TREST t on s.reu=t.reu
           join SPUL k on s.kul=k.id
           left join redir_pay r on s.org=r.fk_org_src and s.mg between r.mg1 and r.mg2
-/*          left join (select t.reu, t.kul, t.nd, u.name from t_housexlist t, u_list u
-           where t.fk_list=u.id) h1 on s.reu=h1.reu and s.kul=h1.kul and s.nd=h1.nd*/
+
           left join temp_stat2 h2 on s.mg=h2.mg and s.reu=h2.reu and s.kul=h2.kul and s.nd=h2.nd 
                   --and s.parent_usl=h2.usl - убрал эксперементально 30.03.2017
                   and s.usl=h2.usl -- добавил эксперементально 30.03.2017 по просьбе кис. (проходили кубы по двум услугам)
@@ -413,12 +479,19 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
             and i.sel_id=s.status
         and i.sel=1)
         and ((var_=3 and
-           s.reu = reu_
+           s.reu = reu_ and case when s.for_reu is null then 1
+                                             when p_for_reu is null then 1
+                                             when s.for_reu = p_for_reu then 1
+                                             else 0 end =1  
            and s.kul = kul_
            and s.nd = nd_) or
-         (var_=2 and s.reu=reu_)
+         (var_=2 and s.reu=reu_ and case when s.for_reu is null then 1
+                                             when p_for_reu is null then 1
+                                             when s.for_reu = p_for_reu then 1
+                                             else 0 end =1)
           or (var_=1 and t.trest=trest_)
           or var_=0)
+    and (l_sel_id = 0 or l_sel_id <> 0 and l_sel_id = s.fk_tp)
     AND s.mg between mg_ and mg1_
     union all
     select null as lsk, null as org, null as fk_org2, '000' as uslm, '000' as usl, s.kul,
@@ -435,7 +508,9 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
     0 as kub_fact, 0 as kub_fact_upnorm,
     tp.name as lsk_tp, s.opl, s.is_vol, s.chng_vol,
     null as isHotPipe,
-    null as isTowel
+    null as isTowel,
+    null as kr_soi,
+    null as fact_cons
     FROM STATISTICS s, S_REU_TREST t, SPUL k,
         (select t.reu, t.kul, t.nd, u.name from t_housexlist t, u_list u
          where t.fk_list=u.id) hl, v_lsk_tp tp
@@ -456,12 +531,13 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
     and s.reu=hl.reu(+) and s.kul=hl.kul(+) and s.nd=hl.nd(+)
     and
          ((var_=3 and
-           s.reu = reu_
+           s.reu = reu_ and p_for_reu is null
            and s.kul = kul_
            and s.nd = nd_) or
-         (var_=2 and s.reu=reu_)
+         (var_=2 and s.reu=reu_  and p_for_reu is null)
           or (var_=1 and t.trest=trest_)
           or var_=0)
+    and (l_sel_id = 0 or l_sel_id <> 0 and l_sel_id = s.fk_tp)
     AND s.mg between mg_ and mg1_ order by name, ord1;
     ELSIF det_ in (0, 1) THEN
    --детализация до ЖЭО
@@ -478,7 +554,9 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
     u.npp, null as name_gr, null as odpu_ex, 0 as odpu_kub, 0 as kub_dist, 0 as kub_fact, 0 as kub_fact_upnorm, 
     tp.name as lsk_tp, s.opl, s.is_vol, s.chng_vol,
     null as isHotPipe,
-    null as isTowel
+    null as isTowel,
+    null as kr_soi,
+    null as fact_cons
     FROM STATISTICS_TREST s
     join USL u on s.USL=u.USL
     join S_REU_TREST t on s.reu=t.reu
@@ -500,6 +578,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
          ((var_=2 and s.reu=reu_)
           or (var_=1 and t.trest=trest_)
           or var_=0)
+    and (l_sel_id = 0 or l_sel_id <> 0 and l_sel_id = s.fk_tp)
     AND s.mg between mg_ and mg1_
     union all
     select null as lsk, null as org, null as fk_org2, '000' as uslm, '000' as usl,
@@ -514,7 +593,9 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
     null as npp, null as name_gr, null as odpu_ex, 0 as odpu_kub, 0 as kub_dist, 0 as kub_fact, 0 as kub_fact_upnorm, 
     tp.name as lsk_tp, s.opl, s.is_vol, s.chng_vol,
     null as isHotPipe,
-    null as isTowel
+    null as isTowel,
+    null as kr_soi,
+    null as fact_cons
     FROM STATISTICS_TREST s, S_REU_TREST t, v_lsk_tp tp
     WHERE s.reu=t.reu and s.fk_tp=tp.id(+)
     AND s.USL is null
@@ -533,6 +614,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
          ((var_=2 and s.reu=reu_)
           or (var_=1 and t.trest=trest_)
           or var_=0)
+    and (l_sel_id = 0 or l_sel_id <> 0 and l_sel_id = s.fk_tp)
     AND s.mg between mg_ and mg1_ order by npp;
     END IF;
     ELSIF сd_ = '18' THEN
@@ -633,7 +715,8 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
        h.psch as psch,
        d.grp,
        null as isHotPipe,
-       null as isTowel
+       null as isTowel,
+       a.fio
       from (select e.lsk, case when k.psch in (8) then 2 -- для отображения признаков открытого, старого, закрытого фонда
                                when k.psch in (9) then 1 
                                else 0 end as psch,  
@@ -660,30 +743,17 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
          and decode(var_, 3, nd_, k.nd)=k.nd
          and decode(var_, 2, reu_, k.reu)=k.reu
          and decode(var_, 1, trest_, s.trest)=s.trest
-           ) h,
-        xitog3_lsk i, arch_kart a,
-       (select * from period_reports t where id = 14) x,
-       sprorg d, usl c
-    where h.lsk = i.lsk(+)
-     and h.org = i.org(+)
-     and h.usl = i.usl(+)
-     and i.lsk=a.lsk 
-     and i.mg=a.mg 
-     and a.kpr>=coalesce(kpr1_, a.kpr)
-     and a.kpr<=coalesce(kpr2_, a.kpr)
-     and x.mg = i.mg
---     and h.house_id=h3.id
---     and x.mg=h3.mg
-     and h.org = d.kod
-     and h.usl = c.usl
-     and (l_sel_id = 0 or l_sel_id <> 0 and l_sel_id = a.fk_tp)
---     and h.uslm = m.uslm
+           ) h join xitog3_lsk i on h.lsk = i.lsk(+) and h.org = i.org(+) and h.usl = i.usl(+)
+           join arch_kart a on i.lsk=a.lsk and a.kpr>=coalesce(kpr1_, a.kpr) and a.kpr<=coalesce(kpr2_, a.kpr) and i.mg=a.mg 
+       join (select * from period_reports t where id = 14) x on x.mg = i.mg
+       join sprorg d on h.org = d.kod
+       join usl c on h.usl = c.usl
+       join kart_detail det on h.lsk=det.lsk
+    where 
+     (l_sel_id = 0 or l_sel_id <> 0 and l_sel_id = a.fk_tp)
      and x.mg between mg_ and mg1_
-    order by h.street1, utils.f_order(h.nd,6), utils.f_order(h.kw,7);
---        USING show_sal_, mg_, mg_, mg1_, show_sal_, mg_, mg_, mg1_, show_sal_, mg1_, mg_, mg1_, show_sal_,
---          mg1_, mg_, mg1_, fk_ses_, 
---          show_fond_, show_fond_, show_fond_, show_fond_,
---          var_, reu_, kul_, nd_, var_, reu_, var_, trest_, var_, kpr1_, kpr2_, mg_, mg1_;
+    order by det.ord1;
+    
       ELSIF det_ = 2 THEN
         -- детализация до домов
         OPEN prep_refcursor FOR select /*+ USE_HASH(h, i, h3, h2, hl, st )*/ i.mg, substr(i.mg, 1, 4)||'-'||substr(i.mg, 5, 2) as mg1,
@@ -730,7 +800,8 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
         null as psch,
         d.grp, 
         decode(h2.ishotpipeinsulated,1,'да','нет') as isHotPipe,
-        decode(h2.istowelheatexist,1,'да','нет') as isTowel
+        decode(h2.istowelheatexist,1,'да','нет') as isTowel,
+        null as fio
         from
         (select distinct e.reu, e.kul, e.nd, e.usl, e.org, e.status, e.fk_lsk_tp, u.type, s.trest, s.name_reu, nvl(u2.parent_usl, e.usl) as parent_usl
          from t_saldo_reu_kul_nd_st e, sprorg u, usl u2,
@@ -747,16 +818,26 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
          and decode(var_, 1, trest_, s.trest)=s.trest
           ) h 
          join 
-         xitog3 i 
+         xitog3 i
          on h.reu=i.reu and h.kul=i.kul and h.nd=i.nd and h.org=i.org and h.usl=i.usl and h.status=i.status and h.fk_lsk_tp=i.fk_lsk_tp
             and i.mg between mg_ and mg1_
-         left join 
-         (select distinct t.mg, k.reu, t.kul, t.nd, o.name as other_name from a_houses t, t_org o, 
+         left join
+         (select distinct --t.mg,  -- ред.06.11.2019 - перевел на c_houses
+         --k.reu, 
+         t.kul, t.nd, o.name as other_name from c_houses t, t_org o, -- ред.06.11.2019 - перевел на c_houses
+         (select --max(t.reu) as reu, 
+          t.house_id from kart t where t.psch not in (8,9) group by t.house_id) k --работает в полыс, не убирать!
+          where t.fk_other_org=o.id and t.id=k.house_id
+          --and t.mg between mg_ and mg1_  -- ред.06.11.2019 - перевел на c_houses
+          ) h3
+         /*left join
+         (select distinct t.mg, k.reu, t.kul, t.nd, o.name as other_name from a_houses t, t_org o,
          (select max(t.reu) as reu, t.house_id from kart t where t.psch not in (8,9) group by t.house_id) k --работает в полыс, не убирать!
           where t.fk_other_org=o.id and t.id=k.house_id
           and t.mg between mg_ and mg1_
-          ) h3
-          on i.reu=h3.reu and i.kul=h3.kul and i.nd=h3.nd and i.mg=h3.mg
+          ) h3*/
+          on --i.reu=h3.reu and 
+          i.kul=h3.kul and i.nd=h3.nd-- and i.mg=h3.mg -- ред.06.11.2019 - перевел на c_houses
          left join 
          (select max(case when d.dist_tp<>4 and nvl(d.kub,0) = 0 then 'есть, нет объема' --max нужен чтобы не удваивалась оборотка
                       when d.dist_tp<>4 and nvl(d.kub,0) <> 0 then 'есть'
@@ -787,8 +868,6 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
         where (decode(l_sel_id, 0, h.fk_lsk_tp, l_sel_id) = h.fk_lsk_tp )
 
         order by i.mg, k.name||', '||nvl(ltrim(h.nd,'0'),'0'), utils.f_order(h.nd,6);
---        USING show_sal_, mg_, mg_, mg1_, show_sal_, mg_, mg_, mg1_, show_sal_, mg1_, mg_, mg1_, show_sal_,
---          mg1_, mg_, mg1_, fk_ses_, var_, reu_, kul_, nd_, var_, reu_, var_, trest_, var_, mg_, mg1_, mg_, mg1_, mg_, mg1_; 
       ELSIF det_ in (0, 1) THEN
         -- до ЖЭО
         OPEN prep_refcursor FOR select /*+ USE_HASH(h,i,o,u,x,d,c,l,t,hl)*/ x.mg, substr(x.mg, 1, 4)||'-'||substr(x.mg, 5, 2) as mg1,
@@ -832,7 +911,8 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
         null as psch,
         d.grp,
         null as isHotPipe,
-        null as isTowel
+        null as isTowel,
+        null as fio
         from
         (select distinct e.reu, e.kul, e.nd, e.org, e.usl, u.uslm, e.status, o.type, s.trest, s.name_reu, e.fk_lsk_tp from t_saldo_reu_kul_nd_st e, usl u, sprorg o,
         s_reu_trest s where e.org=o.kod and e.reu=s.reu and e.usl=u.usl
@@ -1695,106 +1775,70 @@ select t.trest||'' ''||t.name_reu as predp,
          and ' || sqlstr_;
      end if;
  elsif сd_ = '61' then
- --Оплата по Ф 2.4.
-
-    if oper_ is null then
-      --не выбрана операция
-      sqlstr_ := sqlstr_ || ' and :oper_ is null';
-    elsif oper_ is not null then
-      --выбрана операция
-      sqlstr_ := sqlstr_ || ' and s.oper=:oper_';
-    end if;
-
+ --Оплата по Ф 2.4. ред. 10.03.20
+  if dat_ is not null and dat1_ is not null then
+   sqlstr_ := 'select * from xxito14 a where a.dat between to_date('''||l_str_dat||''',''DD.MM.YYYY'') and to_date('''||l_str_dat1||''',''DD.MM.YYYY'') and a.mg='''||l_char_dat_mg||'''';
+  elsif dat_ is not null and dat1_ is null then
+   sqlstr_ := 'select * from xxito14 a where a.dat = to_date('''||l_str_dat||''',''DD.MM.YYYY'') and a.mg='''||l_char_dat_mg||'''';
+  elsif dat_ is null and dat1_ is null then
+   sqlstr_ := 'select * from xxito14 a where a.mg between '''||mg_||''' and '''||mg1_||'''';
+  end if;
+   sqlstr_ := sqlstr_||' and exists
+           (select * from list_c i, spr_params p where i.fk_ses='||fk_ses_||'
+                and p.id=i.fk_par and p.cd=''REP_USL2'' 
+                and i.sel_cd=a.usl
+            and i.sel=1)
+            and exists
+           (select * from list_c i, spr_params p where i.fk_ses='||fk_ses_||'
+                and p.id=i.fk_par and p.cd=''REP_ORG2'' 
+                and i.sel_id=a.org
+            and i.sel=1) ';
     if var_ = 2 then
     --по РЭУ
-        OPEN prep_refcursor for select period_ as period, s.trest, substr(t.name_tr, 1, 15) as name_tr, s.oper,
-               to_char(o.kod) || ' ' || substr(o.name, 1, 20) as name,
+        OPEN prep_refcursor for 'select '''||period_||''' as period, s.trest, substr(t.name_tr, 1, 15) as name_tr, s.oper,
+               to_char(o.kod) || '' '' || substr(o.name, 1, 20) as name,
                substr(u.nm1, 1, 20) as nm1, sum(summa) as summa,
-               decode(s.cd_tp, 0, 'Пеня', 'Оплата') as cd_tp
+               decode(s.cd_tp, 0, ''Пеня'', ''Оплата'') as cd_tp
          from 
-         (-- ред.03.07.19 для избежания неэффективного плана CBO при использовании OR в WHERE ввёл CASE WHEN
-          select * from xxito14 a where case when dat_ is not null and dat1_ is not null and a.dat between dat_ and dat1_ and a.mg=l_char_dat_mg then 1
-                                             when dat_ is not null and dat1_ is null and a.dat = dat_ and a.mg=l_char_dat_mg then 1
-                                             when dat_ is null and dat1_ is null and a.mg between mg_ and mg1_ then 1
-                                             else 0 end = 1
-             ) s, s_reu_trest t, sprorg o, usl u
+         ('||sqlstr_||') s, s_reu_trest t, sprorg o, usl u
            where s.forreu = t.reu
              and s.org = o.kod
-            and exists
-           (select * from list_c i, spr_params p where i.fk_ses=fk_ses_
-                and p.id=i.fk_par and p.cd='REP_USL2' 
-                and i.sel_cd=s.usl
-            and i.sel=1)
-            and exists
-           (select * from list_c i, spr_params p where i.fk_ses=fk_ses_
-                and p.id=i.fk_par and p.cd='REP_ORG2' 
-                and i.sel_id=s.org
-            and i.sel=1)
-             and s.forreu = reu_
+             and s.forreu = '||reu_||'
              and s.usl = u.usl 
            group by s.trest, substr(t.name_tr, 1, 15), s.oper,
-          to_char(o.kod) || ' ' || substr(o.name, 1, 20),
+          to_char(o.kod) || '' '' || substr(o.name, 1, 20),
           substr(u.nm1, 1, 20),
-          decode(s.cd_tp, 0, 'Пеня', 'Оплата');
+          decode(s.cd_tp, 0, ''Пеня'', ''Оплата'')';
     elsif var_ = 1 then
     --по ЖЭО
-        OPEN prep_refcursor FOR select period_ as period, s.trest, substr(t.name_tr, 1, 15) as name_tr, s.oper,
-               to_char(o.kod) || ' ' || substr(o.name, 1, 20) as name,
+          
+        OPEN prep_refcursor FOR 'select '''||period_||''' as period, s.trest, substr(t.name_tr, 1, 15) as name_tr, s.oper,
+               to_char(o.kod) || '' '' || substr(o.name, 1, 20) as name,
                substr(u.nm1, 1, 20) as nm1, sum(summa) as summa,
-               decode(s.cd_tp, 0, 'Пеня', 'Оплата') as cd_tp
-         from (-- ред.03.07.19 для избежания неэффективного плана CBO при использовании OR в WHERE ввёл CASE WHEN
-          select * from xxito14 a where case when dat_ is not null and dat1_ is not null and a.dat between dat_ and dat1_ and a.mg=l_char_dat_mg then 1
-                                             when dat_ is not null and dat1_ is null and a.dat = dat_ and a.mg=l_char_dat_mg then 1
-                                             when dat_ is null and dat1_ is null and a.mg between mg_ and mg1_ then 1
-                                             else 0 end = 1
-             ) s, s_reu_trest t, sprorg o, usl u
+               decode(s.cd_tp, 0, ''Пеня'', ''Оплата'') as cd_tp
+         from ('||sqlstr_||') s, s_reu_trest t, sprorg o, usl u
            where s.forreu = t.reu
              and s.org = o.kod
-            and exists
-           (select * from list_c i, spr_params p where i.fk_ses=fk_ses_
-                and p.id=i.fk_par and p.cd='REP_USL2' 
-                and i.sel_cd=s.usl
-            and i.sel=1)
-            and exists
-           (select * from list_c i, spr_params p where i.fk_ses=fk_ses_
-                and p.id=i.fk_par and p.cd='REP_ORG2' 
-                and i.sel_id=s.org
-            and i.sel=1)
-             and s.trest = trest_
+             and s.trest = '||trest_||'
              and s.usl = u.usl 
            group by s.trest, substr(t.name_tr, 1, 15), s.oper,
-          to_char(o.kod) || ' ' || substr(o.name, 1, 20),
+          to_char(o.kod) || '' '' || substr(o.name, 1, 20),
           substr(u.nm1, 1, 20),
-          decode(s.cd_tp, 0, 'Пеня', 'Оплата');
+          decode(s.cd_tp, 0, ''Пеня'', ''Оплата'')';
     elsif var_ = 0 then
     --по Городу
-        OPEN prep_refcursor FOR select period_ as period, s.trest, substr(t.name_tr, 1, 15) as name_tr, s.oper,
-               to_char(o.kod) || ' ' || substr(o.name, 1, 20) as name,
+        OPEN prep_refcursor FOR 'select '''||period_||''' as period, s.trest, substr(t.name_tr, 1, 15) as name_tr, s.oper,
+               to_char(o.kod) || '' '' || substr(o.name, 1, 20) as name,
                substr(u.nm1, 1, 20) as nm1, sum(summa) as summa,
-               decode(s.cd_tp, 0, 'Пеня', 'Оплата') as cd_tp
-         from (-- ред.03.07.19 для избежания неэффективного плана CBO при использовании OR в WHERE ввёл CASE WHEN
-          select * from xxito14 a where case when dat_ is not null and dat1_ is not null and a.dat between dat_ and dat1_ and a.mg=l_char_dat_mg then 1
-                                             when dat_ is not null and dat1_ is null and a.dat = dat_ and a.mg=l_char_dat_mg then 1
-                                             when dat_ is null and dat1_ is null and a.mg between mg_ and mg1_ then 1
-                                             else 0 end = 1
-             ) s, s_reu_trest t, sprorg o, usl u
+               decode(s.cd_tp, 0, ''Пеня'', ''Оплата'') as cd_tp
+         from ('||sqlstr_||') s, s_reu_trest t, sprorg o, usl u
            where s.forreu = t.reu
              and s.org = o.kod
-            and exists
-           (select * from list_c i, spr_params p where i.fk_ses=fk_ses_
-                and p.id=i.fk_par and p.cd='REP_USL2' 
-                and i.sel_cd=s.usl
-            and i.sel=1)
-            and exists
-           (select * from list_c i, spr_params p where i.fk_ses=fk_ses_
-                and p.id=i.fk_par and p.cd='REP_ORG2' 
-                and i.sel_id=s.org
-            and i.sel=1)
              and s.usl = u.usl 
            group by s.trest, substr(t.name_tr, 1, 15), s.oper,
-          to_char(o.kod) || ' ' || substr(o.name, 1, 20),
+          to_char(o.kod) || '' '' || substr(o.name, 1, 20),
           substr(u.nm1, 1, 20),
-          decode(s.cd_tp, 0, 'Пеня', 'Оплата');
+          decode(s.cd_tp, 0, ''Пеня'', ''Оплата'')';
     end if;
 
  elsif сd_ in  ('62','63') then
@@ -2455,7 +2499,7 @@ select t.trest||'' ''||t.name_reu as predp,
            a.norm1, a.norm2, a.norm3, a.tp1, 
            a.limit1, a.limit2, a.limit3
            from arch_kart k, spul s,
-           (select n.lsk,
+           (select k.k_lsk_id,
                max(decode(t.usl,'003',t.test_cena,'004',t.test_cena,0)) as summa1, --тек.содержание
                max(decode(t.usl,'005',t.test_cena,0))+
                max(decode(t.usl,'006',t.test_cena,0))+
@@ -2475,12 +2519,14 @@ select t.trest||'' ''||t.name_reu as predp,
                max(decode(n.usl,'011',d.nrm,0)) as limit1,  --ограничение ОДН хвс
                max(decode(n.usl,'015',d.nrm,0)) as limit2,  --ограничение ОДН гвс
                max(decode(n.usl,'053',d.nrm,0)) as limit3  --ограничение ОДН Эл.эн.
-               from scott.a_nabor2 n left join scott.a_charge2 t on n.usl=t.usl and n.lsk=t.lsk and t.type=1
+               from a_nabor2 n 
+                              join arch_kart k on n.lsk=k.lsk and k.mg=mg_ and k.psch not in (8,9)
+                              left join a_charge2 t on n.usl=t.usl and n.lsk=t.lsk and t.type=1
                                    and mg_ between t.mgFrom and t.mgTo
                               left join scott.a_vvod d on d.mg=mg_ and n.fk_vvod=d.id
                where mg_ between n.mgFrom and n.mgTo
-             group by n.lsk) a
-           where k.kul=s.id and k.lsk=a.lsk(+)
+             group by k.k_lsk_id) a
+           where k.kul=s.id and k.k_lsk_id=a.k_lsk_id(+)
            and k.mg=mg_ and k.psch not in (8,9)
            order by s.name, utils.f_order(k.nd,6), utils.f_order2(k.nd), utils.f_order(k.kw,7), k.lsk;
       end if;
@@ -3405,7 +3451,7 @@ elsif сd_ in  ('88') then
     if var_ = 3 then
     --по Дому
       OPEN prep_refcursor FOR select d.npp, h.name_reu||' '||l.name||h.name||', '||ltrim(h.nd,'0') as predpr,
-      null as type, to_char(d.kod)||' '||d.name as org, to_char(h.uslm)||' '||decode(m.frc_get_price,1,m.nm,m.nm1) as nm1,
+      null as type, to_char(d.id)||' '||d.name as org, to_char(h.uslm)||' '||decode(m.frc_get_price,1,m.nm,m.nm1) as nm1,
       sum(i.indebet) as indebet, sum(i.inkredit) as inkredit,
       sum(o.charges) as charges, sum(o.changes) as changes, sum(o.subsid) as subsid, sum(o.privs) as privs, sum(o.privs_city) as privs_city, sum(o.payment) as payment,
       sum(o.ch_full) as ch_full, sum(o.changes2) as changes2, sum(nvl(o.changes,0)+nvl(o.changes2,0)) as changesall,
@@ -3433,23 +3479,23 @@ elsif сd_ in  ('88') then
       where t.mg between mg_ and mg1_
       group by reu,kul,nd,org,usl,status,fk_lsk_tp) o,
       (select * from xitog3 e where e.mg=mg1_) u,
-      sprorg d, usl m, org l
+      t_org d, usl m, org l
       where
       h.reu=i.reu(+) and h.kul=i.kul(+) and h.nd=i.nd(+) and h.org=i.org(+) and h.usl=i.usl(+) and h.status=i.status(+) and h.fk_lsk_tp=i.fk_lsk_tp(+) and
       h.reu=o.reu(+) and h.kul=o.kul(+) and h.nd=o.nd(+) and h.org=o.org(+) and h.usl=o.usl(+) and h.status=o.status(+) and h.fk_lsk_tp=o.fk_lsk_tp(+) and
       h.reu=u.reu(+) and h.kul=u.kul(+) and h.nd=u.nd(+) and h.org=u.org(+) and h.usl=u.usl(+) and h.status=u.status(+) and h.fk_lsk_tp=u.fk_lsk_tp(+) and
-      l.id=4 and h.org=d.kod and h.usl=m.usl
+      l.id=4 and h.org=d.id and h.usl=m.usl
       group by d.npp, h.name_reu||' '||l.name||h.name||', '||ltrim(h.nd,'0'),
-      to_char(d.kod)||' '||d.name, to_char(h.uslm)||' '||decode(m.frc_get_price,1,m.nm,m.nm1)
+      to_char(d.id)||' '||d.name, to_char(h.uslm)||' '||decode(m.frc_get_price,1,m.nm,m.nm1)
       having sum(i.indebet) <>0 or sum(i.inkredit) <>0 or
       sum(o.charges) <>0 or sum(o.changes) <>0 or sum(o.subsid) <>0 or
       sum(o.privs) <>0 or sum(o.privs_city) <>0 or sum(o.payment) <>0 or
       sum(o.pn) <>0 or sum(u.outdebet) <>0 or sum(u.outkredit) <>0
-      order by h.name_reu||' '||l.name||h.name||', '||ltrim(h.nd,'0'), d.npp;
+      order by  h.name_reu||' '||l.name||h.name||', '||ltrim(h.nd,'0'), d.npp;
       
     elsif var_ = 2 then
     --по РЭУ
-      OPEN prep_refcursor FOR select d.npp, l.name||h.name_reu as predpr,null as type, to_char(d.kod)||' '||d.name as org, to_char(h.uslm)||' '||decode(m.frc_get_price,1,m.nm,m.nm1) as nm1, sum(i.indebet) as indebet, sum(i.inkredit) as inkredit,
+      OPEN prep_refcursor FOR select d.npp, l.name||h.name_reu as predpr,null as type, to_char(d.id)||' '||d.name as org, to_char(h.uslm)||' '||decode(m.frc_get_price,1,m.nm,m.nm1) as nm1, sum(i.indebet) as indebet, sum(i.inkredit) as inkredit,
       sum(o.charges) as charges, sum(o.changes) as changes, sum(o.subsid) as subsid, sum(o.privs) as privs, sum(o.privs_city) as privs_city, sum(o.payment) as payment,
       sum(o.ch_full) as ch_full, sum(o.changes2) as changes2, sum(nvl(o.changes,0)+nvl(o.changes2,0)) as changesall,
       sum(o.pn) as pn, sum(u.outdebet) as outdebet, sum(u.outkredit) as outkredit
@@ -3475,13 +3521,13 @@ elsif сd_ in  ('88') then
       where t.mg between mg_ and mg1_
       group by reu,kul,nd,org,usl,status,fk_lsk_tp) o,
       (select * from xitog3 e where e.mg=mg1_) u,
-      sprorg d, usl m, org l
+      t_org d, usl m, org l
       where
       h.reu=i.reu(+) and h.kul=i.kul(+) and h.nd=i.nd(+) and h.org=i.org(+) and h.usl=i.usl(+) and h.status=i.status(+) and h.fk_lsk_tp=i.fk_lsk_tp(+) and
       h.reu=o.reu(+) and h.kul=o.kul(+) and h.nd=o.nd(+) and h.org=o.org(+) and h.usl=o.usl(+) and h.status=o.status(+) and h.fk_lsk_tp=o.fk_lsk_tp(+) and
       h.reu=u.reu(+) and h.kul=u.kul(+) and h.nd=u.nd(+) and h.org=u.org(+) and h.usl=u.usl(+) and h.status=u.status(+) and h.fk_lsk_tp=u.fk_lsk_tp(+) and
-      l.id=3 and h.org=d.kod and h.usl=m.usl
-      group by d.npp, l.name||h.name_reu, to_char(d.kod)||' '||d.name, to_char(h.uslm)||' '||decode(m.frc_get_price,1,m.nm,m.nm1)
+      l.id=3 and h.org=d.id and h.usl=m.usl
+      group by d.npp, l.name||h.name_reu, to_char(d.id)||' '||d.name, to_char(h.uslm)||' '||decode(m.frc_get_price,1,m.nm,m.nm1)
       having sum(i.indebet) <>0 or sum(i.inkredit) <>0 or
       sum(o.charges) <>0 or sum(o.changes) <>0 or sum(o.subsid) <>0 or
       sum(o.privs) <>0 or sum(o.privs_city) <>0 or sum(o.payment) <>0 or
@@ -3490,7 +3536,7 @@ elsif сd_ in  ('88') then
 --        USING reu_, fk_ses_, fk_ses_, mg_, mg_, mg1_, mg1_;
     elsif var_ = 1 then
     --по ЖЭО
-      OPEN prep_refcursor FOR select d.npp,l.name||h.name_tr as predpr, null as type, to_char(d.kod)||' '||d.name as org, to_char(h.uslm)||' '||decode(m.frc_get_price,1,m.nm,m.nm1) as nm1, sum(i.indebet) as indebet, sum(i.inkredit) as inkredit,
+      OPEN prep_refcursor FOR select d.npp,l.name||h.name_tr as predpr, null as type, to_char(d.id)||' '||d.name as org, to_char(h.uslm)||' '||decode(m.frc_get_price,1,m.nm,m.nm1) as nm1, sum(i.indebet) as indebet, sum(i.inkredit) as inkredit,
       sum(o.charges) as charges, sum(o.changes) as changes, sum(o.subsid) as subsid, sum(o.privs) as privs, sum(o.privs_city) as privs_city, sum(o.payment) as payment,
       sum(o.ch_full) as ch_full, sum(o.changes2) as changes2, sum(nvl(o.changes,0)+nvl(o.changes2,0)) as changesall,
       sum(o.pn) as pn, sum(u.outdebet) as outdebet, sum(u.outkredit) as outkredit
@@ -3515,13 +3561,13 @@ elsif сd_ in  ('88') then
       where t.mg between mg_ and mg1_
       group by reu,kul,nd,org,usl,status,fk_lsk_tp) o,
       (select * from xitog3 e where e.mg=mg1_) u,
-      sprorg d, usl m, org l
+      t_org d, usl m, org l
       where
       h.reu=i.reu(+) and h.kul=i.kul(+) and h.nd=i.nd(+) and h.org=i.org(+) and h.usl=i.usl(+) and h.status=i.status(+) and h.fk_lsk_tp=i.fk_lsk_tp(+) and
       h.reu=o.reu(+) and h.kul=o.kul(+) and h.nd=o.nd(+) and h.org=o.org(+) and h.usl=o.usl(+) and h.status=o.status(+) and h.fk_lsk_tp=o.fk_lsk_tp(+) and
       h.reu=u.reu(+) and h.kul=u.kul(+) and h.nd=u.nd(+) and h.org=u.org(+) and h.usl=u.usl(+) and h.status=u.status(+) and h.fk_lsk_tp=u.fk_lsk_tp(+) and
-      l.id=2 and h.org=d.kod and h.usl=m.usl
-      group by d.npp, l.name||h.name_tr, to_char(d.kod)||' '||d.name, to_char(h.uslm)||' '||decode(m.frc_get_price,1,m.nm,m.nm1)
+      l.id=2 and h.org=d.id and h.usl=m.usl
+      group by d.npp, l.name||h.name_tr, to_char(d.id)||' '||d.name, to_char(h.uslm)||' '||decode(m.frc_get_price,1,m.nm,m.nm1)
       having sum(i.indebet) <>0 or sum(i.inkredit) <>0 or
       sum(o.charges) <>0 or sum(o.changes) <>0 or sum(o.subsid) <>0 or
       sum(o.privs) <>0 or sum(o.privs_city) <>0 or sum(o.payment) <>0 or
@@ -3530,7 +3576,7 @@ elsif сd_ in  ('88') then
 --        USING trest_, fk_ses_, fk_ses_, mg_, mg_, mg1_, mg1_;
     elsif var_ = 0 then
     --по Городу
-      OPEN prep_refcursor FOR select d.npp, l.name as predpr, null as type, to_char(d.kod)||' '||d.name as org, to_char(h.uslm)||' '||decode(m.frc_get_price,1,m.nm,m.nm1) as nm1, sum(i.indebet) as indebet, sum(i.inkredit) as inkredit,
+      OPEN prep_refcursor FOR select d.npp, l.name as predpr, null as type, to_char(d.id)||' '||d.name as org, to_char(h.uslm)||' '||decode(m.frc_get_price,1,m.nm,m.nm1) as nm1, sum(i.indebet) as indebet, sum(i.inkredit) as inkredit,
       sum(o.charges) as charges, sum(o.changes) as changes, sum(o.subsid) as subsid, sum(o.privs) as privs, sum(o.privs_city) as privs_city, sum(o.payment) as payment,
       sum(o.ch_full) as ch_full, sum(o.changes2) as changes2, sum(nvl(o.changes,0)+nvl(o.changes2,0)) as changesall,
       sum(o.pn) as pn, sum(u.outdebet) as outdebet, sum(u.outkredit) as outkredit
@@ -3554,13 +3600,13 @@ elsif сd_ in  ('88') then
       where t.mg between mg_ and mg1_
       group by reu,kul,nd,org,usl,status,fk_lsk_tp) o,
       (select * from xitog3 e where e.mg=mg1_) u,
-      sprorg d, usl m, org l
+      t_org d, usl m, org l
       where
       h.reu=i.reu(+) and h.kul=i.kul(+) and h.nd=i.nd(+) and h.org=i.org(+) and h.usl=i.usl(+) and h.status=i.status(+) and h.fk_lsk_tp=i.fk_lsk_tp(+) and 
       h.reu=o.reu(+) and h.kul=o.kul(+) and h.nd=o.nd(+) and h.org=o.org(+) and h.usl=o.usl(+) and h.status=o.status(+) and h.fk_lsk_tp=o.fk_lsk_tp(+) and
       h.reu=u.reu(+) and h.kul=u.kul(+) and h.nd=u.nd(+) and h.org=u.org(+) and h.usl=u.usl(+) and h.status=u.status(+) and h.fk_lsk_tp=u.fk_lsk_tp(+) and
-      l.id=1 and h.org=d.kod and h.usl=m.usl
-      group by d.npp, l.name, to_char(d.kod)||' '||d.name, to_char(h.uslm)||' '||decode(m.frc_get_price,1,m.nm,m.nm1)
+      l.id=1 and h.org=d.id and h.usl=m.usl
+      group by d.npp, l.name, to_char(d.id)||' '||d.name, to_char(h.uslm)||' '||decode(m.frc_get_price,1,m.nm,m.nm1)
       having sum(i.indebet) <>0 or sum(i.inkredit) <>0 or
       sum(o.charges) <>0 or sum(o.changes) <>0 or sum(o.subsid) <>0 or
       sum(o.privs) <>0 or sum(o.privs_city) <>0 or sum(o.payment) <>0 or
@@ -3886,6 +3932,16 @@ elsif сd_ in  ('88') then
      e13.nrm as norm11,
      null as fakt11,
      e13.summa_itg as sum_f11,
+     
+     'Вывоз ТКО' as gku13,
+     s.lsk as lchet13,
+     'м3' as ed_izm13,
+     c14.tf1 as tf_n13,
+     c14.tf1 as tf_sv13,
+     0.17275 as norm13,
+     round(e14.test_opl*0.17275,4) as fakt13, -- кол-во людей * норматив
+     e14.summa_itg as sum_f13,
+     
      null as lchet12,
      null as ed_izm12,
      null as fakt12,
@@ -3913,8 +3969,8 @@ elsif сd_ in  ('88') then
        from a_charge2 s, usl u 
         where s.usl=u.usl and
        mg_ between s.mgFrom and s.mgTo and
-       u.cd in ('т/сод', 'т/сод/св.нор', 'лифт', 'лифт/св.нор', 'дерат.', 'дерат/св.нор', 'мус.площ.', 'мус.площ./св.нор',
-       'выв.мус.', 'выв.мус./св.нор')
+       u.cd in ('т/сод', 'т/сод/св.нор', 'лифт', 'лифт/св.нор', 'дерат.', 'дерат/св.нор', 'мус.площ.', 'мус.площ./св.нор'/*,
+       'выв.мус.', 'выв.мус./св.нор'*/)
        and s.type=1 --текущее содержание, вместе с под-услугами
      group by s.lsk) e2 on s.lsk = e2.lsk
          left join 
@@ -4024,6 +4080,15 @@ elsif сd_ in  ('88') then
        u.cd in ('отоп', 'отоп/св.нор') and s.type=1
      group by s.lsk) e12 on s.lsk = e12.lsk
 
+    left join 
+    (select s.lsk,
+     sum(s.test_opl) as test_opl,
+     sum(s.summa) as summa_itg
+       from a_charge2 s, usl u where s.usl=u.usl and
+       mg_ between s.mgFrom and s.mgTo and
+      u.cd in ('выв.мус.') and s.type=1 -- вывоз ТКО
+     group by s.lsk) e14 on s.lsk = e14.lsk
+
      left join
      (select n.lsk, round(sum(case when u.usl_norm = 0 then 
         case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf1,
@@ -4033,8 +4098,7 @@ elsif сd_ in  ('88') then
          a_nabor2 n join usl u on n.usl=u.usl 
          join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
       where r.mg=mg_ 
-      and u.cd in ('т/сод', 'т/сод/св.нор', 'лифт', 'лифт/св.нор', 'дерат.', 'дерат/св.нор', 'мус.площ.', 'мус.площ./св.нор',
-             'выв.мус.', 'выв.мус./св.нор')
+      and u.cd in ('т/сод', 'т/сод/св.нор', 'лифт', 'лифт/св.нор', 'дерат.', 'дерат/св.нор', 'мус.площ.', 'мус.площ./св.нор')
       group by n.lsk       
        ) c1
        on s.lsk=c1.lsk
@@ -4089,7 +4153,7 @@ elsif сd_ in  ('88') then
          a_nabor2 n join usl u on n.usl=u.usl 
          join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
       where r.mg=mg_ 
-      and u.cd in (/*'эл.эн.ОДН', */'EL_SOD')
+      and u.cd in ('EL_SOD')
       group by n.lsk       
        ) c6
        on s.lsk=c6.lsk
@@ -4208,6 +4272,17 @@ elsif сd_ in  ('88') then
        ) c13
        on s.lsk=c13.lsk       
 
+     left join
+     (select n.lsk, max(round(n.koeff * r.summa ,2)) as tf1
+       from 
+         a_nabor2 n join usl u on n.usl=u.usl 
+         join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
+      where r.mg=mg_ 
+      and u.cd in ('выв.мус.') -- вывоз ТКО
+      group by n.lsk       
+       ) c14
+       on s.lsk=c14.lsk
+
     order by l.name, s.nd, s.kw;
       
  elsif сd_ in ('94') then -- следующий номер CD смотреть так же в REP_LSK!
@@ -4247,9 +4322,9 @@ elsif сd_ in  ('88') then
        left join kart k2 on k.k_lsk_id=k2.k_lsk_id and k2.fk_tp=tp2.id and k2.psch not in (8,9) -- счет по капремонту
        join status s on k.status=s.id
        join prep_house_fias p on k.house_id=p.fk_house
-       join fias_house h on p.houseguid=h.houseguid --дом
-       join fias_addr a on h.aoguid=a.aoguid --улица
-       join fias_addr b on a.parentguid=b.aoguid --город
+       join fias_house h on lower(p.houseguid)=lower(h.houseguid) --дом
+       join fias_addr a on lower(h.aoguid)=lower(a.aoguid) --улица
+       join fias_addr b on lower(a.parentguid)=lower(b.aoguid) --город
        join c_houses h2 on p.fk_house=h2.id
        join u_list u on u.cd='Общая площадь здания'
        left join t_objxpar x on h2.k_lsk_id=x.fk_k_lsk and x.fk_list=u.id

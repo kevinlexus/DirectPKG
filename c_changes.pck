@@ -554,7 +554,7 @@ else
     end if;      
     --по каждому дому коммит, да, да! (иначе тормозит глухо, когда много домов)
     commit;
-    logger.log_(l_time, 'Окончен перерасчет по дому kul='||c.kul||' nd='||c.nd);
+    logger.log_(l_time, 'Окончено добавление % перерасчета по дому kul='||c.kul||' nd='||c.nd);
     end loop;
     exit when l_part=1;
     l_part:=l_part+1;
@@ -572,6 +572,8 @@ update temp_c_change2 t set t.uslm = (select u.uslm from usl u where t.usl=u.usl
 delete from a_charge2 a
  where l_mg between a.mgFrom and a.mgTo
  and exists (select * from temp_c_change2 t where t.lsk=a.lsk);
+ --and a.mgfrom in (select b.mg from long_table b where b.mg>=l_mg); -- бред long_table нужен для ускорения ред.03.09.2019 -- некорректное условие ред.11.02.2020
+ 
 insert into a_charge2
   (lsk,
    usl,
@@ -625,6 +627,8 @@ insert into a_charge2
 if l_h_usl > 0 and p_kan=1 then
   l_part:=0;
   loop
+     -- ред.23.08.2019 - убрал условие так как стал неэффективный запрос в полыс. Но так странно, ведь я же его ставил год назад, чтобы выполнялся быстрее...
+     -- ред.03.09.2019 - восстановил условие, так как стало тормозить в кис!
     for c in (select /*+ USE_HASH(t,a,b,d) */ t.lsk, b.lsk as lsk_kan, t.org, t.proc, t.mg, d.usl, d.summa, d.vol,
        a.summa/b.summa as proc_kan, --доля услуги в канализовании (отношение объемов)
        round(t.proc * a.summa/b.summa,3) as proc_itg

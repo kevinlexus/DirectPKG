@@ -1,0 +1,17 @@
+create table SCOTT.TEST1702
+(
+  id   NUMBER,
+  name VARCHAR2(1000)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

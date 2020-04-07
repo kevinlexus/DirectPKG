@@ -30,11 +30,34 @@ create or replace package scott.p_meter is
                          p_n1       in number, -- НЕ используется!
                          p_tp       in number default 0 -- тип (0-ручной ввод, 1-автоначисление, 2-отмена начисления (здесь не должно использ)
                          ) return number;
-  procedure ins_data_meter(p_met_klsk in number, -- klsk счетчика --либо klsk счетчика
+  -- привязать или отменить связь  счетчика с гис жкх
+  procedure connect_meter_gis(p_klsk_meter in number, -- klsk счетчика
+                          p_eolink in number, -- id Eolink счетчика
+                          is_connect in number -- привязать - 0, снять связь - 1
+                          );
+  procedure ins_data_meter(p_lsk in varchar2, --  лиц.счет
+                           p_usl in varchar2, -- услуга         
+                           p_prev_val       in number, -- предыдущее показание
+                           p_cur_val       in number, -- новое показание
+                           p_is_set_prev       in number, -- установить предыдущее показание? ВНИМАНИЕ! Текущие введёные показания будут сброшены назад
+                           p_ts       in date, -- timestamp
+                           p_period   in varchar2, -- период
+                           p_status   in number, -- статус показания (см. t_objxpar.status)
+                           p_user in number, -- пользователь
+                           p_doc_par_id in number, -- id реестра
+                           p_ret      out number);
+  procedure ins_data_meter(p_met_klsk in number, -- klsk счетчика
                            p_n1       in number, -- новое показание
                            p_ts       in date, -- timestamp
                            p_period   in varchar2,
-                           p_ret      out number);
+                           p_status   in number, -- статус (например 3 - загружено из ГИС)
+                           p_user in number, -- пользователь
+                           p_control in number default 1, -- контролировать перерасход? (1-да, 0-нет)
+                           p_is_set_prev   in number default 0, -- установить предыдущее показание? (1-да, 0-нет) ВНИМАНИЕ! Текущие введёные показания будут сброшены назад
+                           p_lsk in kart.lsk%type default null, -- если передан лиц.сч., использовать его, если нет, - взять Основной лиц.сч.
+                           p_doc_par_id in number default null, -- id реестра
+                           p_ret      out number);                           
+                           
   function getpsch(p_lsk in kart.lsk%type) return number;
   function getElpsch(p_lsk in kart.lsk%type) return number;
   function gen_auto_chrg_all(p_set in number, p_usl in usl.usl%type)
@@ -114,8 +137,10 @@ create or replace package body scott.p_meter is
           --сохранить последние показания в счетчике
           update meter m set m.n1 = p_n1 where m.k_lsk_id = c.klsk;
           --обновить показания в kart
+          --Raise_application_error(-20000, 'update kart k set k.' || l_counter || '=nvl(' || p_n1 ||
+          --                  ',0) where k.lsk=' || l_lsk);
           execute immediate 'update kart k set k.' || l_counter || '=nvl(' || p_n1 ||
-                            ',0) where k.lsk=' || l_lsk;
+                            ',0) where k.lsk=''' || l_lsk||'''';
         end if;
         --вернуть klsk нового счетчика
         return c.klsk;
@@ -190,7 +215,7 @@ create or replace package body scott.p_meter is
     
       if l_met_klsk is null then
         g_flag := 0;
-        return 2; -- ошибка, нет активных счетчиков, провести объем не возможно!
+        return 2; -- ошибка, нет активных счетчиков, провести объем невозможно!
       end if;
     end if;
   
@@ -243,12 +268,12 @@ create or replace package body scott.p_meter is
         --обновить показания и общий расход за месяц в kart
         execute immediate 'update kart k set k.' || l_counter || '=nvl(k.' ||
                           l_counter || ',0)+nvl(' || p_vol ||
-                          ',0) where k.lsk=' || l_lsk;
+                          ',0) where k.lsk=:lsk' using l_lsk;
         --меняем первую букву на "m" - получаем поле для расхода (изврат)
         execute immediate 'update kart k set k.' || 'm' ||
                           substr(l_counter, 2, 3) || '=nvl(k.' || 'm' ||
                           substr(l_counter, 2, 3) || ',0) + nvl(' || p_vol || +
-                          ',0) where k.lsk=' || l_lsk;
+                          ',0) where k.lsk=:lsk' using l_lsk;
       
         l_flag := 1;
       
@@ -267,33 +292,126 @@ create or replace package body scott.p_meter is
     end if;
   end;
 
+  -- привязать или отменить связь  счетчика с гис жкх
+  procedure connect_meter_gis(p_klsk_meter in number, -- klsk счетчика
+                          p_eolink in number, -- id Eolink счетчика
+                          is_connect in number -- привязать - 0, снять связь - 1
+                          ) is
+  begin
+    if is_connect = 0 then
+      -- привязать
+      update exs.eolink e set e.fk_klsk_obj=p_klsk_meter where e.id=p_eolink;
+    else
+      -- снять связь
+      update exs.eolink e set e.fk_klsk_obj=null where e.id=p_eolink;
+    end if;  
+  end;                          
+
+  -- отменить реестр показаний по счетчикам (вернуть показания, объемы назад)
+  procedure revert_data_meter(p_doc_par_id in number -- id реестра
+    ) is
+  begin
+    for c in (select t.is_set_prev_val from t_docxpar t where t.id=p_doc_par_id) loop
+    if c.is_set_prev_val =1 then
+      -- были установлены начальные показания
+    null;
+    end if;   
+        
+    end loop; 
+  end;
+  
+  --внести показание по счетчику (обычно - Java вызов из BillDirect - загрузка показаний из файла)
+  procedure ins_data_meter(p_lsk in varchar2, --  лиц.счет
+                           p_usl in varchar2, -- услуга         
+                           p_prev_val       in number, -- предыдущее показание
+                           p_cur_val       in number, -- новое показание
+                           p_is_set_prev   in number, -- установить предыдущее показание? (1-да, 0-нет) ВНИМАНИЕ! Текущие введёные показания будут сброшены назад
+                           p_ts       in date, -- timestamp
+                           p_period   in varchar2, -- период
+                           p_status   in number, -- статус показания (см. t_objxpar.status)
+                           p_user in number, -- пользователь
+                           p_doc_par_id in number, -- id реестра
+                           p_ret      out number) is
+  l_ret number;    
+  l_diff number;                       
+  begin
+    p_ret:=4; -- не найден активный счетчик
+    -- найти активный счетчик по услуге
+    for c in (select m.k_lsk_id, nvl(m.n1,0) as prev_val from meter m join params p on 1=1
+        join kart k
+                      on k.lsk=p_lsk and m.fk_klsk_obj=k.k_lsk_id and m.fk_usl=p_usl 
+                      and last_day(to_date(trim(p_period)||'01','YYYYMMDD')) between m.dt1 and m.dt2 -- активный счетчик на конец месяца
+                      ) loop
+        if p_is_set_prev = 1 then
+            -- установить предыдущие показания (отматать назад или вперед текущие), без контроля значений
+            ins_data_meter(p_met_klsk => c.k_lsk_id,
+                           p_n1       => p_prev_val,
+                           p_ts       => p_ts,
+                           p_period   => p_period,
+                           p_status   => p_status,
+                           p_user     => p_user,
+                           p_control  => 0,
+                           p_is_set_prev =>1,
+                           p_doc_par_id => p_doc_par_id,
+                           p_ret      => l_ret);
+          -- установить текущие показания, с контролем значений, но не знака (+-) (ред. 27.02.20 Кис.просят чтобы можно было отматывать счетчик назад)
+          ins_data_meter(p_met_klsk => c.k_lsk_id,
+                         p_n1       => p_cur_val,
+                         p_ts       => p_ts,
+                         p_period   => p_period,
+                         p_status   => p_status,
+                         p_user     => p_user,
+                         p_control  => 2,
+                         p_doc_par_id => p_doc_par_id,
+                         p_ret      => l_ret);
+        else               
+          -- просто установить текущие показания, с контролем значений, но не знака (+-) (ред. 27.02.20 Кис.просят чтобы можно было отматывать счетчик назад)
+          ins_data_meter(p_met_klsk => c.k_lsk_id,
+                         p_n1       => p_cur_val,
+                         p_ts       => p_ts,
+                         p_period   => p_period,
+                         p_status   => p_status,
+                         p_user     => p_user,
+                         p_control  => 2, -- контроль только объема, но не его знака
+                         p_doc_par_id => p_doc_par_id,
+                         p_ret      => l_ret);
+        end if;                 
+        p_ret:=l_ret;
+        exit;               
+    end loop;                  
+  end;                         
+
   --внести показание по счетчику (обычно - Java вызов из GisExchange)
-  procedure ins_data_meter(p_met_klsk in number, -- klsk счетчика --либо klsk счетчика
+  procedure ins_data_meter(p_met_klsk in number, -- klsk счетчика
                            p_n1       in number, -- новое показание
                            p_ts       in date, -- timestamp
                            p_period   in varchar2,
+                           p_status   in number, -- статус (например 3 - загружено из ГИС)
+                           p_user in number, -- пользователь
+                           p_control in number default 1, -- контролировать перерасход? (1-да, 0-нет, 2 - да, но не знак)
+                           p_is_set_prev   in number default 0, -- установить предыдущее показание? (1-да, 0-нет) ВНИМАНИЕ! Текущие введёные показания будут сброшены назад
+                           p_lsk in kart.lsk%type default null, -- если передан лиц.сч., использовать его, если нет, - взять Основной лиц.сч.
+                           p_doc_par_id in number default null, -- id реестра
                            p_ret      out number) is
     l_vol number;
     l_n1  number;
+    stt varchar2(1000);
   begin
     p_ret := 0;
     if p_met_klsk is null then
       Raise_application_error(-20000,
-                              'Некорректное использование функции p_meter.ins_data_meter, p_lsk пустое!');
-    end if;
-    if nvl(p_n1, 0) = 0 then
-      p_ret := 1; -- пустые новые показания
-      return;
+                              'Некорректное использование функции p_meter.ins_data_meter, p_met_klsk пустое!');
     end if;
     l_n1 := 0;
-    for c in (select k.lsk, m.id, trim(u3.counter) as counter, u.id as vol_id, u2.id as num_id
+    for c in (select k.lsk, m.id, m.fk_usl, trim(u3.counter) as counter, u.id as vol_id, u2.id as num_id
                 from meter m
                 join kart k
                   on m.fk_klsk_obj = k.k_lsk_id
                 join v_lsk_tp tp
                   on k.fk_tp = tp.id
-                 and tp.cd = 'LSK_TP_MAIN'
-                 and k.psch not in (8, 9) -- активный, основной лиц.сч.
+                 and coalesce(p_lsk, k.lsk)=k.lsk 
+                   and case when p_lsk is null then 'LSK_TP_MAIN' else tp.cd end = tp.cd -- или указан лиц.сч или основной лиц.сч. к которому привязан счетчик
+                 and k.psch not in (8, 9)
                 join usl u3
                   on m.fk_usl = u3.usl
                 join u_list u
@@ -301,51 +419,73 @@ create or replace package body scott.p_meter is
                 join u_list u2
                   on u2.cd = 'ins_sch'
                where m.k_lsk_id = p_met_klsk
-                 and sysdate between m.dt1 and m.dt2 -- активный счетчик 
+                 and last_day(to_date(p_period||'01','YYYYMMDD')) between m.dt1 and m.dt2 -- активный счетчик на конец месяца 
               ) loop
       for c2 in (select x.n1
                    from t_objxpar x
-                  where x.fk_k_lsk = p_met_klsk -- последние показания счетчика (любые, в т.ч. из ГИС)
+                  where x.fk_k_lsk = p_met_klsk
+                  and x.fk_list=c.num_id -- последние показания счетчика (любые, в т.ч. из ГИС)
                   order by x.id desc) loop
         l_n1 := c2.n1;
         exit;
       end loop;
     
-      if p_n1 > l_n1 then
-        -- обработка новых показаний
-        -- получить объем
-        l_vol := p_n1 - l_n1;
-        for c3 in (select u.id as user_id
-                     from dual p
-                     join t_user u
-                       on u.cd = 'GIS') loop
+      if p_control in (0,2) or p_n1 > l_n1 then
+          -- обработка новых показаний
+          -- получить объем
+          l_vol := p_n1 - l_n1;
+          if p_control=1 and (c.fk_usl in ('011','015') and l_vol > 200 or c.fk_usl in ('038') and l_vol > 1500) or
+             p_control=2 and (c.fk_usl in ('011','015') and abs(l_vol) > 200 or c.fk_usl in ('038') and abs(l_vol) > 1500) then
+            -- Ошибка! переданы показания, вызывающие начисление слишком большого объема!
+            p_ret:=5;
+            return;
+          end if;
           -- флаг, что не надо добавлять информацию в триггере
           g_flag := 1;
-          -- отразить объем
-          insert into t_objxpar
-            (fk_k_lsk, fk_list, n1, fk_user, mg, tp, ts)
-          values
-            (p_met_klsk, c.vol_id, l_vol, c3.user_id, p_period, 0, p_ts);
+          -- отразить объем (только если передаётся текущее показание, иначе вызовет большой расход в периоде)
+          if p_is_set_prev=0 then
+            if l_vol <>0 then
+              insert into t_objxpar
+                (fk_k_lsk, fk_list, n1, fk_user, mg, tp, ts, status, fk_doc)
+              values
+                (p_met_klsk, c.vol_id, l_vol, p_user, p_period, 0, p_ts, p_status, p_doc_par_id);
+            end if;  
+          else
+            -- при установке предыдущего показания - отменить текущий объем    
+            insert into t_objxpar
+              (fk_k_lsk, fk_list, n1, fk_user, mg, tp, ts, status, fk_doc)
+            select t.fk_k_lsk, c.vol_id, sum(t.n1*-1) as n1, p_user, t.mg, t.tp, p_ts, p_status, p_doc_par_id
+              from t_objxpar t where t.fk_k_lsk=p_met_klsk and t.mg=p_period
+              and t.fk_list=c.vol_id and nvl(t.n1,0)<>0
+              group by t.fk_k_lsk, c.vol_id, t.mg, t.tp;              
+          end if;    
           -- отразить показание
           insert into t_objxpar
-            (fk_k_lsk, fk_list, n1, fk_user, mg, tp, ts)
+            (fk_k_lsk, fk_list, n1, fk_user, mg, tp, ts, status, fk_doc)
           values
-            (p_met_klsk, c.num_id, p_n1, c3.user_id, p_period, 0, p_ts);
+            (p_met_klsk, c.num_id, p_n1, p_user, p_period, 0, p_ts, p_status, p_doc_par_id);
           --изменить последние показания в счетчике
           update meter m set m.n1 = p_n1 where m.k_lsk_id = p_met_klsk;
         
-          --обновить показания и общий расход за месяц в kart
+          --обновить показания и общий расход за месяц в kart -- TODO Спорно! Как быть когда 2 и больше счетчиков в системе?
           execute immediate 'update kart k set k.' || c.counter || '=nvl(' || p_n1 ||
-                            ',0) where k.lsk=' || c.lsk;
-          --меняем первую букву на "m" - получаем поле для расхода (изврат)
-          execute immediate 'update kart k set k.' || 'm' ||
-                            substr(c.counter, 2, 3) || '=nvl(k.' || 'm' ||
-                            substr(c.counter, 2, 3) || ',0) + nvl(' ||
-                            l_vol || + ',0) where k.lsk=' || c.lsk;
+                            ',0) where k.lsk=:lsk' using c.lsk;
+          if p_is_set_prev=0 then
+            --меняем первую букву на "m" - получаем поле для расхода (изврат)
+            execute immediate 'update kart k set k.' || 'm' ||
+                              substr(c.counter, 2, 3) || '=nvl(k.' || 'm' ||
+                              substr(c.counter, 2, 3) || ',0) + nvl(' ||
+                              l_vol || + ',0) where k.lsk=:lsk' 
+                              using c.lsk;
+          else
+            -- при установке предыдущего показания - занулить расход
+            execute immediate 'update kart k set k.' || 'm' ||
+                              substr(c.counter, 2, 3) || '=0 where k.lsk=:lsk' 
+                              using c.lsk;
+          end if;                  
           g_flag := 0; -- снять флаг от добавления в триггере
           p_ret  := 0; -- успешно сохранено
           return;
-        end loop;
       
       else
         p_ret := 3; -- новые показания меньше или равны существующим в базе

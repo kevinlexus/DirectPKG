@@ -14,7 +14,11 @@ create table SCOTT.T_OBJXPAR
   tp       NUMBER,
   ts       DATE default sysdate,
   mg       VARCHAR2(6),
-  fk_val   NUMBER
+  fk_val   NUMBER,
+  status   NUMBER default 0 not null,
+  tguid    VARCHAR2(36),
+  comm     VARCHAR2(1024),
+  fk_doc   NUMBER
 )
 tablespace USERS
   pctfree 10
@@ -59,6 +63,14 @@ comment on column SCOTT.T_OBJXPAR.mg
   is 'Расчетный период (Счетчики)';
 comment on column SCOTT.T_OBJXPAR.fk_val
   is 'FK на значение параметра типа "ID"';
+comment on column SCOTT.T_OBJXPAR.status
+  is 'Статус загрузки показания при обмене с ГИС ЖКХ (0-добавлен на загрузку в ГИС, 1-в процессе загрузки в ГИС, 2-загружен в ГИС, 3-принят из ГИС, 4-ошибка загрузки в ГИС, смотреть COMM)';
+comment on column SCOTT.T_OBJXPAR.tguid
+  is 'TGUID транспортрый GUID для ГИС';
+comment on column SCOTT.T_OBJXPAR.comm
+  is 'Результат загрузки в ГИС';
+comment on column SCOTT.T_OBJXPAR.fk_doc
+  is 'FK на документ (например реестр загрузки показаний счетчиков)';
 create index SCOTT.T_OBJXPAR_I on SCOTT.T_OBJXPAR (FK_K_LSK, FK_LIST)
   tablespace USERS
   pctfree 10
@@ -83,6 +95,18 @@ create index SCOTT.T_OBJXPAR_I2 on SCOTT.T_OBJXPAR (FK_LSK, FK_LIST)
     minextents 1
     maxextents unlimited
   );
+create unique index SCOTT.T_OBJXPAR_I3 on SCOTT.T_OBJXPAR (TGUID)
+  tablespace INDX
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
 alter table SCOTT.T_OBJXPAR
   add constraint T_OBJXPAR_P primary key (ID)
   using index 
@@ -97,6 +121,9 @@ alter table SCOTT.T_OBJXPAR
     minextents 1
     maxextents unlimited
   );
+alter table SCOTT.T_OBJXPAR
+  add constraint T_OBJXPAR_F_DOC foreign key (FK_DOC)
+  references SCOTT.T_DOCXPAR (ID);
 alter table SCOTT.T_OBJXPAR
   add constraint T_OBJXPAR_F_K_LSK foreign key (FK_K_LSK)
   references SCOTT.K_LSK (ID) on delete cascade;

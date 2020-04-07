@@ -42,8 +42,18 @@ create or replace package scott.scripts2 is
          ) return kart.lsk%type ;
 procedure swap_sal_PEN;   
 procedure swap_sal_PEN2;
+procedure swap_sal_PEN3;
+procedure swap_sal_PEN4;
+procedure move_sal_pen_main_to_rso;
 procedure swap_sal_from_main_to_rso;      
 procedure swap_sal_from_main_to_rso2;      
+procedure swap_sal_from_main_to_rso3;      
+procedure swap_sal_from_main_to_rso4;      
+procedure swap_sal_from_main_to_rso5;      
+procedure swap_sal_from_main_to_rso6;      
+procedure swap_sal_from_main_to_rso7;      
+procedure swap_sal_from_main_to_rso8;      
+procedure swap_sal_from_main_to_rso9;      
 end scripts2;
 /
 
@@ -1782,7 +1792,8 @@ delete from t_corrects_payments t where t.summa = 0 and t.fk_doc=l_id;
 commit;
 end swap_sal_chpay12;
 
--- перенести кредит сальдо в никуда (Полыс)
+-- перенести кредит сальдо куда-нить (Полыс) (ПРОВЕРЯТЬ! может работать с ошибкой, удваивать записи!)
+-- ред.04.12.2019
 procedure swap_sal_chpay13 is
  l_mg params.period%type;
  l_mg3 params.period%type;
@@ -1796,12 +1807,12 @@ procedure swap_sal_chpay13 is
  l_ret number;
  l_deb number;
 begin
-  l_mg:='201903'; --тек.период
-  l_cd:='swap_sal_chpay13_20190327';
+  l_mg:='201912'; --тек.период
+  l_cd:='swap_sal_chpay13_20191204';
   l_mgchange:=l_mg;
-  l_dt:=to_date('20190327','YYYYMMDD');
+  l_dt:=to_date('20191204','YYYYMMDD');
   l_mg3:=utils.add_months_pr(l_mg,1); --месяц вперед
-  l_mg3:=l_mg;
+  --l_mg3:=l_mg;
   --dbms_output.enable(2000000);
 
   select t.id into l_user from t_user t where t.cd='SCOTT';
@@ -1824,47 +1835,25 @@ begin
     select s.lsk, s.usl ,s.org,
     s.summa,
     uid, l_dt, l_mg, l_mg, l_id, 0 as var
-    from saldo_usl_script s, kart k
+    from saldo_usl_script s, kart k, kart k3
     where s.mg=l_mg3 and s.lsk=k.lsk
-    and s.usl in ('007','008','056')
+    and s.usl in ('031')
+    and k3.lsk = (select max(n.lsk) from nabor n, kart k2 where k2.lsk<>k.lsk and k2.lsk=n.lsk and k2.k_lsk_id=k.k_lsk_id and n.usl='107')
     and s.summa < 0
-    and s.org = 7;
+    and s.org = 690;
     
-  -- поставить
+  -- поставить на другой лс, где есть услуга назначения
   insert into t_corrects_payments
     (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
-    select s.lsk, '007' as usl, 677 as org,
+    select k3.lsk, '107' as usl, 14 as org,
     -1*s.summa,
     uid, l_dt, l_mg, l_mg, l_id, 0 as var
-    from saldo_usl_script s, kart k
+    from saldo_usl_script s, kart k, kart k3
     where s.mg=l_mg3 and s.lsk=k.lsk
-    and s.usl in ('007','008','056')
+    and s.usl in ('031')
+    and k3.lsk = (select max(n.lsk) from nabor n, kart k2 where k2.lsk<>k.lsk and k2.lsk=n.lsk and k2.k_lsk_id=k.k_lsk_id and n.usl='107')
     and s.summa < 0
-    and s.org = 7;
-
-  -- снять
-  insert into t_corrects_payments
-    (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
-    select s.lsk, s.usl ,s.org,
-    s.summa,
-    uid, l_dt, l_mg, l_mg, l_id, 0 as var
-    from saldo_usl_script s, kart k
-    where s.mg=l_mg3 and s.lsk=k.lsk
-    and s.usl in ('015','016','058')
-    and s.summa < 0
-    and s.org = 7;
-    
-  -- поставить
-  insert into t_corrects_payments
-    (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
-    select s.lsk, '015' as usl, 677 as org,
-    -1*s.summa,
-    uid, l_dt, l_mg, l_mg, l_id, 0 as var
-    from saldo_usl_script s, kart k
-    where s.mg=l_mg3 and s.lsk=k.lsk
-    and s.usl in ('015','016','058')
-    and s.summa < 0
-    and s.org = 7;
+    and s.org = 690;
 
 commit;
 end swap_sal_chpay13;
@@ -1886,10 +1875,10 @@ procedure swap_sal_chpay14 is
  l_ret number;
  l_deb number;
 begin
-  l_mg:='201810'; --тек.период
-  l_cd:='swap_sal_RSO_20181030';
+  l_mg:='201912'; --тек.период
+  l_cd:='swap_sal_RSO_20191209_03';
   l_mgchange:=l_mg;
-  l_dt:=to_date('20181030','YYYYMMDD');
+  l_dt:=to_date('20191209','YYYYMMDD');
   l_mg3:=utils.add_months_pr(l_mg,1); --месяц вперед
 
   select t.id into l_user from t_user t where t.cd='SCOTT';
@@ -1914,10 +1903,11 @@ begin
     from saldo_usl_script s, kart k, v_lsk_tp tp
     where s.mg=l_mg3 and s.lsk=k.lsk
     and k.fk_tp=tp.id and tp.cd='LSK_TP_MAIN'
-    and k.house_id in (36949,36950,36951,36934,36935,36943,37134,37136,36945,36987,36988,36952,36940,36946,36941)
-    and s.usl in ('007','015','058','056')
-    and s.summa < 0
-    and s.org = 677;
+    --and k.house_id in (36949,36950,36951,36934,36935,36943,37134,37136,36945,36987,36988,36952,36940,36946,36941)
+    and k.reu in ('001')
+    and s.usl in ('003','055','105','104','103')
+    and s.summa < 0;
+    --and s.org = 677;
 
   insert into t_corrects_payments
     (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
@@ -1930,10 +1920,11 @@ begin
     and k.k_lsk_id=k2.k_lsk_id and k2.fk_tp=tp2.id and tp2.cd='LSK_TP_RSO'
     and k2.lsk=n.lsk
     and s.usl=n.usl
-    and k.house_id in (36949,36950,36951,36934,36935,36943,37134,37136,36945,36987,36988,36952,36940,36946,36941)
-    and s.usl in ('007','015','058','056')
-    and s.summa < 0
-    and s.org = 677;
+    --and k.house_id in (36949,36950,36951,36934,36935,36943,37134,37136,36945,36987,36988,36952,36940,36946,36941)
+    and k.reu in ('001')
+    and k2.reu='021'
+    and s.usl in ('003','055','105','104','103')
+    and s.summa < 0;
 
  -- поставить
 
@@ -2371,9 +2362,9 @@ procedure swap_sal_PEN is
   l_cd c_change_docs.cd_tp%type;
 begin
 --период, сальдо по которому смотрим
-mg_:='201904';
+mg_:='201911';
 --Дата переброски
-dat_:=to_date('01052019','DDMMYYYY');
+dat_:=to_date('01112019','DDMMYYYY');
 --CD переброски
 l_cd:='swap_sal_PEN_'||to_char(dat_,'DDMMYYYY')||'_1';
 
@@ -2431,6 +2422,7 @@ commit;
 
 end swap_sal_pen;
 
+
 -- снять пеню или перенести на другое УК
 procedure swap_sal_PEN2 is
   mg_ params.period%type;
@@ -2440,9 +2432,9 @@ procedure swap_sal_PEN2 is
   l_cd c_change_docs.cd_tp%type;
 begin
 --период, сальдо по которому смотрим
-mg_:='201905';
+mg_:='201906';
 --Дата переброски
-dat_:=to_date('01062019','DDMMYYYY');
+dat_:=to_date('01072019','DDMMYYYY');
 --CD переброски
 l_cd:='swap_sal_PEN_'||to_char(dat_,'DDMMYYYY')||'_1';
 
@@ -2468,9 +2460,8 @@ for c in (select k.lsk, s2.org, s2.usl,
       group by usl, org, lsk) s2 join kart k on k.lsk=s2.lsk
       left join kart k1 on k.k_lsk_id=k1.k_lsk_id and k1.reu='XXX' and k1.psch not in (8,9) -- УК назначения, если стоит k1.reu='XXX', то снять в никуда
     where 
-    exists (select * from kmp_lsk t where t.lsk=k.lsk) -- ЛС источника
-    --and k.reu in ('011','065','095','013','066','086','082','085','096','059','087','084',
-     -- '073','014','015','024','076','090','038','063','036') -- УК источника
+    --exists (select * from kmp_lsk t where t.lsk=k.lsk) -- ЛС источника
+    k.reu in ('013', '087') -- УК источника
     and nvl(s2.summa,0) <> 0
     )
 loop
@@ -2498,6 +2489,239 @@ end loop;
 commit;
 
 end swap_sal_pen2;
+
+-- перенести сальдо по пене с услуги на услугу
+procedure swap_sal_PEN3 is
+  mg_ params.period%type;
+  user_id_ number;
+  dat_ date;
+  fk_doc_ number;
+  l_cd c_change_docs.cd_tp%type;
+begin
+--период, сальдо по которому смотрим
+mg_:='201911';
+--Дата переброски
+dat_:=to_date('12122019','DDMMYYYY');
+--CD переброски
+l_cd:='swap_sal_PEN3_'||to_char(dat_,'DDMMYYYY')||'_1';
+
+select t.id into user_id_ from t_user t where t.cd='SCOTT';
+
+delete from c_pen_corr t where
+  exists (select * from c_change_docs d where d.id=t.fk_doc and
+  d.cd_tp=l_cd);
+
+delete from c_change_docs t where t.cd_tp=l_cd;
+
+insert into c_change_docs
+  (mgchange, dtek, ts, user_id, cd_tp)
+values
+  (mg_, dat_, sysdate, user_id_, l_cd)
+  returning id into fk_doc_;
+
+for c in (select k.lsk, s2.org, s2.usl, s2.summa as summa
+     from (select usl, org, lsk, sum(t.poutsal) as summa from xitog3_lsk t where
+      t.mg=mg_ 
+      --and t.usl='004' --взять сальдо по услуге
+      group by usl, org, lsk) s2, kart k
+    where 
+    k.lsk=s2.lsk
+    --and k.reu in ('014','015') -- УК
+    and nvl(s2.summa,0) < 0
+    )
+loop
+
+--по услуге-источнику -снять (или поставить)
+  insert into c_pen_corr
+    (lsk, penya, dopl, dtek, ts, fk_user, fk_doc, usl, org)
+  select c.lsk, -1*c.summa, mg_ as dopl, dat_ as dtek,  
+   sysdate as ts, u.id as fk_user, fk_doc_, c.usl, c.org from 
+   dual t, t_user u where u.cd=user;
+
+--по услуге-назначению - поставить
+/*  insert into c_pen_corr
+    (lsk, penya, dopl, dtek, ts, fk_user, fk_doc, usl, org)
+  select c.lsk, c.summa, mg_ as dopl, dat_ as dtek,  
+   sysdate as ts, u.id as fk_user, fk_doc_, '003' as usl, c.org from 
+   dual t, t_user u where u.cd=user;
+*/
+end loop;
+
+ 
+
+commit;
+
+end swap_sal_pen3;
+
+
+-- снять вх.сал.пени по услуге, если по ней нет долга и начисления
+-- поставить на другую услугу
+procedure swap_sal_PEN4 is
+  mg_ params.period%type;
+  l_mg1 params.period%type;
+  mg3_ params.period%type;
+  user_id_ number;
+  dat_ date;
+  fk_doc_ number;
+  l_cd c_change_docs.cd_tp%type;
+  i number;
+begin
+--текущий период
+mg_:='201912';
+--период, сальдо по которому смотрим
+mg3_:='201912';
+--Дата переброски
+dat_:=to_date('31122019','DDMMYYYY');
+--CD переброски
+l_cd:='swap_sal_PEN4_'||to_char(dat_,'DDMMYYYY')||'_1';
+
+select t.id into user_id_ from t_user t where t.cd='SCOTT';
+
+delete from c_pen_corr t where
+  exists (select * from c_change_docs d where d.id=t.fk_doc and
+  d.cd_tp=l_cd);
+
+delete from c_change_docs t where t.cd_tp=l_cd;
+
+insert into c_change_docs
+  (mgchange, dtek, ts, user_id, cd_tp)
+values
+  (mg_, dat_, sysdate, user_id_, l_cd)
+  returning id into fk_doc_;
+
+for c in (select usl, org, lsk, t.poutsal as summa from xitog3_lsk t where
+      t.mg=mg3_ and t.poutsal<>0 and nvl(t.charges,0)=0 and nvl(t.indebet,0)=0)
+loop
+
+-- по услуге-источнику - снять
+  i:=0;
+  for c2 in (select t.mg1 from c_penya t where t.lsk=c.lsk 
+                          order by t.penya) loop  -- найти сальдо по пене
+    i:=1;
+    insert into c_pen_corr
+      (lsk, penya, dopl, dtek, ts, fk_user, fk_doc, usl, org)
+    select c.lsk, -1*c.summa, c2.mg1 as dopl, dat_ as dtek,  
+     sysdate as ts, u.id as fk_user, fk_doc_, c.usl, c.org from 
+     dual t, t_user u where u.cd=user;
+     l_mg1:=c2.mg1;
+   exit;
+  end loop;
+  if i=0 then
+    insert into c_pen_corr
+      (lsk, penya, dopl, dtek, ts, fk_user, fk_doc, usl, org)
+    select c.lsk, -1*c.summa, mg_ as dopl, dat_ as dtek,  
+     sysdate as ts, u.id as fk_user, fk_doc_, c.usl, c.org from 
+     dual t, t_user u where u.cd=user;
+  end if;
+  
+  i:=0;
+-- по услуге-назначению - поставить - там где есть начисление или деб.сальдо
+  for c2 in (select usl, org from xitog3_lsk t where
+      t.mg=mg3_ and t.lsk=c.lsk and (nvl(t.charges,0)<>0 or nvl(t.indebet,0)<>0) and t.usl<>c.usl) loop
+    i:=1;
+    insert into c_pen_corr
+      (lsk, penya, dopl, dtek, ts, fk_user, fk_doc, usl, org)
+    select c.lsk, c.summa, l_mg1 as dopl, dat_ as dtek,  
+     sysdate as ts, u.id as fk_user, fk_doc_, c2.usl, c2.org from 
+     dual t, t_user u where u.cd=user;
+  exit;
+  end loop;
+  if i=0 then
+    insert into c_pen_corr
+      (lsk, penya, dopl, dtek, ts, fk_user, fk_doc, usl, org)
+    select c.lsk, c.summa, mg_ as dopl, dat_ as dtek,  
+     sysdate as ts, u.id as fk_user, fk_doc_, '003', o.id from 
+     dual t, t_user u, kart k, t_org o where u.cd=user and k.lsk=c.lsk and k.reu=o.reu;
+  end if;
+
+  
+end loop;
+  
+
+ 
+
+commit;
+
+end swap_sal_pen4;
+
+-- перенести сальдо и пеню с Основного лиц.счета на Дополнительный счет (Полыс)
+-- ред. 06.01.20
+procedure move_sal_pen_main_to_rso is
+ l_mg params.period%type;
+ l_mg3 params.period%type;
+ l_user number;
+ l_id number;
+ l_cd c_change_docs.text%type;
+ l_mgchange c_change_docs.mgchange%type;
+ l_dt date;
+ l_kr number;
+ t_summ tab_summ;
+ l_ret number;
+ l_deb number;
+begin
+  l_mg:='202001'; --тек.период
+  l_cd:='move_sal_pen_main_to_rso_20200106';
+  l_mgchange:=l_mg;
+  l_dt:=to_date('20200106','YYYYMMDD');
+  l_mg3:=utils.add_months_pr(l_mg,1); --месяц вперед
+
+  select t.id into l_user from t_user t where t.cd='SCOTT';
+  select changes_id.nextval into l_id from dual;
+
+  delete from t_corrects_payments t where mg=l_mg
+   and exists (select * from c_change_docs d where
+    d.cd_tp=l_cd and d.id=t.fk_doc);
+
+  delete from c_change_docs t where t.user_id=l_user and t.cd_tp=l_cd;
+
+  insert into c_change_docs (id, mgchange, dtek, ts, user_id, cd_tp)
+   select l_id as id, l_mgchange, l_dt, sysdate, l_user, l_cd
+   from dual;
+
+  for c in (select k.lsk as lskFrom, k2.lsk as lskTo, t.usl as uslFrom, t.org as orgFrom, 
+         nvl(t.poutsal,0) as poutsal, nvl(t.outdebet,0)+nvl(t.outkredit,0) as sal
+         from kart k 
+         join v_lsk_tp tp on tp.cd='LSK_TP_MAIN' and k.fk_tp=tp.id and k.reu='001'
+         join v_lsk_tp tp2 on tp2.cd='LSK_TP_ADDIT'
+         join kart k2 on k.k_lsk_id=k2.k_lsk_id and k2.fk_tp=tp2.id and k2.reu='002' and k2.psch not in (8,9)
+         join xitog3_lsk_script t on t.mg=l_mg and k.lsk=t.lsk and (nvl(t.poutsal,0)<>0 or nvl(t.outdebet,0)+nvl(t.outkredit,0)<>0)
+         and t.usl='033' and t.org=676
+         where k.house_id=38798
+        ) loop
+        
+      if c.sal<>0 then  
+      -- сальдо  
+        -- снять
+        insert into t_corrects_payments
+          (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
+          select c.lskFrom, c.uslFrom, c.orgFrom,
+          c.sal,
+          uid, l_dt, l_mg, l_mg, l_id, 0 as var from dual;
+        -- поставить                  
+        insert into t_corrects_payments
+          (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
+          select c.lskTo, c.uslFrom, c.orgFrom,
+          -1*c.sal,
+          uid, l_dt, l_mg, l_mg, l_id, 0 as var from dual;
+      end if;    
+      
+      if c.poutsal<>0 then  
+        -- сальдо по пене
+        -- снять
+        insert into c_pen_corr
+          (lsk, usl, org, penya, fk_user, dtek, dopl, fk_doc, var)
+          select c.lskFrom, c.uslFrom, c.orgFrom, -1 * c.poutsal, l_user, l_dt, l_mg, l_id, 2 as var
+            from dual;
+        -- поставить
+        insert into c_pen_corr
+          (lsk, usl, org, penya, fk_user, dtek, dopl, fk_doc, var)
+          select c.lskTo, c.uslFrom, c.orgFrom, c.poutsal, l_user, l_dt, l_mg, l_id, 2 as var
+            from dual;
+      end if;      
+      
+  end loop;      
+commit;
+end move_sal_pen_main_to_rso;
 
 -- перенести сальдо с Основного лиц.счета на счет РСО (Полыс)
 -- ред. 26.12.18
@@ -2584,10 +2808,152 @@ procedure swap_sal_from_main_to_rso2 is
  l_ret number;
  l_deb number;
 begin
-  l_mg:='201907'; --тек.период
-  l_cd:='swap_sal_from_main_to_RSO2_20190723';
+  l_mg:='202003'; --тек.период
+  l_cd:='swap_sal_from_main_to_RSO2_20200328_1';
   l_mgchange:=l_mg;
-  l_dt:=to_date('20190722','YYYYMMDD');
+  l_dt:=to_date('20200328','YYYYMMDD');
+  l_mg3:=utils.add_months_pr(l_mg,1); --месяц вперед
+
+  select t.id into l_user from t_user t where t.cd='SCOTT';
+  select changes_id.nextval into l_id from dual;
+
+  delete from t_corrects_payments t where mg=l_mg
+   and exists (select * from c_change_docs d where
+    d.cd_tp=l_cd and d.id=t.fk_doc);
+
+  delete from c_change_docs t where t.user_id=l_user and t.cd_tp=l_cd;
+
+  insert into c_change_docs (id, mgchange, dtek, ts, user_id, cd_tp)
+   select l_id as id, l_mgchange, l_dt, sysdate, l_user, l_cd
+   from dual;
+
+for c in (select k.lsk as lskFrom, k2.lsk as lskTo, a.usl, a.org, 
+        a.summa
+         from kart k 
+         join v_lsk_tp tp on tp.cd='LSK_TP_MAIN' and k.fk_tp=tp.id
+         join v_lsk_tp tp2 on tp2.cd='LSK_TP_RSO'
+         join kart k2 on k.k_lsk_id=k2.k_lsk_id --and k2.psch not in (8,9) 
+         and k2.reu='014' /*k2.reu='016'*/ and k2.fk_tp=tp2.id -- назначение
+         join 
+         (select s.lsk, s.usl, s.org, sum(s.summa) as summa from (
+           select t.lsk, t.usl, t.org, t.summa from saldo_usl_script t where t.mg='202004'
+           and t.usl in ('015','058','007','056','094')
+               ) s
+          group by s.lsk, s.usl, s.org) a on k.lsk=a.lsk and a.summa < 0
+        where --k.psch not in (8,9)
+        --and 
+        k.reu='012' -- источник
+        --and k.house_id in (40006) -- дом
+) loop
+        
+      -- снять
+      insert into t_corrects_payments
+        (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
+        select c.lskFrom, c.usl, c.org,
+        c.summa,
+        uid, l_dt, l_mg, l_mg, l_id, 0 as var from dual;
+      -- поставить                  
+      insert into t_corrects_payments
+        (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
+        select c.lskTo, c.usl, 4 as org,
+        -1*c.summa,
+        uid, l_dt, l_mg, l_mg, l_id, 0 as var from dual;
+  end loop; 
+  
+       
+commit;
+end swap_sal_from_main_to_rso2;
+
+-- перенести сальдо с Основного лиц.счета на счет РСО (Полыс) или наоборот
+-- ред. 29.01.19
+procedure swap_sal_from_main_to_rso3 is
+ l_mg params.period%type;
+ l_mg3 params.period%type;
+ l_user number;
+ l_id number;
+ l_cd c_change_docs.text%type;
+ l_mgchange c_change_docs.mgchange%type;
+ l_dt date;
+ l_kr number;
+ t_summ tab_summ;
+ l_ret number;
+ l_deb number;
+begin
+  l_mg:='202003'; --тек.период
+  l_cd:='swap_sal_from_main_to_RSO2_20200328_2';
+  l_mgchange:=l_mg;
+  l_dt:=to_date('20200328','YYYYMMDD');
+  l_mg3:=utils.add_months_pr(l_mg,1); --месяц вперед
+
+  select t.id into l_user from t_user t where t.cd='SCOTT';
+  select changes_id.nextval into l_id from dual;
+
+  delete from t_corrects_payments t where mg=l_mg
+   and exists (select * from c_change_docs d where
+    d.cd_tp=l_cd and d.id=t.fk_doc);
+
+  delete from c_change_docs t where t.user_id=l_user and t.cd_tp=l_cd;
+
+  insert into c_change_docs (id, mgchange, dtek, ts, user_id, cd_tp)
+   select l_id as id, l_mgchange, l_dt, sysdate, l_user, l_cd
+   from dual;
+
+for c in (select k.lsk as lskFrom, k2.lsk as lskTo, a.usl, a.org, 
+        a.summa
+         from kart k 
+         join v_lsk_tp tp on tp.cd='LSK_TP_MAIN' and k.fk_tp=tp.id
+         join v_lsk_tp tp2 on tp2.cd='LSK_TP_RSO'
+         join kart k2 on k.k_lsk_id=k2.k_lsk_id --and k2.psch not in (8,9) 
+         and k2.reu='016' /*k2.reu='016'*/ and k2.fk_tp=tp2.id -- назначение
+         join 
+         (select s.lsk, s.usl, s.org, sum(s.summa) as summa from (
+           select t.lsk, t.usl, t.org, t.summa from saldo_usl_script t where t.mg='202004'
+           and t.usl in ('011','012','057','013','059','092')
+               ) s
+          group by s.lsk, s.usl, s.org) a on k.lsk=a.lsk and a.summa < 0
+        where --k.psch not in (8,9)
+        --and 
+        k.reu='012' -- источник
+        --and k.house_id in (40006) -- дом
+) loop
+        
+      -- снять
+      insert into t_corrects_payments
+        (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
+        select c.lskFrom, c.usl, c.org,
+        c.summa,
+        uid, l_dt, l_mg, l_mg, l_id, 0 as var from dual;
+      -- поставить                  
+      insert into t_corrects_payments
+        (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
+        select c.lskTo, c.usl, 11 as org,
+        -1*c.summa,
+        uid, l_dt, l_mg, l_mg, l_id, 0 as var from dual;
+  end loop; 
+  
+       
+commit;
+end swap_sal_from_main_to_rso3;
+
+-- перенести сальдо с Основного лиц.счета на счет РСО (Полыс) или наоборот
+-- ред. 29.01.19
+procedure swap_sal_from_main_to_rso4 is
+ l_mg params.period%type;
+ l_mg3 params.period%type;
+ l_user number;
+ l_id number;
+ l_cd c_change_docs.text%type;
+ l_mgchange c_change_docs.mgchange%type;
+ l_dt date;
+ l_kr number;
+ t_summ tab_summ;
+ l_ret number;
+ l_deb number;
+begin
+  l_mg:='202003'; --тек.период
+  l_cd:='swap_sal_from_main_to_RSO2_20200328_1';
+  l_mgchange:=l_mg;
+  l_dt:=to_date('20200328','YYYYMMDD');
   l_mg3:=utils.add_months_pr(l_mg,1); --месяц вперед
 
   select t.id into l_user from t_user t where t.cd='SCOTT';
@@ -2607,19 +2973,19 @@ for c in (select k.lsk as lskFrom, k2.lsk as lskTo, a.usl, a.org,
         a.summa
          from kart k 
          join v_lsk_tp tp on tp.cd='LSK_TP_RSO' and k.fk_tp=tp.id
-         join v_lsk_tp tp2 on tp2.cd='LSK_TP_MAIN'
-         join kart k2 on k.k_lsk_id=k2.k_lsk_id and k2.psch not in (8,9) 
-         and k2.reu='002' and k2.fk_tp=tp2.id -- назначение
+         join v_lsk_tp tp2 on tp2.cd='LSK_TP_RSO'
+         join kart k2 on k.k_lsk_id=k2.k_lsk_id --and k2.psch not in (8,9) 
+         and k2.reu='018' and k2.fk_tp=tp2.id -- назначение
          join 
          (select s.lsk, s.usl, s.org, sum(s.summa) as summa from (
-           select t.lsk, t.usl, t.org, t.summa from saldo_usl_script t where t.mg='201908'
-           and t.usl in ('092')
+           select t.lsk, t.usl, t.org, t.summa from saldo_usl_script t where t.mg='202004'
+           and t.usl in ('107')
                ) s
           group by s.lsk, s.usl, s.org) a on k.lsk=a.lsk and a.summa < 0
         where --k.psch not in (8,9)
         --and 
-        k.reu='016' -- источник
-        --and k.house_id in (40106, 40126)
+        k.reu='012' -- источник
+        --and k.house_id in (39766) -- дома
 ) loop
         
       -- снять
@@ -2631,14 +2997,367 @@ for c in (select k.lsk as lskFrom, k2.lsk as lskTo, a.usl, a.org,
       -- поставить                  
       insert into t_corrects_payments
         (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
-        select c.lskTo, c.usl, 2 as org,
+        select c.lskTo, c.usl, 14 as org,
         -1*c.summa,
         uid, l_dt, l_mg, l_mg, l_id, 0 as var from dual;
   end loop; 
   
        
 commit;
-end swap_sal_from_main_to_rso2;
+end swap_sal_from_main_to_rso4;
+
+-- перенести сальдо с Основного лиц.счета на счет РСО (Полыс) или наоборот
+-- ред. 29.01.19
+procedure swap_sal_from_main_to_rso5 is
+ l_mg params.period%type;
+ l_mg3 params.period%type;
+ l_user number;
+ l_id number;
+ l_cd c_change_docs.text%type;
+ l_mgchange c_change_docs.mgchange%type;
+ l_dt date;
+ l_kr number;
+ t_summ tab_summ;
+ l_ret number;
+ l_deb number;
+begin
+  l_mg:='202001'; --тек.период
+  l_cd:='swap_sal_from_main_to_RSO2_20200128_4';
+  l_mgchange:=l_mg;
+  l_dt:=to_date('20200128','YYYYMMDD');
+  l_mg3:=utils.add_months_pr(l_mg,1); --месяц вперед
+
+  select t.id into l_user from t_user t where t.cd='SCOTT';
+  select changes_id.nextval into l_id from dual;
+
+  delete from t_corrects_payments t where mg=l_mg
+   and exists (select * from c_change_docs d where
+    d.cd_tp=l_cd and d.id=t.fk_doc);
+
+  delete from c_change_docs t where t.user_id=l_user and t.cd_tp=l_cd;
+
+  insert into c_change_docs (id, mgchange, dtek, ts, user_id, cd_tp)
+   select l_id as id, l_mgchange, l_dt, sysdate, l_user, l_cd
+   from dual;
+
+for c in (select k.lsk as lskFrom, k2.lsk as lskTo, a.usl, a.org, 
+        a.summa
+         from kart k 
+         join v_lsk_tp tp on tp.cd='LSK_TP_RSO' and k.fk_tp=tp.id
+         join v_lsk_tp tp2 on tp2.cd='LSK_TP_RSO'
+         join kart k2 on k.k_lsk_id=k2.k_lsk_id --and k2.psch not in (8,9) 
+         and k2.reu='018' and k2.fk_tp=tp2.id -- назначение
+         join 
+         (select s.lsk, s.usl, s.org, sum(s.summa) as summa from (
+           select t.lsk, t.usl, t.org, t.summa from saldo_usl_script t where t.mg='202002'
+           and t.usl in ('107')
+               ) s
+          group by s.lsk, s.usl, s.org) a on k.lsk=a.lsk and a.summa < 0
+        where --k.psch not in (8,9)
+        --and 
+        k.reu='013' -- источник
+        --and k.house_id not in (38777,38778,38776,38774) -- кроме домов
+) loop
+        
+      -- снять
+      insert into t_corrects_payments
+        (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
+        select c.lskFrom, c.usl, c.org,
+        c.summa,
+        uid, l_dt, l_mg, l_mg, l_id, 0 as var from dual;
+      -- поставить                  
+      insert into t_corrects_payments
+        (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
+        select c.lskTo, c.usl, 14 as org,
+        -1*c.summa,
+        uid, l_dt, l_mg, l_mg, l_id, 0 as var from dual;
+  end loop; 
+  
+       
+commit;
+end swap_sal_from_main_to_rso5;
+
+-- перенести сальдо с Основного лиц.счета на счет РСО (Полыс) или наоборот
+-- ред. 29.01.19
+procedure swap_sal_from_main_to_rso6 is
+ l_mg params.period%type;
+ l_mg3 params.period%type;
+ l_user number;
+ l_id number;
+ l_cd c_change_docs.text%type;
+ l_mgchange c_change_docs.mgchange%type;
+ l_dt date;
+ l_kr number;
+ t_summ tab_summ;
+ l_ret number;
+ l_deb number;
+begin
+  l_mg:='202001'; --тек.период
+  l_cd:='swap_sal_from_main_to_RSO2_20200128_5';
+  l_mgchange:=l_mg;
+  l_dt:=to_date('20200128','YYYYMMDD');
+  l_mg3:=utils.add_months_pr(l_mg,1); --месяц вперед
+
+  select t.id into l_user from t_user t where t.cd='SCOTT';
+  select changes_id.nextval into l_id from dual;
+
+  delete from t_corrects_payments t where mg=l_mg
+   and exists (select * from c_change_docs d where
+    d.cd_tp=l_cd and d.id=t.fk_doc);
+
+  delete from c_change_docs t where t.user_id=l_user and t.cd_tp=l_cd;
+
+  insert into c_change_docs (id, mgchange, dtek, ts, user_id, cd_tp)
+   select l_id as id, l_mgchange, l_dt, sysdate, l_user, l_cd
+   from dual;
+
+for c in (select k.lsk as lskFrom, k2.lsk as lskTo, a.usl, a.org, 
+        a.summa
+         from kart k 
+         join v_lsk_tp tp on tp.cd='LSK_TP_MAIN' and k.fk_tp=tp.id
+         join v_lsk_tp tp2 on tp2.cd='LSK_TP_RSO'
+         join kart k2 on k.k_lsk_id=k2.k_lsk_id --and k2.psch not in (8,9) 
+         and k2.reu='014' and k2.fk_tp=tp2.id -- назначение
+         join 
+         (select s.lsk, s.usl, s.org, sum(s.summa) as summa from (
+           select t.lsk, t.usl, t.org, t.summa from saldo_usl_script t where t.mg='202002'
+           and t.usl in ('015','058','007','056','094')
+               ) s
+          group by s.lsk, s.usl, s.org) a on k.lsk=a.lsk and a.summa < 0
+        where --k.psch not in (8,9)
+        --and 
+        k.reu='013' -- источник
+        and k.house_id in (39766) 
+) loop
+        
+      -- снять
+      insert into t_corrects_payments
+        (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
+        select c.lskFrom, c.usl, c.org,
+        c.summa,
+        uid, l_dt, l_mg, l_mg, l_id, 0 as var from dual;
+      -- поставить                  
+      insert into t_corrects_payments
+        (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
+        select c.lskTo, c.usl, 4 as org,
+        -1*c.summa,
+        uid, l_dt, l_mg, l_mg, l_id, 0 as var from dual;
+  end loop; 
+  
+       
+commit;
+end swap_sal_from_main_to_rso6;
+
+-- перенести сальдо с Основного лиц.счета на счет РСО (Полыс) или наоборот
+-- ред. 29.01.19
+procedure swap_sal_from_main_to_rso7 is
+ l_mg params.period%type;
+ l_mg3 params.period%type;
+ l_user number;
+ l_id number;
+ l_cd c_change_docs.text%type;
+ l_mgchange c_change_docs.mgchange%type;
+ l_dt date;
+ l_kr number;
+ t_summ tab_summ;
+ l_ret number;
+ l_deb number;
+begin
+  l_mg:='202001'; --тек.период
+  l_cd:='swap_sal_from_main_to_RSO2_20200128_6';
+  l_mgchange:=l_mg;
+  l_dt:=to_date('20200128','YYYYMMDD');
+  l_mg3:=utils.add_months_pr(l_mg,1); --месяц вперед
+
+  select t.id into l_user from t_user t where t.cd='SCOTT';
+  select changes_id.nextval into l_id from dual;
+
+  delete from t_corrects_payments t where mg=l_mg
+   and exists (select * from c_change_docs d where
+    d.cd_tp=l_cd and d.id=t.fk_doc);
+
+  delete from c_change_docs t where t.user_id=l_user and t.cd_tp=l_cd;
+
+  insert into c_change_docs (id, mgchange, dtek, ts, user_id, cd_tp)
+   select l_id as id, l_mgchange, l_dt, sysdate, l_user, l_cd
+   from dual;
+
+for c in (select k.lsk as lskFrom, k2.lsk as lskTo, a.usl, a.org, 
+        a.summa
+         from kart k 
+         join v_lsk_tp tp on tp.cd='LSK_TP_MAIN' and k.fk_tp=tp.id
+         join v_lsk_tp tp2 on tp2.cd='LSK_TP_RSO'
+         join kart k2 on k.k_lsk_id=k2.k_lsk_id --and k2.psch not in (8,9) 
+         and k2.reu='016' and k2.fk_tp=tp2.id -- назначение
+         join 
+         (select s.lsk, s.usl, s.org, sum(s.summa) as summa from (
+           select t.lsk, t.usl, t.org, t.summa from saldo_usl_script t where t.mg='202002'
+           and t.usl in ('011','057','013','059','092')
+               ) s
+          group by s.lsk, s.usl, s.org) a on k.lsk=a.lsk and a.summa < 0
+        where --k.psch not in (8,9)
+        --and 
+        k.reu='013' -- источник
+        and k.house_id in (39766)
+) loop
+        
+      -- снять
+      insert into t_corrects_payments
+        (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
+        select c.lskFrom, c.usl, c.org,
+        c.summa,
+        uid, l_dt, l_mg, l_mg, l_id, 0 as var from dual;
+      -- поставить                  
+      insert into t_corrects_payments
+        (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
+        select c.lskTo, c.usl, 11 as org,
+        -1*c.summa,
+        uid, l_dt, l_mg, l_mg, l_id, 0 as var from dual;
+  end loop; 
+  
+       
+commit;
+end swap_sal_from_main_to_rso7;
+
+-- перенести сальдо с Основного лиц.счета на счет РСО (Полыс) или наоборот
+procedure swap_sal_from_main_to_rso8 is
+ l_mg params.period%type;
+ l_mg3 params.period%type;
+ l_user number;
+ l_id number;
+ l_cd c_change_docs.text%type;
+ l_mgchange c_change_docs.mgchange%type;
+ l_dt date;
+ l_kr number;
+ t_summ tab_summ;
+ l_ret number;
+ l_deb number;
+begin
+  l_mg:='202001'; --тек.период
+  l_cd:='swap_sal_from_main_to_RSO2_20200128_7';
+  l_mgchange:=l_mg;
+  l_dt:=to_date('20200128','YYYYMMDD');
+  l_mg3:=utils.add_months_pr(l_mg,1); --месяц вперед
+
+  select t.id into l_user from t_user t where t.cd='SCOTT';
+  select changes_id.nextval into l_id from dual;
+
+  delete from t_corrects_payments t where mg=l_mg
+   and exists (select * from c_change_docs d where
+    d.cd_tp=l_cd and d.id=t.fk_doc);
+
+  delete from c_change_docs t where t.user_id=l_user and t.cd_tp=l_cd;
+
+  insert into c_change_docs (id, mgchange, dtek, ts, user_id, cd_tp)
+   select l_id as id, l_mgchange, l_dt, sysdate, l_user, l_cd
+   from dual;
+
+for c in (select k.lsk as lskFrom, k2.lsk as lskTo, a.usl, a.org, 
+        a.summa
+         from kart k 
+         join v_lsk_tp tp on tp.cd='LSK_TP_MAIN' and k.fk_tp=tp.id
+         join v_lsk_tp tp2 on tp2.cd='LSK_TP_RSO'
+         join kart k2 on k.k_lsk_id=k2.k_lsk_id --and k2.psch not in (8,9) 
+         and k2.reu='014' and k2.fk_tp=tp2.id -- назначение
+         join 
+         (select s.lsk, s.usl, s.org, sum(s.summa) as summa from (
+           select t.lsk, t.usl, t.org, t.summa from saldo_usl_script t where t.mg='202002'
+           and t.usl in ('015','058','007','056','094')
+               ) s
+          group by s.lsk, s.usl, s.org) a on k.lsk=a.lsk and a.summa < 0
+        where --k.psch not in (8,9)
+        --and 
+        k.reu='002' -- источник
+        --and k.house_id in (38777,38778,38776,38774)
+) loop
+        
+      -- снять
+      insert into t_corrects_payments
+        (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
+        select c.lskFrom, c.usl, c.org,
+        c.summa,
+        uid, l_dt, l_mg, l_mg, l_id, 0 as var from dual;
+      -- поставить                  
+      insert into t_corrects_payments
+        (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
+        select c.lskTo, c.usl as usl, 4 as org,
+        -1*c.summa,
+        uid, l_dt, l_mg, l_mg, l_id, 0 as var from dual;
+  end loop; 
+  
+       
+commit;
+end swap_sal_from_main_to_rso8;
+
+-- перенести сальдо с Основного лиц.счета на счет РСО (Полыс) или наоборот
+procedure swap_sal_from_main_to_rso9 is
+ l_mg params.period%type;
+ l_mg3 params.period%type;
+ l_user number;
+ l_id number;
+ l_cd c_change_docs.text%type;
+ l_mgchange c_change_docs.mgchange%type;
+ l_dt date;
+ l_kr number;
+ t_summ tab_summ;
+ l_ret number;
+ l_deb number;
+begin
+  l_mg:='202001'; --тек.период
+  l_cd:='swap_sal_from_main_to_RSO2_20200128_8';
+  l_mgchange:=l_mg;
+  l_dt:=to_date('20200128','YYYYMMDD');
+  l_mg3:=utils.add_months_pr(l_mg,1); --месяц вперед
+
+  select t.id into l_user from t_user t where t.cd='SCOTT';
+  select changes_id.nextval into l_id from dual;
+
+  delete from t_corrects_payments t where mg=l_mg
+   and exists (select * from c_change_docs d where
+    d.cd_tp=l_cd and d.id=t.fk_doc);
+
+  delete from c_change_docs t where t.user_id=l_user and t.cd_tp=l_cd;
+
+  insert into c_change_docs (id, mgchange, dtek, ts, user_id, cd_tp)
+   select l_id as id, l_mgchange, l_dt, sysdate, l_user, l_cd
+   from dual;
+
+for c in (select k.lsk as lskFrom, k2.lsk as lskTo, a.usl, a.org, 
+        a.summa
+         from kart k 
+         join v_lsk_tp tp on tp.cd='LSK_TP_MAIN' and k.fk_tp=tp.id
+         join v_lsk_tp tp2 on tp2.cd='LSK_TP_RSO'
+         join kart k2 on k.k_lsk_id=k2.k_lsk_id --and k2.psch not in (8,9) 
+         and k2.reu='016' and k2.fk_tp=tp2.id -- назначение
+         join 
+         (select s.lsk, s.usl, s.org, sum(s.summa) as summa from (
+           select t.lsk, t.usl, t.org, t.summa from saldo_usl_script t where t.mg='202002'
+           and t.usl in ('011','057','013','059','092')
+               ) s
+          group by s.lsk, s.usl, s.org) a on k.lsk=a.lsk and a.summa < 0
+        where --k.psch not in (8,9)
+        --and 
+        k.reu='002' -- источник
+        --and k.house_id in (38777,38778,38776,38774)
+) loop
+        
+      -- снять
+      insert into t_corrects_payments
+        (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
+        select c.lskFrom, c.usl, c.org,
+        c.summa,
+        uid, l_dt, l_mg, l_mg, l_id, 0 as var from dual;
+      -- поставить                  
+      insert into t_corrects_payments
+        (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc, var)
+        select c.lskTo, c.usl as usl, 11 as org,
+        -1*c.summa,
+        uid, l_dt, l_mg, l_mg, l_id, 0 as var from dual;
+  end loop; 
+  
+       
+commit;
+end swap_sal_from_main_to_rso9;
 
 end scripts2;
 /

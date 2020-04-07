@@ -30,6 +30,15 @@ create or replace package scott.C_KART is
   function set_kw_par(p_house_guid in varchar2, p_kw in varchar2, p_entr in number) return number;
   --установить единый лиц.счет
   function set_elsk (p_lsk in kart.lsk%type, p_elsk in varchar2) return number;
+  function find_correct (p_lsk in kart.lsk%type -- лиц.счет по которому искать
+           ) return kart.lsk%type;
+  function replace_klsk (p_lsk in kart.lsk%type, -- лиц.счет по которому искать
+                       p_klsk_dst in number   -- klsk на который заменить
+                       ) return number;
+  function replace_house_id (p_lsk in kart.lsk%type, -- лиц.счет по которому искать
+                       p_house_dst in number   -- house_id на который заменить
+                       ) return number;
+            
 end C_KART;
 /
 
@@ -807,6 +816,8 @@ init_arr_usl;
                    p_var_cnt_kpr => l_var_cnt_kpr2);
         end loop;
       end if;
+      -- отключил льготу по капремонту 22.01.2020
+      l_under70:=1;
 
       -- получить из родительского лиц.счета проживающих, определить максимальную расценку
       if l_lsk_parent is not null then
@@ -1662,7 +1673,7 @@ begin
      when p_sptarn = 3 and nvl(p_koeff, 0) <> 0 and nvl(p_norm, 0) <> 0 then
       return 1;
      else
-      return 0;
+      return 0; 
    end case;
 end;
 
@@ -1696,6 +1707,87 @@ begin
     return 0; --успешно
   end if;
 end;
+
+-- найти "возможно" корректный лиц.счет, откуда можно взять корректный k_lsk_id и house_id
+function find_correct (p_lsk in kart.lsk%type -- лиц.счет по которому искать
+  ) return kart.lsk%type is
+begin
+   for c in (select * from kart k where k.lsk=p_lsk) loop
+      for c2 in (select * from kart k where k.fk_klsk_premise=c.fk_klsk_premise and k.lsk != p_lsk
+        order by decode(k.psch,8,1,9,1,0), k.k_lsk_id) loop -- сортировать по незакрытому, наименьшему k_lsk_id
+          return c2.lsk;  
+          exit;
+      end loop;
+   end loop;
+   -- не найдено ничего
+   return null;
+end;  
+
+-- заменить klsk на предложенный во всех таблицах 
+function replace_klsk (p_lsk in kart.lsk%type, -- лиц.счет по которому искать
+                       p_klsk_dst in number   -- klsk на который заменить
+                       ) return number is
+ l_cnt number;
+ l_cd_org t_org.cd%type;
+begin
+  l_cnt:=0; 
+  for c in (select * from kart k where k.lsk=p_lsk) loop
+  if c.k_lsk_id != p_klsk_dst then
+    -- удалить старые счетчики и t_objxpar
+    delete from meter m where m.fk_klsk_obj=c.k_lsk_id;
+    delete from t_objxpar t where t.fk_k_lsk=c.k_lsk_id;
+    update kart k set k.k_lsk_id=p_klsk_dst where k.lsk=p_lsk and k.k_lsk_id != nvl(p_klsk_dst,0);
+    if sql%rowcount = 1 then
+        l_cnt:=1; 
+    end if;    
+    update arch_kart k set k.k_lsk_id=p_klsk_dst where k.lsk=p_lsk and k.k_lsk_id != nvl(p_klsk_dst,0);
+    update exs.eolink t set t.fk_klsk_obj=p_klsk_dst where t.lsk=p_lsk and t.fk_klsk_obj != nvl(p_klsk_dst,0);
+    
+/*  полный бред!  
+    if utils.get_int_param('HAVE_LK') = 1 then
+     -- замена klsk в ЛК
+     select o.cd into l_cd_org
+       from t_org o, t_org_tp tp
+       where tp.id=o.fk_orgtp and tp.cd='РКЦ';
+     execute immediate 'begin proc.replace_klsk@apex(:cd_org_, :p_klsk_src, :p_klsk_dst); end;' USING l_cd_org, c.k_lsk_id, p_klsk_dst ;
+    end if;     */
+    logger.log_act(lsk_         => p_lsk,
+                   text_        => 'ОБНОВЛЁН KLSK! старый klsk='||c.k_lsk_id||' новый klsk='||p_klsk_dst,
+                   fk_type_act_ => 2);
+  end if;
+  if l_cnt = 1 then 
+    return 0; -- ок
+  else 
+    return 1; -- ошибка
+  end if;  
+  end loop;
+end;  
+
+-- заменить house_id на предложенный во всех таблицах 
+function replace_house_id (p_lsk in kart.lsk%type, -- лиц.счет по которому искать
+                       p_house_dst in number   -- house_id на который заменить
+                       ) return number is
+ l_cnt number;                       
+begin
+  l_cnt:=0; 
+  for c in (select * from kart k where k.lsk=p_lsk) loop
+  if c.house_id != p_house_dst then
+    update kart k set k.house_id=p_house_dst where k.lsk=p_lsk and k.house_id != nvl(p_house_dst,0);
+    if sql%rowcount = 1 then
+        l_cnt:=1; 
+    end if;    
+    update arch_kart k set k.house_id=p_house_dst where k.lsk=p_lsk and k.house_id != nvl(p_house_dst,0);
+    logger.log_act(lsk_         => p_lsk,
+                   text_        => 'ОБНОВЛЁН HOUSE_ID! старый house_id='||c.house_id||' новый house_id='||p_house_dst,
+                   fk_type_act_ => 2);
+  end if;
+  if l_cnt = 1 then 
+    return 0; -- ок
+  else 
+    return 1; -- ошибка
+  end if;  
+  end loop;
+end;  
 
 end C_KART;
 /

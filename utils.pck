@@ -733,8 +733,8 @@ begin
   returning id into init.g_session_id;
 
   insert into tree_objects
-    (id, obj_level, trest, reu, kul, nd, main_id, fk_user, sel, fk_house, mg1, mg2, psch, tp_show)
-    select id, obj_level, trest, reu, kul, nd, main_id, l_fk_ses, sel, fk_house, mg1, mg2, psch, tp_show
+    (id, obj_level, trest, reu, for_reu, kul, nd, main_id, fk_user, sel, fk_house, mg1, mg2, psch, tp_show)
+    select id, obj_level, trest, reu, for_reu, kul, nd, main_id, l_fk_ses, sel, fk_house, mg1, mg2, psch, tp_show
       from tree_objects t
      where t.fk_user = -1; -- взять из шаблона, который генерится в итоговом: gen.prep_template_tree_objects    
   commit;
@@ -793,10 +793,15 @@ function tst_krt(lsk_ in kart.lsk%type, var_ in number) return varchar2 is
   last_id_ number;
   prop_dt_ date;
   l_cd v_lsk_tp.cd%type;
+  kart_rec kart%rowtype;
 begin
 --тип счета
+select k.* into kart_rec
+ from kart k where k.lsk=lsk_;
+
 select tp.cd into l_cd
- from kart k, v_lsk_tp tp where k.fk_tp=tp.id and k.lsk=lsk_;
+ from v_lsk_tp tp where tp.id=kart_rec.fk_tp;
+
 
 --проверки только для основных счетов
 if l_cd='LSK_TP_MAIN' then
@@ -838,6 +843,24 @@ if l_cd='LSK_TP_MAIN' then
       return 'Период действия статуса проживающего пересекается с другим периодом!';
    end if;
 end if;
+
+ -- проверки разделенного ЕЛС
+ if kart_rec.divided=1 then 
+   select count(*) into cnt_ 
+     from c_kart_pr t where t.lsk=lsk_ and t.use_gis_divide_els=1;
+   if cnt_=0 then
+      return 'В разделенном лиц.счете должны быть указаны документ или СНИЛС должника и включено "для ГИС ЖКХ"!';
+   elsif cnt_>1 then
+      return 'В разделенном лиц.счете установлена отметка "для ГИС ЖКХ" более чем у одного собственника';
+   end if;  
+ else
+   select count(*) into cnt_ 
+     from c_kart_pr t where t.lsk=lsk_ and t.use_gis_divide_els=1;
+   if cnt_>=1 then
+      return 'В разделенном лиц.счете установлена отметка "для ГИС ЖКХ" у собственника, которая не будет использована';
+   end if;  
+ end if;
+ 
    --ошибок нет
    if var_=1 then
      update kart k set k.fk_err=0 where k.lsk=lsk_;
@@ -874,7 +897,7 @@ procedure set_kpr(lsk_ in kart.lsk%type) is
                         t.status in (1, 5) and --если прописан после 15 то не считать
                         nvl(t.dat_prop, to_date('19000101', 'YYYYMMDD')) >= --если нет даты прописки, то как будто бы прописан давно (в 1900 году)))
                         dat_)
-                   and t.status not in (3,6)), --не берём 6 код (временно прожив) ред.24.05.12 -- не берем код 3 - временно зарег, ред. 14.12.17
+                   and t.status not in (3,6,7)), --не берём 6 код (временно прожив) ред.24.05.12 -- не берем код 3 - временно зарег, ред. 14.12.17, 7 код ред.30.09.2019
                --без учета выбывших
               kpr_ot =
                (select count(*)
@@ -899,7 +922,7 @@ procedure set_kpr(lsk_ in kart.lsk%type) is
                (select count(*)
                   from c_kart_pr t
                  where t.lsk = lsk_
-                   and t.status not in (4,6,3)), -- убрал из подсчета 3 статус (В.З.)
+                   and t.status not in (4,6,3,7)), -- убрал из подсчета 3 статус (В.З.)
                --без учета выбывших
               kpr_ot =
                (select count(*)
@@ -919,6 +942,7 @@ procedure set_kpr(lsk_ in kart.lsk%type) is
         where k.lsk = lsk_;
      end if;
    else
+     Raise_application_error(-20000, 'Код не поддерживается, обратиться к программисту');
      --ред 24.06.11 льготники отключены
      --кол-во проживающих
      -- Кис:
@@ -1393,6 +1417,10 @@ begin
      where t.lsk = lsk_
        and t.period = l_mg;
     delete from c_kwtp t where t.lsk = lsk_;
+    delete from c_charge t where t.lsk = lsk_; -- ред. 13.03.2020 -- пипец не стояло удаление! привело к несогласованности a_charge2 и arch_charges по удаленнным и заново восстановленным счетам, по которым было начисление
+    delete from c_penya t where t.lsk = lsk_;
+    delete from c_pen_corr t where t.lsk = lsk_;
+    delete from c_pen_cur t where t.lsk = lsk_;
     delete from kart t where t.lsk = lsk_;
     
     -- добавил удаление из архивов (вдруг были уже сформированы архивы по этому лс), ред 17.04.19
@@ -1475,10 +1503,11 @@ begin
   begin
   delete from nabor t where t.lsk=lsk_;
   delete from c_states_sch t where t.lsk=lsk_;
-  --delete from c_kart_pr t where t.lsk=lsk_;
-  --delete from saldo_usl t where t.lsk=lsk_;
-  --delete from c_chargepay t where t.lsk=lsk_ and t.period=l_mg;
-  --delete from c_kwtp t where t.lsk=lsk_;
+  delete from c_kart_pr t where t.lsk=lsk_;
+  delete from saldo_usl t where t.lsk=lsk_;
+  delete from c_chargepay t where t.lsk=lsk_ and t.period=l_mg;
+  delete from c_kwtp t where t.lsk=lsk_;
+  delete from c_charge t where t.lsk=lsk_; -- ред. 13.03.2020 вернул удаление начисления! иначе несогласованность таблиц a_charge2 и arch_charges!
   delete from kart t where t.lsk=lsk_;
 
   exception when others then

@@ -3,8 +3,7 @@ create or replace package scott.C_CPENYA is
 
   procedure gen_charge_pay_pen;
   procedure gen_charge_pay_pen(p_dt in date);
-  procedure gen_charge_pay_pen_house(p_dt in date, --дата формир.
-                                     p_house in number);
+  procedure gen_charge_pay_pen_house(p_house in number);
   procedure gen_charge_pay_pen(
                              p_dt in date, --дата формир.
                              p_var in number --формировать пеню? (0-нет, 1-да (старый вызов)
@@ -26,7 +25,7 @@ create or replace package scott.C_CPENYA is
                       islastmonth_ in number,
                       p_commit     in number);
   procedure gen_penya(lsk_         in kart.lsk%type,
-                      dat_         in date,
+                      dat_         in date, 
                       islastmonth_ in number,
                       p_commit     in number);
 
@@ -54,31 +53,18 @@ begin
 end;
 
 --формирование по домам, в потоках
-procedure gen_charge_pay_pen_house(p_dt in date, --дата формир.
-                             p_house in number) is
- l_dt date;
+procedure gen_charge_pay_pen_house(p_house in number) is
  l_is_lstdt number;
 begin
-/*  if p_dt is null then
-    --по концу месяца
-    l_is_lstdt:=1;
-    l_dt:=init.get_dt_end;
-  else
-    --на заданную дату
-    l_is_lstdt:=0;
-    l_dt:=p_dt;
-  end if; */
   -- здесь всегда по концу месяца
   l_is_lstdt:=1;
-  l_dt:=null;
-
   logger.log_(time_, 'gen_charge_pay_pen_house начало: p_house='||p_house);
 
   for c in (select lsk from kart k where k.house_id=p_house) loop
     --пеня, на дату, с коммитом
     --движение работает внутри
     --logger.log_(time_, 'gen_charge_pay_pen_house начало: p_lsk='||c.lsk);
-    gen_penya(lsk_ => c.lsk, dat_ => l_dt, islastmonth_ => l_is_lstdt, p_commit => 1);
+    gen_penya(lsk_ => c.lsk, dat_ => null, islastmonth_ => l_is_lstdt, p_commit => 1);
     --logger.log_(time_, 'gen_charge_pay_pen_house окончание: p_lsk='||c.lsk);
   end loop;
   logger.log_(time_, 'gen_charge_pay_pen_house окончание: p_house='||p_house);
@@ -153,38 +139,38 @@ begin
     from (select a.lsk, a.usl, a.org, sum(a.poutsal) as poutsal from (
            select s.lsk, s.usl, s.org, s.poutsal from xitog3_lsk s where s.mg=l_mg_back -- входящее сальдо по пене
            and nvl(p_lsk,s.lsk)=s.lsk
-           union all 
-           select s.lsk, s.usl, s.org, s.penya from c_pen_corr s where s.usl is not null
-           and nvl(p_lsk,s.lsk)=s.lsk -- корректировка, разбитая по услугам (для исключения распределения по необходимым услугам) (ниже добавляется)
+           --union all ### убрал 31.12.2019 - это влияет на распределение, и невозможно исправить исх сальдо по пене
+           --select s.lsk, s.usl, s.org, s.penya from c_pen_corr s where s.usl is not null
+           --and nvl(p_lsk,s.lsk)=s.lsk -- корректировка, разбитая по услугам (для исключения распределения по необходимым услугам) (ниже добавляется)
            ) a group by a.lsk, a.usl, a.org) d 
      group by d.lsk) b on t.lsk=b.lsk and t.penya <> 0
        order by t.lsk)
   loop
     --распределение на услуги
     if c.pen_sign > 0 and c.deb_summa <> 0 then 
-        --распределить по дебет сальдо пени - положительное значение пени
+        -- 1. распределить по дебет сальдо пени - положительное значение пени
         select rec_summ(t.usl, t.org, t.poutsal, 0) bulk collect
           into t_summ from
           (select a.usl, a.org, sum(a.poutsal) as poutsal from (
            select s.usl, s.org, s.poutsal from xitog3_lsk s where s.lsk=c.lsk and s.mg=l_mg_back -- сальдо по пене
-           union all 
-           select s.usl, s.org, s.penya from c_pen_corr s where s.lsk=c.lsk and s.usl is not null
+           --union all ### убрал 31.12.2019 - это влияет на распределение, и невозможно исправить исх сальдо по пене
+           --select s.usl, s.org, s.penya from c_pen_corr s where s.lsk=c.lsk and s.usl is not null
            ) a group by a.usl, a.org -- корректировка, разбитая по услугам (для исключения распределения по необходимым услугам) (ниже добавляется)
            ) t
           where t.poutsal > 0;
     elsif c.pen_sign > 0 and c.kr_summa <> 0 then       
-        --распределить по кредит сальдо пени - положительное значение пени
+        -- 2. распределить по кредит сальдо пени - положительное значение пени, если не найдено по 1 пункту
         select rec_summ(t.usl, t.org, t.poutsal*-1, 0) bulk collect
           into t_summ from
            (select a.usl, a.org, sum(a.poutsal) as poutsal from (
            select s.usl, s.org, s.poutsal from xitog3_lsk s where s.lsk=c.lsk and s.mg=l_mg_back -- сальдо по пене
-           union all 
-           select s.usl, s.org, s.penya from c_pen_corr s where s.lsk=c.lsk and s.usl is not null
+           --union all ### убрал 31.12.2019 - это влияет на распределение, и невозможно исправить исх сальдо по пене 
+           --select s.usl, s.org, s.penya from c_pen_corr s where s.lsk=c.lsk and s.usl is not null
            ) a group by a.usl, a.org -- корректировка, разбитая по услугам (для исключения распределения по необходимым услугам) (ниже добавляется)
            ) t
           where t.poutsal < 0;
     elsif c.pen_sign > 0 and c.deb_summa = 0 and c.kr_summa = 0 then       
-        --распределить по начислению положительное значение пени, если сальдо=0
+        -- 3. распределить по начислению положительное значение пени, если сальдо=0, если не найдено по предыдущим пунктам
         select rec_summ(n.usl, n.org, t.summa, 0) bulk collect
           into t_summ from
            c_charge t, nabor n
@@ -200,36 +186,55 @@ begin
             select rec_summ(t.usl, t.org, 100, 0) bulk collect
               into t_summ from nabor t where t.lsk=c.lsk and t.usl='033'; 
             end if;
+
             if sql%rowcount = 0 then
-              -- если уж и в наборах нет записи то...
+              -- если и в наборах нет записи по usl=003 или 033 то по любым услугам из наборов
+              select rec_summ(t.usl, t.org, 100, 0) bulk collect
+                into t_summ from nabor t where t.lsk=c.lsk; 
+            end if;
+
+            if sql%rowcount = 0 then
+              -- если и в наборах вообще нет записей, то попробовать распределить по дебет сальдо
+              select rec_summ(t.usl, t.org, t.summa, 0) bulk collect
+                into t_summ from saldo_usl t where t.lsk=c.lsk and t.mg=l_mg and t.summa>0; 
+            end if;
+
+            if sql%rowcount = 0 then
+              -- если и в сальдо нет записей по дебету, то попробовать распределить по кредит сальдо
+              select rec_summ(t.usl, t.org, t.summa*-1, 0) bulk collect
+                into t_summ from saldo_usl t where t.lsk=c.lsk and t.mg=l_mg and t.summa<0; 
+            end if;
+
+            if sql%rowcount = 0 then
+              -- если и в сальдо нет записей - САМЫЙ ПЛОХОЙ СЛУЧАЙ РАСПРЕДЕЛЕНИЯ!
               select rec_summ('003', t.id, 100, 0) bulk collect
                 into t_summ from t_org t where t.reu=c.reu; 
-            end if;    
+            end if;
         end if;   
-    elsif c.pen_sign < 0 and c.kr_summa <> 0 then       
-        --распределить по кредит сальдо пени - отрицательное значение пени
-        select rec_summ(t.usl, t.org, t.poutsal*-1, 0) bulk collect
-          into t_summ from
-           (select a.usl, a.org, sum(a.poutsal) as poutsal from (
-           select s.usl, s.org, s.poutsal from xitog3_lsk s where s.lsk=c.lsk and s.mg=l_mg_back -- сальдо по пене
-           union all 
-           select s.usl, s.org, s.penya from c_pen_corr s where s.lsk=c.lsk and s.usl is not null
-           ) a group by a.usl, a.org -- корректировка, разбитая по услугам (для исключения распределения по необходимым услугам) (ниже добавляется)
-           ) t
-          where t.poutsal < 0;
     elsif c.pen_sign < 0 and c.deb_summa <> 0 then       
-        --распределить по дебет сальдо пени - отрицательное значение пени
+        -- 4. распределить по дебет сальдо пени - отрицательное значение пени
         select rec_summ(t.usl, t.org, t.poutsal, 0) bulk collect
           into t_summ from
            (select a.usl, a.org, sum(a.poutsal) as poutsal from (
            select s.usl, s.org, s.poutsal from xitog3_lsk s where s.lsk=c.lsk and s.mg=l_mg_back -- сальдо по пене
-           union all 
-           select s.usl, s.org, s.penya from c_pen_corr s where s.lsk=c.lsk and s.usl is not null
+           --union all  ### убрал 31.12.2019 - это влияет на распределение, и невозможно исправить исх сальдо по пене
+           --select s.usl, s.org, s.penya from c_pen_corr s where s.lsk=c.lsk and s.usl is not null
            ) a group by a.usl, a.org -- корректировка, разбитая по услугам (для исключения распределения по необходимым услугам) (ниже добавляется)
            ) t
           where t.poutsal > 0;
+    elsif c.pen_sign < 0 and c.kr_summa <> 0 then -- ред.26.11.2019 - была найдена ошибка, этот пункт выполнялся первым, что вызывало дополнительное снятие сальдо по пене с Кредита по пене!       
+        -- 5. распределить по кредит сальдо пени - отрицательное значение пени, если не найдено по 4 пункту
+        select rec_summ(t.usl, t.org, t.poutsal*-1, 0) bulk collect
+          into t_summ from
+           (select a.usl, a.org, sum(a.poutsal) as poutsal from (
+           select s.usl, s.org, s.poutsal from xitog3_lsk s where s.lsk=c.lsk and s.mg=l_mg_back -- сальдо по пене
+           --union all  ### убрал 31.12.2019 - это влияет на распределение, и невозможно исправить исх сальдо по пене
+           --select s.usl, s.org, s.penya from c_pen_corr s where s.lsk=c.lsk and s.usl is not null
+           ) a group by a.usl, a.org -- корректировка, разбитая по услугам (для исключения распределения по необходимым услугам) (ниже добавляется)
+           ) t
+          where t.poutsal < 0;
     elsif c.pen_sign < 0 and c.deb_summa = 0 and c.kr_summa = 0 then       
-        --распределить по начислению отрицательное значение пени, если сальдо=0
+        --распределить по начислению отрицательное значение пени, если сальдо=0, если не найдено по предыдущим пунктам
         select rec_summ(n.usl, n.org, t.summa, 0) bulk collect
           into t_summ from
            c_charge t, nabor n
@@ -245,8 +250,15 @@ begin
               select rec_summ(t.usl, t.org, 100, 0) bulk collect
                 into t_summ from nabor t where t.lsk=c.lsk and t.usl='033'; 
             end if;
+
             if sql%rowcount = 0 then
-              -- если уж и в наборах нет записи то...
+              -- если уж и в наборах нет записи по usl=003 или 033 то по любым услугам
+              select rec_summ(t.usl, t.org, 100, 0) bulk collect
+                into t_summ from nabor t where t.lsk=c.lsk; 
+            end if;
+
+            if sql%rowcount = 0 then
+              -- если уж и в наборах вообще нет записей то...
               select rec_summ('003', t.id, 100, 0) bulk collect
                 into t_summ from t_org t where t.reu=c.reu; 
             end if;
@@ -436,16 +448,20 @@ PROCEDURE gen_penya(lsk_ in kart.lsk%type, dat_ in date, islastmonth_ in number,
  l_lsk_tp number; --тип лицевого счета (основной/дополнительный)
  l_day_iter date; --день итерации расчета
  l_reu kart.reu%type;
+ l_iter number; -- id расчета 
 begin
   --выполнять строго после gen_charge_pay
   --выполнять строго после gen.gen_saldo (при формировании за месяц)
+  
+  -- получить id расчета (возникли подозрения что искажается инфа другими потоками, при вызове из Java) ред.22.11.2019
+  select c_penya_id.nextval into l_iter from dual;
   --удаляем предыдущ.расчет
   delete from c_penya t where t.lsk = lsk_;
   --удаляем предыдущ.расчет тек.пени
-  delete from temp_pen_chrg t;
+  delete from temp_pen_chrg t where t.iter_id=l_iter;
 
   --узнать, начислять ли вообще пеню по данному лс?
-  select k.pn_dt, k.fk_tp, k.reu into l_pn_dt, l_lsk_tp, l_reu from kart k
+  select k.pn_dt, k.fk_tp, k.reu into l_pn_dt, l_lsk_tp, l_reu from kart k 
     where k.lsk=lsk_;
 
   --текущий период
@@ -479,27 +495,27 @@ begin
   --расчет с сальдо по пене
   --перебрать все даты месяца
 --    l_iter:=0;
-    delete from temp_for_pen;
+    delete from temp_for_pen t where t.iter_id=l_iter;
     insert into temp_for_pen
-     (summa, summa_deb, mg, dtek, tp)
-      select 0 as summa, 0 as summa_deb, l_mg as mg, null as dtek, 0 as tp from dual --добавить на всякий случай тек.период
+     (summa, summa_deb, mg, dtek, tp, iter_id)
+      select 0 as summa, 0 as summa_deb, l_mg as mg, null as dtek, 0 as tp, l_iter from dual --добавить на всякий случай тек.период
       union all
       select decode(t.type,0,t.summa,-1*t.summa) as summa, decode(t.type,0,t.summa,-1*t.summa) as summa2,
-        t.mg, null as dtek, 1 as tp from c_chargepay t where t.lsk=lsk_ and t.period=l_mg_back --долги прошлых периодов
+        t.mg, null as dtek, 1 as tp, l_iter from c_chargepay t where t.lsk=lsk_ and t.period=l_mg_back --долги прошлых периодов
       union all
-      select t.summa, t.summa as summa_deb, l_mg, null as dtek, 2 as tp 
+      select t.summa, t.summa as summa_deb, l_mg, null as dtek, 2 as tp, l_iter 
         from c_charge t where t.lsk=lsk_ and t.type=1--начисление
-      union all
-      select -1*t.summa, 0 as summa_deb, t.dopl, t.dtek as dtek, 3 as tp 
+      union all 
+      select -1*t.summa, 0 as summa_deb, t.dopl, t.dtek as dtek, 3 as tp, l_iter 
         from c_kwtp_mg t where t.lsk=lsk_ 
       union all
-      select 0 as summa, -1*t.summa as summa_deb, t.dopl, t.dtek as dtek, 4 as tp 
+      select 0 as summa, -1*t.summa as summa_deb, t.dopl, t.dtek as dtek, 4 as tp, l_iter 
         from c_kwtp_mg t where t.lsk=lsk_
-      union all
-      select t.summa, t.summa as summa_deb, t.mgchange, t.dtek as dtek, 5 as tp 
-        from c_change t where t.lsk=lsk_
-      union all
-      select t.summa, -1*t.summa as summa_deb, t.dopl, null as dtek, 6 as tp 
+      union all 
+      select t.summa, t.summa as summa_deb, t.mgchange, t.dtek as dtek, 5 as tp, l_iter 
+        from c_change t where t.lsk=lsk_  
+      union all   
+      select -1*t.summa, -1*t.summa as summa_deb, t.dopl, null as dtek, 6 as tp, l_iter 
         from t_corrects_payments t--корректировки оплаты
                    where t.lsk=lsk_ and t.mg=l_mg; --здесь не смотрим dtek (пусть с начала месяца считает)
                    
@@ -507,7 +523,7 @@ begin
   -- считать все долги, поступления > текущего периода - поступившими в текущем 
   -- иначе на строке ниже, где это условие "if l_summa_deb > 0 or l_summa*c.proc > 0 or c.mg=l_mg then"
   -- порождалась еще одна запись некорректного долга
-  update temp_for_pen t set t.mg=l_mg where t.mg > l_mg;
+  update temp_for_pen t set t.mg=l_mg where t.mg > l_mg and t.iter_id=l_iter;
 
   for c2 in (select t.dat from v_cur_days t where t.dat <= l_datpen) loop
     l_day_iter:=c2.dat;
@@ -522,21 +538,21 @@ begin
       with a as (  
       select sum(r.summa) as summa, sum(r.summa_deb) as summa_deb,
       r.mg from (
-           select t.summa, t.summa_deb, t.mg from temp_for_pen t where t.tp=0
+           select t.summa, t.summa_deb, t.mg from temp_for_pen t where t.tp=0 and t.iter_id=l_iter
              union all
-           select t.summa, t.summa_deb, t.mg from temp_for_pen t where t.tp=1
+           select t.summa, t.summa_deb, t.mg from temp_for_pen t where t.tp=1 and t.iter_id=l_iter
              union all
-           select t.summa, t.summa_deb, t.mg from temp_for_pen t where t.tp=2
+           select t.summa, t.summa_deb, t.mg from temp_for_pen t where t.tp=2 and t.iter_id=l_iter
              union all
-           select t.summa, t.summa_deb, t.mg from temp_for_pen t where t.tp=3 
+           select t.summa, t.summa_deb, t.mg from temp_for_pen t where t.tp=3 and t.iter_id=l_iter 
                   and case when t.dtek < init.get_cur_dt_start 
                     then init.get_cur_dt_start else t.dtek end < c2.dat --сумма оплаты для расчета пени (не вкл. поступления тек дня)
              union all
-           select t.summa, t.summa_deb, t.mg from temp_for_pen t where t.tp=4 and t.dtek<=c2.dat --сумма оплаты для расчета долга (вкл. поступления тек дня)
+           select t.summa, t.summa_deb, t.mg from temp_for_pen t where t.tp=4 and t.dtek<=c2.dat and t.iter_id=l_iter --сумма оплаты для расчета долга (вкл. поступления тек дня)
              union all
-           select t.summa, t.summa_deb, t.mg from temp_for_pen t where t.tp=5 and t.dtek<=c2.dat --перерасчет
+           select t.summa, t.summa_deb, t.mg from temp_for_pen t where t.tp=5 and t.dtek<=c2.dat and t.iter_id=l_iter --перерасчет
              union all
-           select t.summa, t.summa_deb, t.mg from temp_for_pen t where t.tp=6
+           select t.summa, t.summa_deb, t.mg from temp_for_pen t where t.tp=6 and t.iter_id=l_iter
         ) r
         group by r.mg
         having (sum(r.summa) <> 0 or sum(r.summa_deb) <> 0 or r.mg=l_mg) --или есть долг-переплата или текущий период
@@ -591,13 +607,13 @@ begin
            --есть задолжность (еще не значит что есть пеня) или текущий период
            --записать дельту пени (начисление текущего периода) (и задолжность по которой был расчёт, за период, - информационно)
            insert into temp_pen_chrg
-             (summa, summa2, penya, days, mg1, day_iter, fk_stav)
+             (summa, summa2, penya, days, mg1, day_iter, fk_stav, iter_id)
            values (
                    l_summa_deb, --рассчитанный долг на конец дня 
                    l_summa, --долг на которую считается пеня
                    case when c.sal > 0 then l_summa*c.proc--ВАЖНО! если долга нет, или переплата, занулить пеню
                    else 0 end, --рассчитаная пеня (для неё долг не учитывает поступление оплаты за текущий день) 
-                   case when c.days > 0 then c.days else null end, c.mg, l_day_iter, c.id);
+                   case when c.days > 0 then c.days else null end, c.mg, l_day_iter, c.id, l_iter);
          end if;
     end loop;
   end loop;
@@ -611,7 +627,7 @@ begin
       and t.lsk=lsk_
     union all
     select lsk_ as lsk, round(sum(t.penya),2) as penya, t.mg1 --прибавить начисление пени за месяц --ред.21.11.2016 округление перенёс сюда
-          from temp_pen_chrg t
+          from temp_pen_chrg t where t.iter_id=l_iter
           group by t.mg1
     union all
     select c.lsk, c.penya,  c.dopl --прибавить корректировку пени за месяц
@@ -625,14 +641,14 @@ begin
           /*between init.g_dt_start and */  --специально убрал between так как бывают даты < первой даты месяца
                ) a
     group by a.lsk, a.mg1
-    ) b full join (select * from temp_pen_chrg t where t.day_iter=l_day_iter) r on b.mg1=r.mg1
+    ) b full join (select * from temp_pen_chrg t where t.day_iter=l_day_iter and t.iter_id=l_iter) r on b.mg1=r.mg1
     where (nvl(r.summa,0) <> 0 or nvl(b.penya,0)<>0);
 
   delete from c_pen_cur t where t.lsk=lsk_;  
   insert into c_pen_cur
     (lsk, mg1, fk_stav, penya, summa2, curdays, dt1, dt2)
     with r as
-     (select * from temp_pen_chrg t)
+     (select * from temp_pen_chrg t where t.iter_id=l_iter)
     select lsk_ as lsk, a.mg1, a.fk_stav, sum(a.penya) as penya, max(a.summa2) as summa, --да да, здесь max (должно взять макс. сумму задолжности)
            count(*) as curdays, min(a.day_iter) as dt1, max(a.day_iter) as dt2
       from (select t.*,

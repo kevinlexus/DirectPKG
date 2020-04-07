@@ -1,0 +1,64 @@
+create table SCOTT.KART_EXT
+(
+  id      NUMBER not null,
+  ext_lsk VARCHAR2(9),
+  lsk     CHAR(8),
+  fio     VARCHAR2(60),
+  dt_crt  DATE default sysdate,
+  dt_upd  DATE default sysdate
+)
+tablespace DATA
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.KART_EXT
+  is 'Внешний лиц.счет (например Чистый город)';
+comment on column SCOTT.KART_EXT.id
+  is 'ID';
+comment on column SCOTT.KART_EXT.ext_lsk
+  is 'Уникальный лиц.счет во внешней системе';
+comment on column SCOTT.KART_EXT.lsk
+  is 'Лиц.счет в системе "Директ"';
+comment on column SCOTT.KART_EXT.fio
+  is 'ФИО абонента во внешней системе';
+comment on column SCOTT.KART_EXT.dt_crt
+  is 'Дата создания записи';
+comment on column SCOTT.KART_EXT.dt_upd
+  is 'Дата обновления записи';
+create unique index SCOTT.KART_EXT_I1 on SCOTT.KART_EXT (EXT_LSK)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.KART_EXT
+  add constraint KART_EXT_P_ID primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.KART_EXT
+  add constraint KART_EXT_F_LSK foreign key (LSK)
+  references SCOTT.KART (LSK);
+

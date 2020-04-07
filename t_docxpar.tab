@@ -1,0 +1,55 @@
+create table SCOTT.T_DOCXPAR
+(
+  id              NUMBER not null,
+  dt_crt          DATE default sysdate,
+  dt_upd          DATE default sysdate,
+  cd              VARCHAR2(132),
+  fk_user         NUMBER not null,
+  comm            VARCHAR2(1024),
+  is_set_prev_val NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.T_DOCXPAR
+  is 'Документ по параметру (Например реестр загрузки показаний счетчиков)';
+comment on column SCOTT.T_DOCXPAR.id
+  is 'ID';
+comment on column SCOTT.T_DOCXPAR.dt_crt
+  is 'Дата создания';
+comment on column SCOTT.T_DOCXPAR.dt_upd
+  is 'Дата обновления';
+comment on column SCOTT.T_DOCXPAR.cd
+  is 'Уникальный CD';
+comment on column SCOTT.T_DOCXPAR.fk_user
+  is 'Пользователь, кто создал запись';
+comment on column SCOTT.T_DOCXPAR.comm
+  is 'Комментарий, путь к файлу и прочее';
+comment on column SCOTT.T_DOCXPAR.is_set_prev_val
+  is 'Для реестра показаний по счетчикам 0-текущие объемы, 1-начальные показания по счетчикам';
+alter table SCOTT.T_DOCXPAR
+  add constraint T_DOCXPAR_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.T_DOCXPAR
+  add constraint T_DOCXPAR_F_USER foreign key (FK_USER)
+  references SCOTT.T_USER (ID);
+

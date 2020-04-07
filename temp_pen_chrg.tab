@@ -6,7 +6,8 @@ create global temporary table SCOTT.TEMP_PEN_CHRG
   penya    NUMBER,
   day_iter DATE,
   fk_stav  NUMBER,
-  summa2   NUMBER
+  summa2   NUMBER,
+  iter_id  NUMBER
 )
 on commit delete rows;
 comment on table SCOTT.TEMP_PEN_CHRG
@@ -25,4 +26,6 @@ comment on column SCOTT.TEMP_PEN_CHRG.fk_stav
   is 'fk использованной ставки';
 comment on column SCOTT.TEMP_PEN_CHRG.summa2
   is 'Сумма задолжности, по которой расчёт пени';
+comment on column SCOTT.TEMP_PEN_CHRG.iter_id
+  is 'ID итерации расчета';
 

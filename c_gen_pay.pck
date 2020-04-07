@@ -939,14 +939,14 @@ begin
   if p_lsk is null then 
     insert into kwtp_day
     (fk_distr, kwtp_id, lsk, summa, oper, dopl, nkom, nink, dat_ink, priznak, usl, org, dtek)
-    select decode(t.var,0,4,1,4, 12, 12, 4) as fk_distr, null, t.lsk, t.summa, '099' as oper,
+    select decode(t.var,0,4,1,4, 12, 12, 4) as fk_distr, null, t.lsk, t.summa, '99' as oper,
     t.dopl,
     c.nkom, c.nink, t.dat, 1, t.usl, t.org, t.dat
     from t_corrects_payments t, c_comps c, params p where c.nkom='999' and t.mg=p.period;
   else
     insert into kwtp_day
     (fk_distr, kwtp_id, lsk, summa, oper, dopl, nkom, nink, dat_ink, priznak, usl, org, dtek)
-    select decode(t.var,0,4,1,4, 12, 12, 4) as fk_distr, null, t.lsk, t.summa, '099' as oper,
+    select decode(t.var,0,4,1,4, 12, 12, 4) as fk_distr, null, t.lsk, t.summa, '99' as oper,
     t.dopl,
     c.nkom, c.nink, t.dat, 1, t.usl, t.org, t.dat
     from t_corrects_payments t, c_comps c, params p where c.nkom='999' and t.mg=p.period and t.lsk=p_lsk;

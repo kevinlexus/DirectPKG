@@ -1,0 +1,79 @@
+create table SCOTT.LOAD_KART_EXT
+(
+  id         NUMBER not null,
+  ext_lsk    VARCHAR2(9),
+  guid       VARCHAR2(36),
+  fio        VARCHAR2(60),
+  address    VARCHAR2(255),
+  code       NUMBER,
+  nm         VARCHAR2(25),
+  period_deb VARCHAR2(6),
+  summa      NUMBER,
+  comm       VARCHAR2(255),
+  status     NUMBER,
+  lsk        CHAR(8)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.LOAD_KART_EXT
+  is 'Таблица для загрузки внешних лиц.счетов';
+comment on column SCOTT.LOAD_KART_EXT.id
+  is 'ID';
+comment on column SCOTT.LOAD_KART_EXT.ext_lsk
+  is 'Лиц.счет';
+comment on column SCOTT.LOAD_KART_EXT.guid
+  is 'GUID из ФИАС';
+comment on column SCOTT.LOAD_KART_EXT.fio
+  is 'ФИО абонента';
+comment on column SCOTT.LOAD_KART_EXT.address
+  is 'Адрес абонента';
+comment on column SCOTT.LOAD_KART_EXT.code
+  is 'Код услуги';
+comment on column SCOTT.LOAD_KART_EXT.nm
+  is 'Наименование услуги';
+comment on column SCOTT.LOAD_KART_EXT.period_deb
+  is 'Период задолженности';
+comment on column SCOTT.LOAD_KART_EXT.summa
+  is 'Сумма задолженности';
+comment on column SCOTT.LOAD_KART_EXT.comm
+  is 'Коментарий по загрузке';
+comment on column SCOTT.LOAD_KART_EXT.status
+  is 'Статус (0 - принять к загрузке, 1 - уже загружен, 2 - ошибка (смотреть COMM)';
+comment on column SCOTT.LOAD_KART_EXT.lsk
+  is 'Лиц.счет в системе "Директ"';
+create index SCOTT.LOAD_KART_EXT_I on SCOTT.LOAD_KART_EXT (EXT_LSK)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.LOAD_KART_EXT
+  add constraint LOAD_KART_EXT_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

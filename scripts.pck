@@ -44,13 +44,13 @@ create or replace package scott.scripts is
   procedure swap_sal_chpay;
   procedure swap_sal_chpay2;
   procedure swap_sal_chpay3;
-  procedure CREATE_UK_NEW2(newreu_            in kart.reu%type,
+procedure CREATE_UK_NEW2(p_reu_dst          in kart.reu%type, -- код УК назначения (вместо бывшего new_reu_), если не заполнен, то возьмется из лиц.счета источника
                          p_reu_src          in varchar2, -- код УК источника (если не заполнено, то любое) Заполняется если переносятся ЛС из РСО в другую РСО
-                         p_lsk_tp_src       in varchar2, -- Обязательно указать, с какого типа счетов перенос!
-                         p_house_src        in varchar2, -- House_id через запятую, например '3256,5656,7778,' (вконце - запятая)
+                         p_lsk_tp_src       in varchar2, -- С какого типа счетов перенос, если не указано - будет взято по наличию p_remove_nabor_usl
+                         p_house_src        in varchar2, -- House_id через запятую, например '3256,5656,7778,'
                          p_get_all          in number, -- признак какие брать лс (1 - все лс, в т.ч. закрытые, 0-только открытые)
-                         p_close_src        in number, -- закрывать период в лс. источника (mg2='999999') 1-да,0-нет
-                         p_close_dst        in number, -- закрывать период в лс. назначения (mg2='999999') 1-да,0-нет
+                         p_close_src        in number, -- закрывать лс. источника (mg2='999999') 1-да,0-нет,2-закрывать только если не ОСНОВНОЙ счет
+                         p_close_dst        in number, -- закрывать лс. назначения (mg2='999999') 1-да,0-нет
                          p_move_resident    in number, -- переносить проживающих? 1-да,0-нет
                          p_forced_status    in number, -- установить новый статус счета (0-открытый, NULL - такой же как был в счете источника)
                          p_forced_tp        in varchar2, -- установить новый тип счета (NULL-взять из источника, например 'LSK_TP_RSO' - РСО)
@@ -58,9 +58,12 @@ create or replace package scott.scripts is
                          p_special_tp       in varchar2, -- создать дополнительный лиц.счет в добавок к вновь созданному (NULL- не создавать, 'LSK_TP_ADDIT' - капремонт)
                          p_special_reu      in varchar2, -- УК дополнительного лиц.счета
                          p_mg_sal           in c_change.mgchange%type, -- период сальдо
-                         p_remove_nabor_usl in varchar2 default null, -- ВНИМАНИЕ! ЗАМЕНИЛ НА ЗАПЯТУЮ! удалить данные услуги (задавать как '033,034,035,' строго!), из справочника наборов ЛС источника (null - не удалять) и перенести в назначение 
-                         p_forced_usl in varchar2 default null, -- установить данную услугу в назначении (если не указано, взять из источника)
-                         p_mg_pen           in c_change.mgchange%type -- период по которому перенести пеню. null - не переносить (обычно месяц назад)
+                         p_remove_nabor_usl in varchar2 default null, -- переместить данные услуги (задавать как '033,034,035)
+                         p_forced_usl       in varchar2 default null, -- установить данную услугу в назначении (если не указано, взять из источника)
+                         p_forced_org       in number default null, -- установить организацию в наборе назначения (null - брать из источника)
+                         p_mg_pen           in c_change.mgchange%type, -- период по которому перенести пеню. null - не переносить (обычно месяц назад)
+                         p_move_meter       in number default 0,-- перемещать показания счетчиков (Обычно Полыс) 1-да,0-нет - при перемещении на РСО - не надо включать
+                         p_cpn              in number default 0-- начислять пеню в новых лиц счетах? (0, null, -да, 1 - нет)
                          );
   --перенос информации по закрытым лиц.счетам
   procedure transfer_closed_all(p_reu in kart.reu%type,  -- рэу назначения
@@ -82,7 +85,6 @@ create or replace package body scott.scripts is
 procedure swap_payment
 is
   mg_ params.period%type;
-  dopl_ params.period%type;
   usl_ usl.usl%type;
   usl_sv_ usl.usl%type;
   last_usl_ usl.usl%type;
@@ -172,7 +174,6 @@ end;
 procedure swap_payment9
 is
   mg_ params.period%type;
-  dopl_ params.period%type;
   last_usl_ usl.usl%type;
   last_org_ sprorg.kod%type;
   summa_ number;
@@ -266,7 +267,6 @@ procedure swap_payment7
 is
   mg_ params.period%type;
   mg1_ params.period%type;
-  dopl_ params.period%type;
   last_usl_ usl.usl%type;
   last_org_ sprorg.kod%type;
   summa_ number;
@@ -425,7 +425,6 @@ procedure swap_payment3
 is
   mg_ params.period%type;
   dopl_ params.period%type;
-  reu_ kart.reu%type;
   newreu_ kart.reu%type;
   summa_ number;
   dat_ date;
@@ -3159,19 +3158,19 @@ procedure swap_sal_TO_NOTHING is
   l_dt date;
 begin  
 --период, которым провести изменения
-mgchange_:='201902';
+mgchange_:='201910';
 --период, по которому смотрим сальдо
-l_mg_sal:='201902';
+l_mg_sal:='201910';
 --текущий месяц
-l_mg:='201902';
+l_mg:='201910';
 --месяц назад
-l_mg_back:='201901';
+l_mg_back:='201909';
 --дата, которой провести
-l_dt:=to_date('20190201','YYYYMMDD');
+l_dt:=to_date('20191001','YYYYMMDD');
 --комментарий
 comment_:='Снятие сальдо и пени по выборочным лиц счетам';
 --Уникальный id переброски
-cd_:='swp_sal_nothing_201902_1';
+cd_:='swp_sal_nothing_201910_1';
 
 select t.id into user_id_ from t_user t where t.cd='SCOTT';
 select changes_id.nextval into l_id from dual;
@@ -3199,7 +3198,8 @@ insert into c_pen_corr
   (lsk, penya, dopl, dtek, ts, fk_user, fk_doc)
 select s.lsk, s.penya*-1, s.mg1, l_dt, sysdate, user_id_, l_id
  from a_penya s, kart k where
-   s.lsk=k.lsk and k.lsk in (select lsk from kmp_lsk)
+   s.lsk=k.lsk --and k.lsk in (select lsk from kmp_lsk)
+    and k.reu='066'
     and s.mg=l_mg_back; 
 
 insert into c_change (lsk, usl, org, summa, mgchange, type, dtek, ts,
@@ -3212,10 +3212,11 @@ select s.lsk, s.usl, s.org, -1*s.summa as summa,
 
 /*insert into t_corrects_payments
   (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc)
-select s.lsk, s.usl, s.org, -1*s.summa as summa, user_id_, l_dt, 
+select s.lsk, s.usl, s.org, s.summa as summa, user_id_, l_dt, 
  mgchange_, mgchange_, l_id
- from saldo_usl s, kart k where
-   s.lsk=k.lsk and k.lsk in (select lsk from kmp_lsk)
+ from saldo_usl_script s, kart k where
+   s.lsk=k.lsk --and k.lsk in (select lsk from kmp_lsk)
+   and k.reu='036'
    and s.mg=l_mg_sal;
 */
 commit;
@@ -3462,7 +3463,7 @@ end swap_sal_chpay3;
 
 -- перенос лиц.счетов и сальдо
 -- описание здесь https://docs.google.com/document/d/18qo3GBuWkrtsQThg4E7P9MXYmImM0nQrhdtLdKw-mPY/edit
-procedure CREATE_UK_NEW2(newreu_            in kart.reu%type, -- код УК назначения
+procedure CREATE_UK_NEW2(p_reu_dst          in kart.reu%type, -- код УК назначения (вместо бывшего new_reu_), если не заполнен, то возьмется из лиц.счета источника
                          p_reu_src          in varchar2, -- код УК источника (если не заполнено, то любое) Заполняется если переносятся ЛС из РСО в другую РСО
                          p_lsk_tp_src       in varchar2, -- С какого типа счетов перенос, если не указано - будет взято по наличию p_remove_nabor_usl
                          p_house_src        in varchar2, -- House_id через запятую, например '3256,5656,7778,'
@@ -3477,8 +3478,11 @@ procedure CREATE_UK_NEW2(newreu_            in kart.reu%type, -- код УК назначен
                          p_special_reu      in varchar2, -- УК дополнительного лиц.счета
                          p_mg_sal           in c_change.mgchange%type, -- период сальдо
                          p_remove_nabor_usl in varchar2 default null, -- переместить данные услуги (задавать как '033,034,035)
-                         p_forced_usl in varchar2 default null, -- установить данную услугу в назначении (если не указано, взять из источника)
-                         p_mg_pen           in c_change.mgchange%type -- период по которому перенести пеню. null - не переносить (обычно месяц назад)
+                         p_forced_usl       in varchar2 default null, -- установить данную услугу в назначении (если не указано, взять из источника)
+                         p_forced_org       in number default null, -- установить организацию в наборе назначения (null - брать из источника)
+                         p_mg_pen           in c_change.mgchange%type, -- период по которому перенести пеню. null - не переносить (обычно месяц назад)
+                         p_move_meter       in number default 0,-- перемещать показания счетчиков (Обычно Полыс) 1-да,0-нет - при перемещении на РСО - не надо включать
+                         p_cpn              in number default 0-- начислять пеню в новых лиц счетах? (0, null, -да, 1 - нет)
                          ) is
   maxlsk_     number;
   comment_    c_change_docs.text%type;
@@ -3517,7 +3521,7 @@ begin
     --период, сальдо по которому смотрим переплату
     select p.period into mg_ from params p;
     --комментарий
-    comment_ := 'Переброска Cальдо на УК=' || newreu_;
+    comment_ := 'Переброска Cальдо на УК=' || nvl(p_reu_dst,' взять из источника');
     l_cd_tp  := 'TRANSF_28112018_1';
     --Уникальный номер переброски
     select changes_id.nextval into changes_id_ from dual;
@@ -3548,14 +3552,18 @@ begin
   i      := 0;
   for c in (select t.lsk as old_lsk, t.k_lsk_id, t.c_lsk_id, t.flag, t.flag1, t.kul, t.nd, t.kw, fio, 
     k_fam, k_im, k_ot, kpr, kpr_wr, kpr_ot, kpr_cem, kpr_s, t.opl, ppl, pldop, ki, t.psch, psch_dt, 
-    status, kwt, lodpl, bekpl, balpl, komn, et, kfg, kfot, null as phw, null as mhw, null as pgw, 
-    null as mgw, null as pel, null as mel, sub_nach, subsidii, sub_data, polis, sch_el, newreu_ as reu, 
+    status, kwt, lodpl, bekpl, balpl, komn, et, kfg, kfot, 
+    decode(p_move_meter, 1, phw, null) as phw, decode(p_move_meter, 1, mhw, null) as mhw, 
+    decode(p_move_meter, 1, pgw, null) as pgw, decode(p_move_meter, 1, mgw, null) as mgw, 
+    decode(p_move_meter, 1, pel, null) as pel, decode(p_move_meter, 1, mel, null) as mel, 
+    sub_nach, subsidii, sub_data, polis, sch_el, 
+    nvl(p_reu_dst, t.reu) as reu, -- взять из источника, если не заполнено
     text, schel_dt, eksub1, eksub2, kran, t.kran1, el, el1, sgku, doppl, subs_cor, subs_cur, t.house_id, t.kan_sch, period_ as mg1,case
                      when nvl(p_close_dst, 0) = 1 then
                       period_
                      else
                       '999999'
-                   end as mg2, t.fk_tp, t.entr, t.fk_pasp_org, tp.cd as tp_cd
+                   end as mg2, t.fk_tp, t.entr, t.fk_pasp_org, tp.cd as tp_cd, t.fk_klsk_premise
               from kart t, v_lsk_tp tp
              where 
              case
@@ -3582,16 +3590,26 @@ begin
              order by t.kul, t.nd, t.kw) loop
     i := i + 1;
     --получить новый, уникальный лс
-    maxlsk_   := p_houses.find_unq_lsk(newreu_, null);
+    maxlsk_   := p_houses.find_unq_lsk(p_reu_dst, null);
     l_lsk_new := lpad(to_char(maxlsk_), 8, '0');
     insert into c_lsk (id) values (c_lsk_id.nextval);
   
     insert into kart
-      (k_lsk_id, c_lsk_id, lsk, flag, flag1, kul, nd, kw, fio, k_fam, k_im, k_ot, kpr, kpr_wr, kpr_ot, kpr_cem, kpr_s, opl, ppl, pldop, ki, psch, psch_dt, status, kwt, lodpl, bekpl, balpl, komn, et, kfg, kfot, phw, mhw, pgw, mgw, pel, mel, sub_nach, subsidii, sub_data, polis, reu, text, schel_dt, eksub1, eksub2, kran, kran1, el, el1, sgku, doppl, subs_cor, subs_cur, house_id, kan_sch, mg1, mg2, fk_tp, entr, fk_pasp_org)
+      (k_lsk_id, c_lsk_id, lsk, flag, flag1, kul, nd, kw, fio, k_fam, k_im, k_ot, kpr, kpr_wr, 
+      kpr_ot, kpr_cem, kpr_s, opl, ppl, pldop, ki, psch, psch_dt, status, kwt, lodpl, bekpl, balpl, 
+      komn, et, kfg, kfot, phw, mhw, pgw, mgw, pel, mel, sub_nach, subsidii, sub_data, polis, reu, 
+      text, schel_dt, eksub1, eksub2, kran, kran1, el, el1, sgku, doppl, subs_cor, subs_cur, house_id, 
+      kan_sch, mg1, mg2, fk_tp, entr, fk_pasp_org, fk_klsk_premise, cpn)
     values
-      (c.k_lsk_id, c_lsk_id.currval, l_lsk_new, c.flag, c.flag1, c.kul, c.nd, c.kw, c.fio, c.k_fam, c.k_im, c.k_ot, c.kpr, c.kpr_wr, c.kpr_ot, c.kpr_cem, c.kpr_s, c.opl, c.ppl, c.pldop, c.ki, c.psch, c.psch_dt, c.status, c.kwt, c.lodpl, c.bekpl, c.balpl, c.komn, c.et, c.kfg, c.kfot, c.phw, c.mhw, c.pgw, c.mgw, c.pel, c.mel, c.sub_nach, c.subsidii, c.sub_data, c.polis, newreu_, c.text, c.schel_dt, c.eksub1, c.eksub2, c.kran, c.kran1, c.el, c.el1, c.sgku, c.doppl, c.subs_cor, c.subs_cur, c.house_id, c.kan_sch, c.mg1, c.mg2, nvl(l_forced_tp,
-            c.fk_tp), c.entr, c.fk_pasp_org);
-  
+      (c.k_lsk_id, c_lsk_id.currval, l_lsk_new, c.flag, c.flag1, c.kul, c.nd, c.kw, c.fio, c.k_fam, 
+      c.k_im, c.k_ot, c.kpr, c.kpr_wr, c.kpr_ot, c.kpr_cem, c.kpr_s, c.opl, c.ppl, c.pldop, c.ki, 
+      c.psch, c.psch_dt, c.status, c.kwt, c.lodpl, c.bekpl, c.balpl, c.komn, c.et, c.kfg, c.kfot, 
+      c.phw, c.mhw, c.pgw, c.mgw, c.pel, c.mel, c.sub_nach, c.subsidii, c.sub_data, c.polis, c.reu,
+       c.text, c.schel_dt, c.eksub1, c.eksub2, c.kran, c.kran1, c.el, c.el1, c.sgku, c.doppl, c.subs_cor,
+        c.subs_cur, c.house_id, c.kan_sch, c.mg1, c.mg2, nvl(l_forced_tp,
+            c.fk_tp), c.entr, c.fk_pasp_org, c.fk_klsk_premise, p_cpn);
+    insert into kart_detail(lsk)
+    values (l_lsk_new);
     --Проставить статус счета
     insert into c_states_sch
       (lsk, fk_status, dt1, dt2)
@@ -3600,9 +3618,10 @@ begin
         from dual;
   
     -- создать лицевой счет дополнительно к новому (например специальный РСО ред. 07.08.2018)
-    if p_special_tp is not null then
+/*    if p_special_tp is not null then
       l_ret := p_houses.kart_lsk_special_add(l_lsk_new,
                                              p_special_tp,
+                                             l_lsk_new
                                              null,
                                              0,
                                              0,
@@ -3612,7 +3631,7 @@ begin
                                 'Ошибка создания ДОПОЛНИТЕЛЬНОГО лиц.счета с типом:' ||
                                 p_special_tp);
       end if;
-    end if;
+    end if; */
   
     --проживающих переносим, (обычно если не переброска закрытых лиц.счетов)
     if nvl(p_move_resident, 0) = 1 then
@@ -3652,7 +3671,7 @@ begin
     if p_remove_nabor_usl is not null then
       insert into nabor
         (lsk, usl, org, koeff, norm, fk_vvod)
-        select l_lsk_new, nvl(p_forced_usl, n.usl) as usl, n.org, n.koeff, n.norm, n.fk_vvod -- n.fk_vvod ред. 03.07.2018 странно, раньше было n.fk_vvod
+        select l_lsk_new, nvl(p_forced_usl, n.usl) as usl, nvl(p_forced_org, n.org), n.koeff, n.norm, n.fk_vvod -- n.fk_vvod ред. 03.07.2018 странно, раньше было n.fk_vvod
           from nabor n
          where n.lsk = c.old_lsk
            and regexp_instr(p_remove_nabor_usl,
@@ -3665,7 +3684,7 @@ begin
     else
       insert into nabor
         (lsk, usl, org, koeff, norm, fk_vvod)
-        select l_lsk_new, n.usl, n.org, n.koeff, n.norm, n.fk_vvod -- n.fk_vvod ред. 03.07.2018 странно, раньше было n.fk_vvod
+        select l_lsk_new, n.usl, nvl(p_forced_org, n.org), n.koeff, n.norm, n.fk_vvod -- n.fk_vvod ред. 03.07.2018 странно, раньше было n.fk_vvod
           from nabor n
          where n.lsk = c.old_lsk;
     end if;
@@ -3699,9 +3718,18 @@ begin
     
       --устанавливаем новый "закрытый" статус старого счета
       insert into c_states_sch
-        (lsk, fk_status, dt1, dt2)
-        select k.lsk, 8, to_date(period_ || '01', 'YYYYMMDD'), null
+        (lsk, fk_status, dt1, dt2, fk_close_reason)
+        select k.lsk, 8 as fk_status, to_date(period_ || '01', 'YYYYMMDD') as dt1, null as dt2, a.id as fk_close_reson
           from kart k
+          join (select u.id, s.name
+                  from exs.u_list u
+                  join exs.u_list s
+                    on u.id = s.parent_id
+                  join exs.u_listtp t
+                    on s.fk_listtp = t.id
+                 where t.cd = 'GIS_NSI_22'
+                   and s.s1 = 'Смена исполнителя жилищно-коммунальных услуг') a
+            on 1 = 1
          where k.lsk = c.old_lsk;
     end if;
   

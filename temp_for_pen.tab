@@ -4,7 +4,8 @@ create global temporary table SCOTT.TEMP_FOR_PEN
   summa_deb NUMBER,
   mg        CHAR(6),
   dtek      DATE,
-  tp        NUMBER
+  tp        NUMBER,
+  iter_id   NUMBER
 )
 on commit delete rows;
 comment on table SCOTT.TEMP_FOR_PEN
@@ -19,4 +20,6 @@ comment on column SCOTT.TEMP_FOR_PEN.dtek
   is '”ниверсальна€ дата';
 comment on column SCOTT.TEMP_FOR_PEN.tp
   is '“ип (0-тек.период, 1-долги прошл.период, 2-начисление,3-оплата,4-оплата долг, 5-перерасч,6-коррект.)';
+comment on column SCOTT.TEMP_FOR_PEN.iter_id
+  is 'ID итерации расчета';
 

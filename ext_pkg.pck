@@ -120,6 +120,7 @@ elsif l_cnt_new_lsk <> 0 then
     into l_p_mg1, l_p_mg2 using cd_org_;
 end if;
 
+/* ред. 24.03.2020 - вырубил нафиг. выполняется в одном потоке - неэффективно. Если что, пусть выполняют пункты начисление+движение до обмена с ЛК
 logger.log_(null, 'Apex_new: подготовка начисления, задолжности по л/с-начало');
 for c in (select k.lsk
  from scott.kart k, scott.t_org o where k.reu=o.reu and
@@ -132,6 +133,7 @@ loop --всё c коммитом, так как нет опасности потерять целостность информации по 
   scott.c_cpenya.gen_penya(c.lsk, 0, 1);
 end loop;
 logger.log_(null, 'Apex_new: подготовка начисления, задолжности по л/с-окончание');
+*/
 --####
 
 if var_ = 1 then
@@ -219,9 +221,9 @@ if var_ = 1 then
 */
   delete from scott.exp_kart;
   insert into scott.exp_kart t
-  (k_lsk_id, lsk, cd_org, kul, nd, kw, phw, mhw, pgw, mgw, pel, mel, psch, cd_lsk_tp, house_id)
+  (k_lsk_id, lsk, cd_org, kul, nd, kw, phw, mhw, pgw, mgw, pel, mel, psch, cd_lsk_tp, house_id, usl_name_short)
   select k.k_lsk_id, k.lsk, o.cd, k.kul,
-   k.nd, k.kw, k2.phw, k2.mhw, k2.pgw, k2.mgw, k2.pel, k2.mel, k.psch, tp.cd as cd_lsk_tp, k.house_id
+   k.nd, k.kw, k2.phw, k2.mhw, k2.pgw, k2.mgw, k2.pel, k2.mel, k.psch, tp.cd as cd_lsk_tp, k.house_id, k.usl_name_short
    from scott.kart k join scott.t_org o on k.reu=o.reu
    join scott.v_lsk_tp tp on k.fk_tp=tp.id
    join scott.v_lsk_tp tp2 on tp2.cd='LSK_TP_MAIN'
@@ -234,10 +236,10 @@ if var_ = 1 then
   execute immediate 'delete from imp_kart@apex t';
 
   execute immediate 'insert into imp_kart@apex t
-  (k_lsk_id, lsk, cd_org, kul, nd, kw, phw, mhw, pgw, mgw, pel, mel, psch, cd_lsk_tp, house_id)
+  (k_lsk_id, lsk, cd_org, kul, nd, kw, phw, mhw, pgw, mgw, pel, mel, psch, cd_lsk_tp, house_id, usl_name_short)
   select k.k_lsk_id, k.lsk, k.cd_org, k.kul,
    k.nd, k.kw,
-   k.phw, k.mhw, k.pgw, k.mgw, k.pel, k.mel, k.psch, k.cd_lsk_tp, k.house_id
+   k.phw, k.mhw, k.pgw, k.mgw, k.pel, k.mel, k.psch, k.cd_lsk_tp, k.house_id, k.usl_name_short
    from scott.exp_kart k';
 
   logger.log_(null, 'Apex_new: экспорт л/с, отправлено строк: '||to_char(SQL%ROWCOUNT));
@@ -398,7 +400,7 @@ if var_ = 1 then
             t.test_cena, t.test_tarkoef,
             t.test_spk_koef, t.main, :p_mg as mg, t.lg_doc_id, t.npp, t.sch
             from scott.a_charge2 t
-          where :p_mg between t.mgFrom and t.mgTo and exists
+          where :p_mg between t.mgFrom and t.mgTo and t.type=1 and exists
             (select * from scott.t_objxpar x, scott.kart k where x.fk_k_lsk=k.k_lsk_id
               and k.lsk=t.lsk
               and x.fk_list=:l_list) --только там, где установлен параметр login-pass'

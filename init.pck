@@ -431,11 +431,25 @@ end;
 
 --установить дату для итогового формирования (в потоках, p_thread)
 procedure set_date_for_gen is
- a number;
+ a number;      
  l_dt date;
+ last_dt date;
+ first_dt date;
 begin
   -- перечитать из params
-  select last_day(to_date(p.period||'01','YYYYMMDD')) into l_dt from params p;
+  select to_date(p.period||'01','YYYYMMDD'), last_day(to_date(p.period||'01','YYYYMMDD')) 
+    into first_dt, last_dt from params p;
+  if sysdate > last_dt then
+    -- текущая дата не находится в текущем периоде
+    l_dt:=last_dt;
+  elsif sysdate < first_dt then
+    -- текущая дата не находится в текущем периоде
+    l_dt:=first_dt;
+  else
+    -- текущая дата в диапазоне тек.периода
+    l_dt:=trunc(sysdate);  
+  end if;
+
   a:=set_date(l_dt);
   if a <> 1 then
     Raise_application_error(-20000, 'Ошибка установки даты формирования!');
@@ -579,15 +593,15 @@ begin
 end;
 
 function get_dt_end
-  return c_kwtp.dtek%type is
+  return c_kwtp.dtek%type is 
 begin
 --вернуть конечную дату УСТАНОВЛЕННОЙ СИСТЕМОЙ месяца (используется обычно в запросах)
   if g_dt_end is null then
     Raise_application_error(-20000, 'Внимание! Не задано g_dt_end!');
   end if;
  return g_dt_end;   
-end;
-
+end; 
+  
 function get_cur_dt_start
   return c_kwtp.dtek%type is
 begin
@@ -595,7 +609,7 @@ begin
   if g_dt_cur_start is null then
     Raise_application_error(-20000, 'Внимание! Не задано g_dt_cur_start!');
   end if;
- return g_dt_cur_start;   
+ return g_dt_cur_start;     
 end;
 
 function get_cur_dt_end

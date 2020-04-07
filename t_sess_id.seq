@@ -1,7 +1,7 @@
 create sequence SCOTT.T_SESS_ID
 minvalue 1
 maxvalue 999999999999999999999999999
-start with 5372
+start with 5492
 increment by 1
 cache 20;
 

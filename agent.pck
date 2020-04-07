@@ -195,6 +195,7 @@ else
 end if;
 commit;
 
+/*
 --сформировать реестр для базы Дениса
 
 select p.period into l_mg from params p;
@@ -216,7 +217,7 @@ stat.rep_stat(reu_ => null,
               p_out_tp => 1,
               prep_refcursor => cur1)
               ;
-
+*/
 end;
 
 procedure unload_en is

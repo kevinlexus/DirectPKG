@@ -120,12 +120,16 @@ procedure deb(p_k_lsk_id in number,
               p_rfcur out ccur
   );  
 --архивная справка, основной запрос
-procedure arch(p_k_lsk in number, p_adr in number, p_lsk in kart.lsk%type, 
+procedure arch(p_k_lsk in number, p_sel_obj in number, p_lsk in kart.lsk%type, 
                p_mg1 in params.period%type, p_mg2 in params.period%type,
+               p_sel_uk    in varchar2, -- список УК
                p_rfcur out ccur);
 --архивная справка, вспомогательный запрос
-procedure arch_supp(p_k_lsk in number, p_adr in number, p_lsk in kart.lsk%type, 
+procedure arch_supp(p_k_lsk in number, 
+               p_sel_obj in number, -- вариант выборки: 0 - по лиц.счету, 1 - по адресу, 2 - по УК
+               p_lsk in kart.lsk%type, 
                p_mg1 in params.period%type, p_mg2 in params.period%type,
+               p_sel_uk    in varchar2, -- список УК
                p_rfcur out ccur);               
 end rep_bills;
 /
@@ -146,7 +150,7 @@ begin
 
   OPEN p_recset FOR
     select min(a.prn_num) as first_rec, max(a.prn_num) as last_rec, a.ths as name
-    from (select k.prn_num, round(rownum/p_cnt) as ths from 
+    from (select k.prn_num, round(rownum/p_cnt) as ths from
     (select t.prn_num from arch_kart t where t.reu=p_reu and t.mg=p_mg
              order by t.prn_num) k
     ) a
@@ -157,7 +161,7 @@ begin
 /* способ обработки до 23.11.18
   OPEN p_recset FOR
     select min(a.k_lsk_id) as first_rec, max(a.k_lsk_id) as last_rec, a.ths as name
-    from (select k.k_lsk_id, round(rownum/p_cnt) as ths from 
+    from (select k.k_lsk_id, round(rownum/p_cnt) as ths from
     (select distinct t.k_lsk_id from kart t where t.reu=p_reu order by t.k_lsk_id) k
     ) a
     group by a.ths
@@ -410,7 +414,7 @@ sqlstr13_:='select cc2.lsk, cc2.usl, max(cc2.org) as org, sum(cc2.cena) as cena 
             from a_charge2 cc
             join arch_kart l on cc.lsk=l.lsk and l.mg='''||mg_||''' '||sqlstr_||' and l.psch <> 8
                and cc.type = 0
-               and l.mg between cc.mgFrom and cc.mgTo 
+               and l.mg between cc.mgFrom and cc.mgTo
             left join a_nabor2 n on cc.lsk=n.lsk and cc.usl=n.usl
                and l.mg between cc.mgFrom and cc.mgTo
                and l.mg between n.mgFrom and n.mgTo
@@ -418,7 +422,7 @@ sqlstr13_:='select cc2.lsk, cc2.usl, max(cc2.org) as org, sum(cc2.cena) as cena 
            where aa1.usl=su.usl_id and aa1.usl=su2.usl and su.fk_bill_var='||l_bill_var||'
            and  '''||mg_||''' between su.mg1 and su.mg2
            ) cc2 group by cc2.lsk, cc2.usl';
-           
+
 else
   sqlstr13_:='select /*+ INDEX (n A_NABOR2_I)*/cc.lsk,
                  cc.usl,
@@ -728,7 +732,7 @@ OPEN cur FOR
           from a_charge2 l, usl_bills u
          where l.type = 2  '||sqlstr_||' and u.fk_bill_var='||l_bill_var||'
          and '''||mg_||''' between l.mgFrom and l.mgTo and l.usl=u.usl_id and '''||mg_||''' between u.mg1 and u.mg2
-         
+
          group by l.lsk, u.id) c,
        (select l.lsk, u.id as usl, sum(l.summa) as summa
           from saldo_usl l, arch_kart k2, usl_bills u --сальдо по услугам
@@ -1160,7 +1164,7 @@ begin
                  and decode(p_sel_obj, 1, nvl(p_kw, k2.kw), k2.kw) = k2.kw
                  and decode(p_sel_obj, 2, p_reu, k2.reu) = k2.reu
                  and k2.k_lsk_id = k.k_lsk_id);
-  
+
     open p_rfcur for
       select *
         from ( --пока убрал RULE если не делать хинт RULE то возникает ошибка в CBO, которая препятствует выводу записей в датасете...
@@ -1349,7 +1353,7 @@ begin
           or p_cntrec <> 0
          and b.prn_num between nvl(p_firstrec, 0) and nvl(p_lastrec, 0);
   else
-    -- новая версия счета (Кис.)  
+    -- новая версия счета (Кис.)
     insert into temp_lsk
       (lsk)
       select k.lsk
@@ -1358,11 +1362,12 @@ begin
          and (decode(p_sel_obj, 0, 1, 1, 1, nvl(k.for_bill, 0)) = 1) /* либо по 1 квартире, лс либо чтобы был промарк.for_bill*/ --)
          and (decode(p_sel_obj, 0, p_lsk, k.lsk) >= k.lsk and
              decode(p_sel_obj, 0, p_lsk1, k.lsk) <= k.lsk and
+             decode(p_sel_obj, 1, nvl(p_reu, k.reu), k.reu) = k.reu and -- ред.16.10.19 добавил - просили чтобы спр.квартирос. выводился только по УК (может исказить счета где нить?)
              decode(p_sel_obj, 1, nvl(p_kul, k.kul), k.kul) = k.kul and
              decode(p_sel_obj, 1, nvl(p_nd, k.nd), k.nd) = k.nd and
              decode(p_sel_obj, 1, nvl(p_kw, k.kw), k.kw) = k.kw and
              decode(p_sel_obj, 2, p_reu, k.reu) = k.reu);
-  
+
     open p_rfcur for
       select *
         from ( --пока убрал RULE если не делать хинт RULE то возникает ошибка в CBO, которая препятствует выводу записей в датасете...
@@ -1511,8 +1516,8 @@ begin
                             and (decode(p_sel_obj, 0, 1, 1, 1, nvl(k.for_bill, 0)) = 1) /* либо по 1 квартире, лс либо чтобы был промарк.for_bill*/ --)
                             and (decode(p_sel_obj, 0, p_lsk, k.lsk) >= k.lsk and
                                 decode(p_sel_obj, 0, p_lsk1, k.lsk) <= k.lsk and
-                                decode(p_sel_obj, 1, nvl(p_kul, k.kul), k.kul) =
-                                k.kul and
+                                decode(p_sel_obj, 1, nvl(p_reu, k.reu), k.reu) = k.reu and -- ред.16.10.19 добавил - просили чтобы спр.квартирос. выводился только по УК (может исказить счета где нить?)
+                                decode(p_sel_obj, 1, nvl(p_kul, k.kul), k.kul) = k.kul and
                                 decode(p_sel_obj, 1, nvl(p_nd, k.nd), k.nd) = k.nd and
                                 decode(p_sel_obj, 1, nvl(p_kw, k.kw), k.kw) = k.kw and
                                 decode(p_sel_obj, 2, p_reu, k.reu) = k.reu)
@@ -1530,7 +1535,7 @@ begin
        where p_cntrec = 0
           or p_cntrec <> 0
          and b.prn_num between nvl(p_firstrec, 0) and nvl(p_lastrec, 0);
-  
+
   end if;
 
 end;
@@ -1543,13 +1548,13 @@ procedure detail(p_lsk  IN KART.lsk%TYPE,
 l_lsk_tp v_lsk_tp.cd%type;
 l_bill_var number;
 begin
-  select tp.cd, o.fk_bill_var into l_lsk_tp, l_bill_var 
+  select tp.cd, o.fk_bill_var into l_lsk_tp, l_bill_var
       from arch_kart k
       join v_lsk_tp tp on k.fk_tp=tp.id
       join t_org o on k.reu=o.reu
         and k.lsk=p_lsk
-        and k.mg=p_mg;  
-  
+        and k.mg=p_mg;
+
   open p_rfcur for
   select /*+ USE_HASH(k, a, sl, d, r  )*/  k.lsk, bs.id as usl,
      case when u.cd='т/сод' /*and k.psch not in (8,9)*/ then trim(u.nm)||' в том числе:' else u.nm end as nm, u.ed_izm, sum(a.summa) as chrg,
@@ -1610,7 +1615,7 @@ begin
   or sum(r.changes)<>0) or (l_lsk_tp='LSK_TP_MAIN' and bs.id='003' or l_lsk_tp='LSK_TP_ADDIT' and bs.id='033') --временно закоментировал, может на пользу 31.01.2017 -зачем? пришлось восстановить 27.02.2017
   order by nvl(u.bill_brake,0), u.npp;
 
-  
+
 end;
 
 
@@ -1623,24 +1628,24 @@ procedure detail2(p_lsk IN KART.lsk%TYPE,
   ) is
 begin
   open p_rfcur for
-  select /*+ USE_HASH(k, a, sl, r  )*/ k.lsk, bs.usl_id as usl, 
+  select /*+ USE_HASH(k, a, sl, r  )*/ k.lsk, bs.usl_id as usl,
      '   '||u2.nm as nm,
-     u.ed_izm, sum(a.summa) as chrg, 
-     sum(a.vol) as vol, 
-     sum(a.cena) as cena, 
-     sum(sl.summa) as sal_in, 
+     u.ed_izm, sum(a.summa) as chrg,
+     sum(a.vol) as vol,
+     sum(a.cena) as cena,
+     sum(sl.summa) as sal_in,
      sum(r.changes0) as chng0, sum(r.changes1) as chng1, sum(r.changes2) as chng2, max(r.proc) as chng_proc,
-     nvl(sum(a.summa),0)+nvl(sum(r.changes),0) as itog, nvl(u.bill_brake,0) as bill_brake, 
+     nvl(sum(a.summa),0)+nvl(sum(r.changes),0) as itog, nvl(u.bill_brake,0) as bill_brake,
      u2.npp
-     from 
-      arch_kart k 
-      join usl_bills bs on k.mg between bs.mg1 and bs.mg2 
+     from
+      arch_kart k
+      join usl_bills bs on k.mg between bs.mg1 and bs.mg2
         and bs.fk_bill_var=p_bill_var and p_tp=1
       join usl u on bs.id=u.usl and u.cd='т/сод'
       join usl u2 on bs.usl_id=u2.usl and u2.cd in ('HW_SOD','GW_SOD','EL_SOD','KAN_SOD','TR_SOD','TR_SOD3', 'HW_ODN2', 'HW_ODN3', 'GW_ODN2', 'GW_ODN3', 'EL_ODN2')
-      left join 
+      left join
            (select t.lsk, t.mgFrom, t.mgTo, min(t.usl) as usl, b.bill_agg, --поле нужно, чтобы разделить расценку по норме и свыше, или просуммировать расценку
-             sum(t.summa) as summa, 
+             sum(t.summa) as summa,
              sum(t.test_opl) as vol, max(t.test_cena) as cena --расценка
             from a_charge2 t, usl u, usl_bills b --сальдо по услугам
              where t.type = 1 and p_mg between t.mgFrom and t.mgTo
@@ -1649,12 +1654,12 @@ begin
               and p_mg between b.mg1 and b.mg2
               and b.fk_bill_var = p_bill_var
              group by t.lsk, t.mgFrom, t.mgTo, u.uslm, b.bill_agg) a on bs.usl_id=a.usl and k.lsk=a.lsk and k.mg between a.mgFrom and a.mgTo
-      left join 
+      left join
       (select t.lsk, t.mg,t.usl, sum(t.summa) as summa
             from saldo_usl t
             where t.mg = p_mg
-           group by t.lsk, t.mg, t.usl) sl on bs.usl_id=sl.usl and k.lsk=sl.lsk and k.mg=sl.mg    
-      left join 
+           group by t.lsk, t.mg, t.usl) sl on bs.usl_id=sl.usl and k.lsk=sl.lsk and k.mg=sl.mg
+      left join
            (select t.lsk, t.mg, t.usl as usl, sum(t.summa) as changes,
               sum(decode(t.type,0,t.summa, 0)) as changes0,
               sum(decode(t.type,1,t.summa, 0)) as changes1,
@@ -1662,20 +1667,20 @@ begin
               max(t.proc) as proc
             from
             a_change t where nvl(t.show_bill,0)<>1 and t.mg = p_mg
-            group by t.lsk, t.mg, t.usl) r on bs.usl_id=r.usl and k.lsk=r.lsk and k.mg=r.mg            
+            group by t.lsk, t.mg, t.usl) r on bs.usl_id=r.usl and k.lsk=r.lsk and k.mg=r.mg
             where k.lsk=p_lsk and k.mg = p_mg
-  group by nvl(u.bill_brake,0), u2.npp, k.lsk, 
+  group by nvl(u.bill_brake,0), u2.npp, k.lsk,
   --decode(u2.cd,'т/сод', 'в т.ч:'||u2.nm, '   '||u2.nm),
   '   '||u2.nm,
   u.ed_izm, bs.usl_id
-  having (sum(a.summa) <> 0 or sum(sl.summa)<>0 
+  having (sum(a.summa) <> 0 or sum(sl.summa)<>0
   or sum(r.changes)<>0)
   order by u2.npp;
 
 
-/*         select * from       
+/*         select * from
             select t.usl, u.nm,
-             sum(t.summa) as summa, 
+             sum(t.summa) as summa,
              sum(t.test_opl) as vol, max(t.test_cena) as cena --расценка
             from a_charge t
             join usl u on t.usl=u.usl
@@ -1692,14 +1697,14 @@ procedure org(p_mg   IN PARAMS.period%type,
   ) is
 begin
   open p_rfcur for
-    select t.id, t.cd, t.fk_orgtp, t.name, t.npp, t.v, t.parent_id, t.reu, t.trest, t.uch, t.adr, t.inn, 
-    t.manager, t.buh, t.raschet_schet, t.k_schet, t.kod_okonh, t.kod_ogrn, t.bik, t.phone, t.kpp, t.bank, 
-    t.id_exp, t.adr_recip, t.authorized_dir, t.authorized_buh, t.auth_dir_doc, t.auth_buh_doc, t.okpo, 
+    select t.id, t.cd, t.fk_orgtp, t.name, t.npp, t.v, t.parent_id, t.reu, t.trest, t.uch, t.adr, t.inn,
+    t.manager, t.buh, t.raschet_schet, t.k_schet, t.kod_okonh, t.kod_ogrn, t.bik, t.phone, t.kpp, t.bank,
+    t.id_exp, t.adr_recip, t.authorized_dir, t.authorized_buh, t.auth_dir_doc, t.auth_buh_doc, t.okpo,
     t.ver_cd, t.full_name, t.phone2, t.parent_id2, t.fk_org2, t.bank_cd, t.adr_www,
-    email, t.head_name, t.raschet_schet2, t.post_indx, t.r_sch_addit, t.fk_bill_var, t.aoguid, t.oktmo, t.code_deb, 
+    email, t.head_name, t.raschet_schet2, t.post_indx, t.r_sch_addit, t.fk_bill_var, t.aoguid, t.oktmo, t.code_deb,
     sv.fname_sch, nvl(sv.tp,0) as bill_tp
     from scott.t_org t, scott.t_org_tp tp, scott.spr_services sv
-    where tp.id=t.fk_orgtp and tp.cd='РКЦ' 
+    where tp.id=t.fk_orgtp and tp.cd='РКЦ'
     and p_mg between sv.mg and sv.mg1 and sv.fk_sch_type=p_var;
 end;
 
@@ -1733,7 +1738,7 @@ begin
       where a.mg=b.mg(+) and a.mg=c.mg(+)
       and a.mg=e.mg(+)
       and a.mg=d.mg1(+)  and (nvl(b.summa,0) <>0 or nvl(c.summa,0) <>0 or nvl(e.summa,0) <>0)
-      and d.dolg_pen > 0
+      and (d.dolg_pen > 0 or d.penya<>0) --ред. 05.03.2020 - сделал, иначе не идёт с движением по лиц.сч.
       order by a.mg
       ;
   elsif  utils.get_int_param('SPR_DEB_VAR') = 0 then
@@ -1762,12 +1767,12 @@ begin
           from (select k1.psch, k1.fk_tp, k1.lsk, k1.c_lsk_id, k1.k_lsk_id, k1.kul, k1.nd, k1.kw, first_value(k1.fio)
              over (order by decode(psch,8,0,1) desc) as fio, a.mg, k1.usl_name_short
                 from scott.kart k1, scott.long_table a
-                where decode(p_k_lsk_id,0,p_lsk,k1.lsk)=k1.lsk 
+                where decode(p_k_lsk_id,0,p_lsk,k1.lsk)=k1.lsk
                 and decode(p_k_lsk_id,0,k1.k_lsk_id, p_k_lsk_id)=k1.k_lsk_id) k, scott.spul s, scott.params p,
                (select c.lsk, c.mg, sum(c.summa) as summa
                   from scott.c_chargepay c, scott.kart k2
                  where period = (select period from scott.params)
-                   and type = 0 and k2.lsk=c.lsk and decode(p_k_lsk_id,0,p_lsk,k2.lsk)=k2.lsk 
+                   and type = 0 and k2.lsk=c.lsk and decode(p_k_lsk_id,0,p_lsk,k2.lsk)=k2.lsk
                 and decode(p_k_lsk_id,0,k2.k_lsk_id, p_k_lsk_id)=k2.k_lsk_id
                  group by c.lsk, c.mg) b,
                  v_lsk_tp tp,
@@ -1782,13 +1787,15 @@ begin
 end;
 
 --архивная справка, основной запрос
-procedure arch(p_k_lsk in number, p_adr in number, p_lsk in kart.lsk%type, 
+procedure arch(p_k_lsk in number, p_sel_obj in number, p_lsk in kart.lsk%type,
                p_mg1 in params.period%type, p_mg2 in params.period%type,
+               p_sel_uk    in varchar2, -- список УК
                p_rfcur out ccur) is
 begin
-open p_rfcur for  
+open p_rfcur for
   select substr(m.mg,1,4)||'-'||substr(m.mg,5,2) as mg,
-   m.mg_new, m.lsk, nvl(a.nm,u2.nm2) as nm, case when a.summa=0 then null else a.summa end as summa, 
+   m.mg_new, m.lsk|| chr(10) ||o.name as lsk, -- добавил перенос строки. ред.16.10.19
+   nvl(a.nm,u2.nm2) as nm, case when a.summa=0 then null else a.summa end as summa,
   case when s.sal=0 then null else s.sal end as sal,
 
   case when m.mg < '200804' then
@@ -1804,43 +1811,50 @@ open p_rfcur for
        end as pay_pen, --оплата пени
 
   case when f.pen=0 then null else f.pen end as pen
-   from 
-   (select k.lsk, t.mg, t.mg_new, k.mg1, k.mg2 from scott.kart k,
+   from
+   (select k.reu, k.lsk, t.mg, t.mg_new, k.mg1, k.mg2 from scott.kart k,
    (select to_char(add_months(to_date(p.period||'01', 'YYYYMMDD'), -1*level),'YYYYMM') as mg,
    to_char(add_months(to_date(p.period||'01', 'YYYYMMDD'), -1*level+1),'YYYYMM') as mg_new
     from scott.params p connect by level <= 1000) t
-    where (p_adr=1 and k.k_lsk_id=p_k_lsk or p_adr=0 and k.lsk=p_lsk)) m 
-    join 
+    where (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
+    and decode(p_sel_uk,
+                '0',
+                1,
+                instr(p_sel_uk, '''' || k.reu || ''';', 1)) > 0
+
+    ) m
+    join
     scott.usl u2 on u2.usl='003'
-    left join 
+    join t_org o on m.reu=o.reu
+    left join
     (select lsk, mg, nm, sum(summa) as summa from (
       select t.lsk, t.mg, decode(u.for_arch, 1, u.nm, u.nm2) as nm, t.summa as summa
-      from scott.kart k, scott.arch_charges t, scott.usl u 
-     where u.usl=t.usl_id and k.lsk=t.lsk and (p_adr=1 and k.k_lsk_id=p_k_lsk or p_adr=0 and k.lsk=p_lsk)
+      from scott.kart k, scott.arch_charges t, scott.usl u
+     where u.usl=t.usl_id and k.lsk=t.lsk and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
       union all
       select t.lsk, t.mg, decode(u.for_arch, 1, u.nm, u.nm2) as nm, t.summa as summa
-        from scott.kart k, scott.arch_changes t, scott.usl u 
-       where u.usl=t.usl_id and k.lsk=t.lsk and (p_adr=1 and k.k_lsk_id=p_k_lsk or p_adr=0 and k.lsk=p_lsk)
+        from scott.kart k, scott.arch_changes t, scott.usl u
+       where u.usl=t.usl_id and k.lsk=t.lsk and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
       )
       group by lsk, mg, nm) a on m.mg=a.mg and m.lsk=a.lsk
-    left join   
+    left join
    (select t.mg, t.lsk, sum(t.summa) as sal from scott.kart k, scott.saldo_usl t
-    where k.lsk=t.lsk and (p_adr=1 and k.k_lsk_id=p_k_lsk or p_adr=0 and k.lsk=p_lsk)
+    where k.lsk=t.lsk and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
     group by t.mg, t.lsk) s on m.mg_new=s.mg and m.lsk=s.lsk
-    left join 
+    left join
    (select t.mg1, t.lsk, sum(t.penya) as pen from scott.kart k, scott.a_penya t, v_params p
-    where k.lsk=t.lsk and (p_adr=1 and k.k_lsk_id=p_k_lsk or p_adr=0 and k.lsk=p_lsk)
+    where k.lsk=t.lsk and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
     and t.mg1 between p_mg1 and p_mg2
     and t.mg=p.period3
     group by t.mg1, t.lsk) f on m.mg=f.mg1 and m.lsk=f.lsk
-    left join 
+    left join
    (select t.mg, t.lsk, sum(t.summa) as pay, sum(t.penya) as pay_pen from scott.kart k, scott.a_kwtp t --запрос для оплаты до 200804
-    where k.lsk=t.lsk and (p_adr=1 and k.k_lsk_id=p_k_lsk or p_adr=0 and k.lsk=p_lsk)
+    where k.lsk=t.lsk and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
     and t.mg between p_mg1 and p_mg2
     group by t.mg, t.lsk) e on m.mg < '200804' and m.mg=e.mg and m.lsk=e.lsk
-    left join 
+    left join
    (select t.mg, t.lsk, sum(t.summa) as pay, sum(t.penya) as pay_pen from scott.kart k, scott.a_kwtp_mg t --запрос для оплаты после 200804, включительно
-    where k.lsk=t.lsk and (p_adr=1 and k.k_lsk_id=p_k_lsk or p_adr=0 and k.lsk=p_lsk)
+    where k.lsk=t.lsk and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
     and t.mg between p_mg1 and p_mg2
     group by t.mg, t.lsk) e2 on m.mg >= '200804' and m.mg=e2.mg and m.lsk=e2.lsk
   where m.mg between p_mg1 and p_mg2
@@ -1851,60 +1865,59 @@ open p_rfcur for
 end;
 
 --архивная справка, вспомогательный запрос
-procedure arch_supp(p_k_lsk in number, p_adr in number, p_lsk in kart.lsk%type, 
+procedure arch_supp(p_k_lsk in number,
+               p_sel_obj in number, -- вариант выборки: 0 - по лиц.счету, 1 - по адресу
+               p_lsk in kart.lsk%type,
                p_mg1 in params.period%type, p_mg2 in params.period%type,
+               p_sel_uk    in varchar2, -- список УК
                p_rfcur out ccur) is
-l_klsk_id number;               
 begin
-  if p_adr = 1 then
-    l_klsk_id:=scott.utils.get_k_lsk_id_by_lsk(p_lsk);
-  end if;  
-open p_rfcur for  
-  select /*+ USE_HASH(k,s,tp,e,e2,b */ k.lsk, s.name as street, nvl(ltrim(k.nd, '0'), '0') as nd,
-         nvl(ltrim(k.kw, '0'), '0') as kw, k.opl, k.fio, k.kpr, k.kpr_wr,
-         k.kpr_wrp, 
-         decode(tp.cd, 'MUN','Наниматель','Собственник') as pers_tp,
-         nvl(e.pay,0)+nvl(e2.pay,0) as pay,
+
+open p_rfcur for
+  select nvl(e.pay,0)+nvl(e2.pay,0) as pay,
          nvl(e.pay_pen,0)+nvl(e2.pay_pen,0) as pay_pen,
          b.dolg, b.penya
-    from scott.kart k
-         join scott.spul s on k.kul = s.id
-         left join scott.status tp on k.status=tp.id
-         left join 
-         (select sum(t.summa) as pay, sum(t.penya) as pay_pen
+    from (select sum(t.summa) as pay, sum(t.penya) as pay_pen
              from scott.a_kwtp t, scott.kart k
             where k.lsk = t.lsk
-              and (decode(p_adr,1, l_klsk_id, k.k_lsk_id)=k.k_lsk_id
-                   and decode(p_adr,0,p_lsk, k.lsk)=k.lsk)
+              and (decode(p_sel_obj,1, p_k_lsk, k.k_lsk_id)=k.k_lsk_id
+                   and decode(p_sel_obj,0,p_lsk, k.lsk)=k.lsk)
               and t.mg between p_mg1 and p_mg2 --запрос для оплаты до 200804
-              and t.mg < '200804') e 
-              on 1=1
-         left join 
+              and t.mg < '200804'
+              and decode(p_sel_obj,0,111,decode(p_sel_uk, -- либо лс без ограничений, либо адрес, но по списку УК
+                              '0',
+                              1,
+                              instr(p_sel_uk, '''' || k.reu || ''';', 1))) > 0
+              ) e
+         join
          (select sum(t.summa) as pay, sum(t.penya) as pay_pen
              from scott.a_kwtp_mg t, scott.kart k
             where k.lsk = t.lsk
-              and (decode(p_adr,1,l_klsk_id, k.k_lsk_id)=k.k_lsk_id
-                   and decode(p_adr,0,p_lsk, k.lsk)=k.lsk)
+              and (decode(p_sel_obj,1,p_k_lsk, k.k_lsk_id)=k.k_lsk_id
+                   and decode(p_sel_obj,0,p_lsk, k.lsk)=k.lsk)
               and t.mg between p_mg1 and p_mg2 --запрос для оплаты после 200804, включительно
-              and t.mg >= '200804') e2 
+              and t.mg >= '200804'
+              and decode(p_sel_obj,0,111,decode(p_sel_uk,
+                              '0',
+                              1,
+                              instr(p_sel_uk, '''' || k.reu || ''';', 1))) > 0
+                              ) e2
               on 1=1
-         left join
+         join
          (select nvl(sum(t.summa),0) + nvl(sum(t.penya),0) as dolg, sum(t.penya) as penya
              from scott.a_penya t, scott.kart k, scott.v_params p
             where k.lsk = t.lsk
-              and (decode(p_adr,1,l_klsk_id, k.k_lsk_id)=k.k_lsk_id
-                   and decode(p_adr,0,p_lsk, k.lsk)=k.lsk)
+              and (decode(p_sel_obj,1,p_k_lsk, k.k_lsk_id)=k.k_lsk_id
+                   and decode(p_sel_obj,0,p_lsk, k.lsk)=k.lsk)
               and t.mg1 between p_mg1 and p_mg2
               and t.mg=p.period3--был ошибочно указан не тот период? 28.11.2018--and t.mg = p_mg2
+              and decode(p_sel_obj,0,111,decode(p_sel_uk,
+                              '0',
+                              1,
+                              instr(p_sel_uk, '''' || k.reu || ''';', 1))) > 0
               ) b
-              on 1=1
-   where k.lsk = p_lsk;
---здесь были комментарии: 
---and t.mg1 between k.mg1 and k.mg2 --только та пеня, которая начислена по действ.периоду л.с.
---вот очень странно это. зачем ограничивать так периодом? может где то используется это? пока отменю, для вот этого:
---Dina (08:48:34 26/08/2015) 
---Л.Н. а посмотрите пункт 12 в Вопрос 14. А то нашему бухгалтеру список на 2 листа выдали домов, по которым нужно печатать арх.спр, а исправлять каждый раз не удобно.
- 
+              on 1=1;
+
 end;
 
 

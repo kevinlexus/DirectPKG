@@ -1,8 +1,9 @@
 create table SCOTT.KART_DETAIL
 (
-  id   NUMBER not null,
-  lsk  CHAR(8) not null,
-  ord1 NUMBER
+  id          NUMBER not null,
+  lsk         CHAR(8) not null,
+  ord1        NUMBER,
+  cadastr_num VARCHAR2(20)
 )
 tablespace USERS
   pctfree 10
@@ -23,6 +24,8 @@ comment on column SCOTT.KART_DETAIL.lsk
   is 'Лиц.счет';
 comment on column SCOTT.KART_DETAIL.ord1
   is 'Порядок лиц.счетов, по адресу';
+comment on column SCOTT.KART_DETAIL.cadastr_num
+  is 'Кадастровый номер';
 alter table SCOTT.KART_DETAIL
   add constraint KART_DETAIL_P primary key (ID)
   using index 

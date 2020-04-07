@@ -34,7 +34,7 @@ comment on column SCOTT.OPER.fk_usl_chk
 comment on column SCOTT.OPER.iscounter
   is 'Выводить ли показания счетчика по операции (1) либо ввод суммы (2) либо работа без счетчика (null, 0)';
 comment on column SCOTT.OPER.cash_oper_tp
-  is 'Тип операции для фискального регистратора (0-наличка, 1-безнал)';
+  is 'Тип операции для фискального регистратора (0-наличка, 1-безнал, 2-эквайринг)';
 create index SCOTT.OPER_I_OIGU on SCOTT.OPER (OIGU)
   tablespace USERS
   pctfree 10

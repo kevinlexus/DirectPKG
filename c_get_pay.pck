@@ -550,12 +550,17 @@ create or replace package body scott.C_GET_PAY is
     
       -- ¬Ќ»ћјЌ»≈! ќ„≈Ќ№ ¬ј∆Ќќ! «ƒ≈—№ ћ≈Ќя≈“—я —ѕќ—ќЅ –ј—ѕ–≈ƒ≈Ћ≈Ќ»я ѕ–»Ќ”ƒ»“≈Ћ№Ќќ! 
       --определить вид платЄжа, если указан, то этим способом распредел€ть!
-      select nvl(h.fk_typespay, l_pay_tp)
-        into l_pay_tp
+      for c in (select nvl(h.fk_typespay, l_pay_tp) as pay_tp
         from kart k
         join c_houses h
           on k.house_id = h.id
-         and k.lsk = lpad(lsk_, 8, '0');
+         and k.lsk = lpad(lsk_, 8, '0')) loop
+         if c.pay_tp=5 and nvl(l_pay_tp, 0) <>5 then
+           --  смена на 5 тип распределени€, удалить заголовок из C_KWTP (будет создан позже)
+           delete from c_kwtp t where t.id=id_;
+         end if;
+         l_pay_tp:=c.pay_tp;
+      end loop;
     
       c_cpenya.gen_penya(lsk_         => lpad(lsk_, 8, '0'),
                          dat_         => dtek_,
@@ -1005,6 +1010,15 @@ create or replace package body scott.C_GET_PAY is
          where rowid = (select max(rowid)
                           from temp_kwtp_mg k
                          where k.summa >= summa_pay_);
+         if sql%rowcount = 0 then
+           -- не было добавлено записей, кинуть на lsk_ ред.24.03.20
+          insert into temp_kwtp_mg
+            (lsk, summa, penya, oper, dopl, nink, dat_ink, nkom, dtek, nkvit, ts)
+            select k.lsk, summa_pay_, null, oper_, p.period, nink_, dat_ink_, nkom_, dtek_, nkvit_, sysdate
+              from kart k, params p
+             where k.lsk = lsk_;
+         end if;                
+                         
       end if;
     
       --а теперь добавл€ем заголовок платежа, и детали
@@ -1506,6 +1520,8 @@ create or replace package body scott.C_GET_PAY is
     --текущий є комп.
     l_nkom  c_kwtp.nkom%type;
     l_nkvit c_kwtp.nkvit%type;
+    l_flag number;
+    l_kwtp_id number;
   begin
     --обратный платЄж (провести зеркально сумму, в тек.периоде,
     --в точности как была, только с обратным знаком)
@@ -1517,46 +1533,86 @@ create or replace package body scott.C_GET_PAY is
        set c.nkvit = l_nkvit + 1
      where c.nkom = init.get_nkom();
   
-    insert into c_kwtp
-      (lsk, summa, penya, oper, dopl, nink, nkom, dtek, nkvit, id, iscorrect, num_doc, dat_doc)
-      select t.lsk, -1 * nvl(t.summa, 0) as summa, -1 * nvl(t.penya, 0) as penya, t.oper, t.dopl, 0 as nink, l_nkom as nkom, l_dt as dtek, l_nkvit, l_id, t.iscorrect, t.num_doc, t.dat_doc
-        from a_kwtp t
-       where t.id = p_kwtp_id;
+    l_flag:=0;
+    begin
+      select t.id into l_kwtp_id from c_kwtp t where t.id=p_kwtp_id;
+    exception when no_data_found then
+      -- платеж не в текущем периоде
+      l_flag:=1;
+    end;
+    
+    if l_flag = 1 then 
+      insert into c_kwtp
+        (lsk, summa, penya, oper, dopl, nink, nkom, dtek, nkvit, id, iscorrect, num_doc, dat_doc)
+        select t.lsk, -1 * nvl(t.summa, 0) as summa, -1 * nvl(t.penya, 0) as penya, t.oper, t.dopl, 0 as nink, l_nkom as nkom, l_dt as dtek, l_nkvit, l_id, t.iscorrect, t.num_doc, t.dat_doc
+          from a_kwtp t
+         where t.id = p_kwtp_id;
+    else
+      insert into c_kwtp
+        (lsk, summa, penya, oper, dopl, nink, nkom, dtek, nkvit, id, iscorrect, num_doc, dat_doc)
+        select t.lsk, -1 * nvl(t.summa, 0) as summa, -1 * nvl(t.penya, 0) as penya, t.oper, t.dopl, 0 as nink, l_nkom as nkom, l_dt as dtek, l_nkvit, l_id, t.iscorrect, t.num_doc, t.dat_doc
+          from c_kwtp t
+         where t.id = p_kwtp_id;
+    end if;   
     if SQL%ROWCOUNT = 0 then
       --не успешно
-      --rollback;
       return 1;
     end if;
   
-    for c in (select t.lsk, -1 * nvl(summa, 0) as summa, -1 * nvl(penya, 0) as penya, t.oper, t.dopl, null as nink, l_nkom as nkom, l_dt as dtek, l_nkvit as nkvit, t.cnt_sch, t.cnt_sch0, t.id
-                from a_kwtp_mg t
-               where t.c_kwtp_id = p_kwtp_id) loop
-      insert into c_kwtp_mg
-        (lsk, summa, penya, oper, dopl, nkom, dtek, nkvit, c_kwtp_id, cnt_sch, cnt_sch0, is_dist, nink)
-      values
-        (c.lsk, c.summa, c.penya, c.oper, c.dopl, c.nkom, c.dtek, c.nkvit, l_id, c.cnt_sch, c.cnt_sch0, 1, --is_dist=1 - оплата уже распределена (чтоб повторно не распредел€лась в триггере)
-         0)
-      returning id into l_id2;
-      if SQL%ROWCOUNT = 0 then
-        --не успешно
-        --rollback;
-        return 2;
-      end if;
-    
-      insert into kwtp_day
-        (summa, lsk, oper, dopl, nkom, nink, dat_ink, priznak, usl, org, fk_distr, sum_distr, kwtp_id, dtek)
-        select -1 * nvl(t.summa, 0) as summa, t.lsk, t.oper, t.dopl, l_nkom as nkom, 0 as nink, null as dat_ink, t.priznak, t.usl, t.org, 13 as fk_distr, --12 тип (обратный платЄж)
-               t.sum_distr, l_id2 as kwtp_id, init.get_date
-          from a_kwtp_day t
-         where t.kwtp_id = c.id;
-      if SQL%ROWCOUNT = 0 then
-        --не успешно
-        --rollback;
-        return 3;
-      end if;
-    end loop;
+    if l_flag = 1 then 
+      for c in (select t.lsk, -1 * nvl(summa, 0) as summa, -1 * nvl(penya, 0) as penya, t.oper, t.dopl, null as nink, l_nkom as nkom, l_dt as dtek, l_nkvit as nkvit, t.cnt_sch, t.cnt_sch0, t.id
+                  from a_kwtp_mg t
+                 where t.c_kwtp_id = p_kwtp_id) loop
+        insert into c_kwtp_mg
+          (lsk, summa, penya, oper, dopl, nkom, dtek, nkvit, c_kwtp_id, cnt_sch, cnt_sch0, is_dist, nink)
+        values
+          (c.lsk, c.summa, c.penya, c.oper, c.dopl, c.nkom, c.dtek, c.nkvit, l_id, c.cnt_sch, c.cnt_sch0, 1, --is_dist=1 - оплата уже распределена (чтоб повторно не распредел€лась в триггере)
+           0)
+        returning id into l_id2;
+        if SQL%ROWCOUNT = 0 then
+          --не успешно
+          return 2;
+        end if;
+      
+        insert into kwtp_day
+          (summa, lsk, oper, dopl, nkom, nink, dat_ink, priznak, usl, org, fk_distr, sum_distr, kwtp_id, dtek)
+          select -1 * nvl(t.summa, 0) as summa, t.lsk, t.oper, t.dopl, l_nkom as nkom, 0 as nink, null as dat_ink, t.priznak, t.usl, t.org, 13 as fk_distr, --12 тип (обратный платЄж)
+                 t.sum_distr, l_id2 as kwtp_id, init.get_date
+            from a_kwtp_day t
+           where t.kwtp_id = c.id;
+        if SQL%ROWCOUNT = 0 then
+          --не успешно
+          return 3;
+        end if;
+      end loop;
+    else
+      for c in (select t.lsk, -1 * nvl(summa, 0) as summa, -1 * nvl(penya, 0) as penya, t.oper, t.dopl, null as nink, l_nkom as nkom, l_dt as dtek, l_nkvit as nkvit, t.cnt_sch, t.cnt_sch0, t.id
+                  from c_kwtp_mg t
+                 where t.c_kwtp_id = p_kwtp_id) loop
+        insert into c_kwtp_mg
+          (lsk, summa, penya, oper, dopl, nkom, dtek, nkvit, c_kwtp_id, cnt_sch, cnt_sch0, is_dist, nink)
+        values
+          (c.lsk, c.summa, c.penya, c.oper, c.dopl, c.nkom, c.dtek, c.nkvit, l_id, c.cnt_sch, c.cnt_sch0, 1, --is_dist=1 - оплата уже распределена (чтоб повторно не распредел€лась в триггере)
+           0)
+        returning id into l_id2;
+        if SQL%ROWCOUNT = 0 then
+          --не успешно
+          return 2;
+        end if;
+      
+        insert into kwtp_day
+          (summa, lsk, oper, dopl, nkom, nink, dat_ink, priznak, usl, org, fk_distr, sum_distr, kwtp_id, dtek)
+          select -1 * nvl(t.summa, 0) as summa, t.lsk, t.oper, t.dopl, l_nkom as nkom, 0 as nink, null as dat_ink, t.priznak, t.usl, t.org, 13 as fk_distr, --12 тип (обратный платЄж)
+                 t.sum_distr, l_id2 as kwtp_id, init.get_date
+            from kwtp_day t
+           where t.kwtp_id = c.id;
+        if SQL%ROWCOUNT = 0 then
+          --не успешно
+          return 3;
+        end if;
+      end loop;
+    end if;  
   
-    --commit;
     --успешно
     return 0;
   

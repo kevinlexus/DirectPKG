@@ -1,6 +1,9 @@
 create or replace package scott.p_java is
 
-function http_req(p_url in varchar2) return varchar2;
+function http_req(p_url in varchar2, -- адрес Endpoint
+                  p_url2 in varchar2 default null, -- параметры запроса (будут URLENCODE!)
+                  tp in varchar2 default 'GET' -- тип запроса
+                  ) return varchar2;
 function gen(
   p_tp in number, 
   p_house_id in number,
@@ -41,7 +44,11 @@ end p_java;
 create or replace package body scott.p_java is
 
 --вызов ядра java-функций начисления
-function http_req(p_url in varchar2) return varchar2 is
+
+function http_req(p_url in varchar2, -- адрес Endpoint
+                  p_url2 in varchar2 default null, -- параметры запроса (будут URLENCODE!)
+                  tp in varchar2 default 'GET' -- тип запроса
+                  ) return varchar2 is
    l_req utl_http.req;
    l_resp utl_http.resp; 
    l_proxy VARCHAR2(250) := '';
@@ -53,9 +60,16 @@ begin
   utl_http.set_response_error_check(enable => true);
   utl_http.set_detailed_excp_support(enable => true);
   utl_http.set_proxy(l_proxy);
+  utl_http.set_transfer_timeout(28800); -- тайм-аут ждать 8 часов ответа
   l_url:=l_url||p_url;
+  if p_url2 is not null then 
+    -- URLEncode кроме / символа
+    l_url:=l_url||'/'||replace(utl_url.escape(p_url2, true, 'utf-8'),'%2F','/');
+  end if;  
   begin
-    l_req  := utl_http.begin_request(l_url);
+    
+    --Raise_application_error(-20000, l_url);
+    l_req  := utl_http.begin_request(l_url, tp,' HTTP/1.1');
     l_resp := utl_http.get_response(l_req);
     if l_resp.status_code = utl_http.http_ok then
       utl_http.read_text(l_resp, l_str, 250);
