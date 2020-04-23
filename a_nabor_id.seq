@@ -1,7 +1,7 @@
 create sequence SCOTT.A_NABOR_ID
 minvalue 1
 maxvalue 999999999999999999999999999
-start with 6178715
+start with 6190495
 increment by 1
 cache 20
 order;

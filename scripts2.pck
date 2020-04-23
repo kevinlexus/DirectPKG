@@ -2807,6 +2807,8 @@ procedure swap_sal_from_main_to_rso2 is
  t_summ tab_summ;
  l_ret number;
  l_deb number;
+ l_main number;
+ l_rso number;
 begin
   l_mg:='202003'; --тек.период
   l_cd:='swap_sal_from_main_to_RSO2_20200328_1';
@@ -2814,6 +2816,9 @@ begin
   l_dt:=to_date('20200328','YYYYMMDD');
   l_mg3:=utils.add_months_pr(l_mg,1); --месяц вперед
 
+  select t.id into l_main from v_lsk_tp t where t.cd='LSK_TP_MAIN';
+  select t.id into l_rso from v_lsk_tp t where t.cd='LSK_TP_RSO';
+  
   select t.id into l_user from t_user t where t.cd='SCOTT';
   select changes_id.nextval into l_id from dual;
 
@@ -2830,19 +2835,20 @@ begin
 for c in (select k.lsk as lskFrom, k2.lsk as lskTo, a.usl, a.org, 
         a.summa
          from kart k 
-         join v_lsk_tp tp on tp.cd='LSK_TP_MAIN' and k.fk_tp=tp.id
-         join v_lsk_tp tp2 on tp2.cd='LSK_TP_RSO'
+         --join v_lsk_tp tp on tp.cd='LSK_TP_MAIN' and k.fk_tp=tp.id
+         --join v_lsk_tp tp2 on tp2.cd='LSK_TP_RSO'
          join kart k2 on k.k_lsk_id=k2.k_lsk_id --and k2.psch not in (8,9) 
-         and k2.reu='014' /*k2.reu='016'*/ and k2.fk_tp=tp2.id -- назначение
+         and k2.reu='014' /*k2.reu='016'*/ --and k2.fk_tp=tp2.id -- назначение
          join 
          (select s.lsk, s.usl, s.org, sum(s.summa) as summa from (
            select t.lsk, t.usl, t.org, t.summa from saldo_usl_script t where t.mg='202004'
            and t.usl in ('015','058','007','056','094')
                ) s
           group by s.lsk, s.usl, s.org) a on k.lsk=a.lsk and a.summa < 0
-        where --k.psch not in (8,9)
+        where k.fk_tp=l_main and k2.fk_tp=l_rso
+        --k.psch not in (8,9)
         --and 
-        k.reu='012' -- источник
+         and k.reu='012' -- источник
         --and k.house_id in (40006) -- дом
 ) loop
         
@@ -2878,12 +2884,17 @@ procedure swap_sal_from_main_to_rso3 is
  t_summ tab_summ;
  l_ret number;
  l_deb number;
+ l_main number;
+ l_rso number;
 begin
   l_mg:='202003'; --тек.период
   l_cd:='swap_sal_from_main_to_RSO2_20200328_2';
   l_mgchange:=l_mg;
   l_dt:=to_date('20200328','YYYYMMDD');
   l_mg3:=utils.add_months_pr(l_mg,1); --месяц вперед
+
+  select t.id into l_main from v_lsk_tp t where t.cd='LSK_TP_MAIN';
+  select t.id into l_rso from v_lsk_tp t where t.cd='LSK_TP_RSO';
 
   select t.id into l_user from t_user t where t.cd='SCOTT';
   select changes_id.nextval into l_id from dual;
@@ -2901,19 +2912,20 @@ begin
 for c in (select k.lsk as lskFrom, k2.lsk as lskTo, a.usl, a.org, 
         a.summa
          from kart k 
-         join v_lsk_tp tp on tp.cd='LSK_TP_MAIN' and k.fk_tp=tp.id
-         join v_lsk_tp tp2 on tp2.cd='LSK_TP_RSO'
+         --join v_lsk_tp tp on tp.cd='LSK_TP_MAIN' and k.fk_tp=tp.id
+         --join v_lsk_tp tp2 on tp2.cd='LSK_TP_RSO'
          join kart k2 on k.k_lsk_id=k2.k_lsk_id --and k2.psch not in (8,9) 
-         and k2.reu='016' /*k2.reu='016'*/ and k2.fk_tp=tp2.id -- назначение
+         and k2.reu='016' /*k2.reu='016'*/ --and k2.fk_tp=tp2.id -- назначение
          join 
          (select s.lsk, s.usl, s.org, sum(s.summa) as summa from (
            select t.lsk, t.usl, t.org, t.summa from saldo_usl_script t where t.mg='202004'
            and t.usl in ('011','012','057','013','059','092')
                ) s
           group by s.lsk, s.usl, s.org) a on k.lsk=a.lsk and a.summa < 0
-        where --k.psch not in (8,9)
+        where k.fk_tp=l_main and k2.fk_tp=l_rso
+        --k.psch not in (8,9)
         --and 
-        k.reu='012' -- источник
+        and k.reu='012' -- источник
         --and k.house_id in (40006) -- дом
 ) loop
         
@@ -2949,12 +2961,17 @@ procedure swap_sal_from_main_to_rso4 is
  t_summ tab_summ;
  l_ret number;
  l_deb number;
+ l_main number;
+ l_rso number;
 begin
   l_mg:='202003'; --тек.период
-  l_cd:='swap_sal_from_main_to_RSO2_20200328_1';
+  l_cd:='swap_sal_from_main_to_RSO2_20200328_3';
   l_mgchange:=l_mg;
   l_dt:=to_date('20200328','YYYYMMDD');
   l_mg3:=utils.add_months_pr(l_mg,1); --месяц вперед
+
+  select t.id into l_main from v_lsk_tp t where t.cd='LSK_TP_MAIN';
+  select t.id into l_rso from v_lsk_tp t where t.cd='LSK_TP_RSO';
 
   select t.id into l_user from t_user t where t.cd='SCOTT';
   select changes_id.nextval into l_id from dual;
@@ -2972,19 +2989,20 @@ begin
 for c in (select k.lsk as lskFrom, k2.lsk as lskTo, a.usl, a.org, 
         a.summa
          from kart k 
-         join v_lsk_tp tp on tp.cd='LSK_TP_RSO' and k.fk_tp=tp.id
-         join v_lsk_tp tp2 on tp2.cd='LSK_TP_RSO'
+         --join v_lsk_tp tp on tp.cd='LSK_TP_RSO' and k.fk_tp=tp.id
+         --join v_lsk_tp tp2 on tp2.cd='LSK_TP_RSO'
          join kart k2 on k.k_lsk_id=k2.k_lsk_id --and k2.psch not in (8,9) 
-         and k2.reu='018' and k2.fk_tp=tp2.id -- назначение
+         and k2.reu='018' --and k2.fk_tp=tp2.id -- назначение
          join 
          (select s.lsk, s.usl, s.org, sum(s.summa) as summa from (
            select t.lsk, t.usl, t.org, t.summa from saldo_usl_script t where t.mg='202004'
            and t.usl in ('107')
                ) s
           group by s.lsk, s.usl, s.org) a on k.lsk=a.lsk and a.summa < 0
-        where --k.psch not in (8,9)
+        where k.fk_tp=l_rso and k2.fk_tp=l_rso
+        --k.psch not in (8,9)
         --and 
-        k.reu='012' -- источник
+        and k.reu='012' -- источник
         --and k.house_id in (39766) -- дома
 ) loop
         

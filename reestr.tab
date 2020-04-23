@@ -1,0 +1,59 @@
+create table EXS.REESTR
+(
+  id      NUMBER not null,
+  lsk     VARCHAR2(8),
+  dt      DATE,
+  time    VARCHAR2(6),
+  usl     VARCHAR2(3),
+  fk_act  NUMBER,
+  fk_task NUMBER,
+  status  NUMBER(2) default 0
+)
+tablespace DATA
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table EXS.REESTR
+  is 'Ћог действий пользователей из load_reestr старой базы';
+comment on column EXS.REESTR.dt
+  is 'ƒата действи€';
+comment on column EXS.REESTR.time
+  is '¬рем€ действи€';
+comment on column EXS.REESTR.usl
+  is 'услуга по счетчику';
+comment on column EXS.REESTR.fk_act
+  is 'действие';
+comment on column EXS.REESTR.fk_task
+  is 'ссылка на задание';
+comment on column EXS.REESTR.status
+  is 'Ѕыла ли попытка создать задание. ѕришлось создать доп. статус здесь кроме статуса task, чтобы не тащить каждый раз проблемные объекты.
+0 - не было попытки создать задание
+1 - задание было создано
+2 - у счетчика не было номера, задание не создано
+3 - не была проставлена дата установки счетчика, задание не создано
+4 - счетчик не был найден, задание не создано';
+alter table EXS.REESTR
+  add constraint EXS_REESTR_PR primary key (ID)
+  using index 
+  tablespace DATA
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table EXS.REESTR
+  add constraint EXS_REESTR_FK_ACT foreign key (FK_ACT)
+  references BS.LIST (ID);
+

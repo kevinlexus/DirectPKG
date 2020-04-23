@@ -1,0 +1,8 @@
+create sequence EXS.SEQ_BASE
+minvalue 1
+maxvalue 999999999999999999999
+start with 255301
+increment by 1
+cache 20
+order;
+

@@ -1,0 +1,70 @@
+create table EXS.METER_VAL
+(
+  id             NUMBER not null,
+  fk_eolink      NUMBER not null,
+  dt_val         DATE,
+  dt_enter       DATE,
+  org_guid       VARCHAR2(36),
+  fk_list        NUMBER,
+  val            NUMBER,
+  unit           VARCHAR2(100),
+  reading_source VARCHAR2(100),
+  dt_crt         DATE default sysdate not null,
+  dt_upd         DATE default sysdate not null
+)
+tablespace DATA
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table EXS.METER_VAL
+  is 'Показание по счетчику';
+comment on column EXS.METER_VAL.id
+  is 'ID';
+comment on column EXS.METER_VAL.fk_eolink
+  is 'FK на счетчик';
+comment on column EXS.METER_VAL.dt_val
+  is 'Дата снятия показания';
+comment on column EXS.METER_VAL.dt_enter
+  is 'Дата-время внесения в ГИС';
+comment on column EXS.METER_VAL.org_guid
+  is 'GUID организации, которая ввела показания, не заполняется, если внесено гражданином';
+comment on column EXS.METER_VAL.fk_list
+  is 'Коммунальный ресурс, по справочнику НСИ №2';
+comment on column EXS.METER_VAL.val
+  is 'Значение';
+comment on column EXS.METER_VAL.unit
+  is 'Код единицы измерения показаний ПУ (из расширенного классификатора ОКЕИ). Заполняется, если ЕИ показаний ПУ отличается от ЕИ коммунального ресурса по умолчанию';
+comment on column EXS.METER_VAL.reading_source
+  is 'Кем внесено';
+comment on column EXS.METER_VAL.dt_crt
+  is 'Дата создания записи';
+comment on column EXS.METER_VAL.dt_upd
+  is 'Дата обновления записи';
+alter table EXS.METER_VAL
+  add constraint METER_VAL_P primary key (ID)
+  using index 
+  tablespace DATA
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table EXS.METER_VAL
+  add constraint METER_VAL_F_EOLINK foreign key (FK_EOLINK)
+  references EXS.EOLINK (ID) on delete cascade;
+alter table EXS.METER_VAL
+  add constraint METER_VAL_F_LIST foreign key (FK_LIST)
+  references EXS.U_LIST (ID);
+

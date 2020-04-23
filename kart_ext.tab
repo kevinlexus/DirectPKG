@@ -5,7 +5,8 @@ create table SCOTT.KART_EXT
   lsk     CHAR(8),
   fio     VARCHAR2(60),
   dt_crt  DATE default sysdate,
-  dt_upd  DATE default sysdate
+  dt_upd  DATE default sysdate,
+  v       NUMBER default 1 not null
 )
 tablespace DATA
   pctfree 10
@@ -32,6 +33,8 @@ comment on column SCOTT.KART_EXT.dt_crt
   is 'Дата создания записи';
 comment on column SCOTT.KART_EXT.dt_upd
   is 'Дата обновления записи';
+comment on column SCOTT.KART_EXT.v
+  is 'Статус (1-действующий, 0-отменён)';
 create unique index SCOTT.KART_EXT_I1 on SCOTT.KART_EXT (EXT_LSK)
   tablespace USERS
   pctfree 10

@@ -3158,19 +3158,19 @@ procedure swap_sal_TO_NOTHING is
   l_dt date;
 begin  
 --период, которым провести изменени€
-mgchange_:='201910';
+mgchange_:='202003';
 --период, по которому смотрим сальдо
-l_mg_sal:='201910';
+l_mg_sal:='202003';
 --текущий мес€ц
-l_mg:='201910';
+l_mg:='202003';
 --мес€ц назад
-l_mg_back:='201909';
+l_mg_back:='202002';
 --дата, которой провести
-l_dt:=to_date('20191001','YYYYMMDD');
+l_dt:=to_date('20200301','YYYYMMDD');
 --комментарий
 comment_:='—н€тие сальдо и пени по выборочным лиц счетам';
 --”никальный id переброски
-cd_:='swp_sal_nothing_201910_1';
+cd_:='swp_sal_nothing_202003_1';
 
 select t.id into user_id_ from t_user t where t.cd='SCOTT';
 select changes_id.nextval into l_id from dual;
@@ -3197,18 +3197,21 @@ select l_id as id, mgchange_, trunc(sysdate), sysdate, user_id_, cd_
 insert into c_pen_corr
   (lsk, penya, dopl, dtek, ts, fk_user, fk_doc)
 select s.lsk, s.penya*-1, s.mg1, l_dt, sysdate, user_id_, l_id
- from a_penya s, kart k where
+ from a_penya s, kart k, v_lsk_tp tp where
    s.lsk=k.lsk --and k.lsk in (select lsk from kmp_lsk)
-    and k.reu='066'
-    and s.mg=l_mg_back; 
+    and k.reu='077'
+    and s.mg=l_mg_back
+    and k.fk_tp=tp.id and tp.cd='LSK_TP_RSO'; 
 
 insert into c_change (lsk, usl, org, summa, mgchange, type, dtek, ts,
 user_id, doc_id)
 select s.lsk, s.usl, s.org, -1*s.summa as summa,
  mgchange_, 1, l_dt, sysdate, user_id_, l_id
- from saldo_usl s, kart k where
-   s.lsk=k.lsk and k.lsk in (select lsk from kmp_lsk)
-   and s.mg=l_mg_sal;
+ from saldo_usl s, kart k, v_lsk_tp tp where
+   s.lsk=k.lsk --and k.lsk in (select lsk from kmp_lsk)
+   and k.reu='077'
+   and s.mg=l_mg_sal
+   and k.fk_tp=tp.id and tp.cd='LSK_TP_RSO'; 
 
 /*insert into t_corrects_payments
   (lsk, usl, org, summa, user_id, dat, mg, dopl, fk_doc)

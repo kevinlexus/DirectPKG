@@ -4,7 +4,7 @@ create or replace package scott.C_KART is
   procedure set_part_kpr_all_lsk;
   procedure set_part_kpr_house(p_house_id in c_houses.id%type);
 */
-  procedure set_part_kpr_vvod(p_vvod in c_vvod.id%type); 
+  procedure set_part_kpr_vvod(p_vvod in c_vvod.id%type);
 /*  procedure set_part_kpr(p_lsk in kart.lsk%type, --лицевой
                          p_tp in u_list.cd%type --тип лицевого, для расчета капремонта в доп.счетах (для подстановки проживающих из основного
                          );*/
@@ -13,6 +13,7 @@ create or replace package scott.C_KART is
                        p_tp in u_list.cd%type --тип лицевого, для расчета капремонта в доп.счетах (для подстановки проживающих из основного
                        );
   procedure get_days(
+     p_usl in usl.usl%type,
      p_usl_type2 in usl.usl_type2%type,
      p_days in out number,
      p_days_wrz in out number, p_days_wro in out number,
@@ -38,7 +39,7 @@ create or replace package scott.C_KART is
   function replace_house_id (p_lsk in kart.lsk%type, -- лиц.счет по которому искать
                        p_house_dst in number   -- house_id на который заменить
                        ) return number;
-            
+
 end C_KART;
 /
 
@@ -425,7 +426,7 @@ begin
         --считать кол-во проживающих по услуге с данными статусами
         --(процедура в других модулях считает дни, здесь же - кол-во прож
         --принудительно тип - 2 (для подсчёта кол-во прож. для опеределения соцнормы)
-        get_days(2, l_kpr, l_dummy, l_dummy, l_dummy, l_prop, l_prop_reg, l_var_cnt_kpr2);
+        get_days(null, 2, l_kpr, l_dummy, l_dummy, l_dummy, l_prop, l_prop_reg, l_var_cnt_kpr2);
       end loop;
       end if;
       if l_kpr > l_nrm_kpr then
@@ -806,7 +807,8 @@ init_arr_usl;
 --          end if;
           --считать кол-во проживающих по услуге с данными статусами
             --(процедура в других модулях считает дни, здесь же - кол-во прож
-          get_days(p_usl_type2 =>c2.usl_type2 ,
+          get_days(p_usl => c2.usl,
+                   p_usl_type2 =>c2.usl_type2 ,
                    p_days => l_kpr, --кол-во прож. для определения расценки
                    p_days_wrz => l_kpr_wrz,
                    p_days_wro => l_kpr_wro,
@@ -829,7 +831,8 @@ init_arr_usl;
             get_prop(l_arr_prop4, l_arr_prop3(i).id, l_dt, l_prop, l_prop_reg, l_rel_cd, l_dat_rog_tmp);
             --считать кол-во проживающих по услуге с данными статусами
               --(процедура в других модулях считает дни, здесь же - кол-во прож
-            get_days(p_usl_type2 =>c2.usl_type2,
+            get_days(p_usl => c2.usl,
+                     p_usl_type2 =>c2.usl_type2,
                      p_days => l_kpr, --кол-во прож. для определения расценки
                      p_days_wrz => l_dummy, -- не нужен
                      p_days_wro => l_dummy, -- не нужен
@@ -1337,6 +1340,7 @@ end if;
 end;
 
 procedure get_days(
+   p_usl in usl.usl%type,
    p_usl_type2 in usl.usl_type2%type,
    p_days in out number,
    p_days_wrz in out number,
@@ -1346,211 +1350,6 @@ procedure get_days(
    p_prop_reg in c_states_pr.fk_status%type,
    p_var_cnt_kpr in number) is
 begin
---услуга подолевая (х.в.,г.в.)
-if p_var_cnt_kpr = 0 then
-  --ВАРИАНТ Кис.
-  if p_prop in (4) and p_prop_reg is null then
-    --выписан без доп.статусов
-    null;
-  elsif p_prop in (4) and p_prop_reg in (2) then
-    --выписан и временно отсут. (ошибка, не бывает такого)
-    null;
-  elsif (p_prop in (4) or p_prop is null) and p_prop_reg in (3) then
-    --выписан или пустой основной статус и временно зарег.
-    if p_usl_type2 =1 then
-      --услуга жилищная (тек.сод.)
-      p_days:=p_days+1;
-      p_days_wrz:=p_days_wrz+1;
-      --для расчёта объема для нормативного начисления
-      p_days_kpr2:=p_days_kpr2+1;
-    elsif p_usl_type2 in (0,3) then
-      --услуга коммунальная (х.в., вывоз ТКО - usl_type=3)
-      p_days:=p_days+1;
-      p_days_wrz:=p_days_wrz+1;
-      --для расчёта объема для нормативного начисления
-      p_days_kpr2:=p_days_kpr2+1;
-    elsif p_usl_type2 in (2) then
-      --для расчёта макс кол-во прожив
-      --услуга коммунальная (х.в.)
-    --ред. 20.08.2014
-    null;
---      p_days:=p_days+1;
-    end if;
-  elsif (p_prop in (4) or p_prop is null) and p_prop_reg in (6) then
-    --выписан или пустой основной статус и временно проживающий
-    if p_usl_type2 =1 then
-      --услуга жилищная (тек.сод.)
-      p_days_wrz:=p_days_wrz+1;
-      --для расчёта объема для нормативного начисления
-      p_days_kpr2:=p_days_kpr2+1;
-    elsif p_usl_type2 in (0,3) then
-      --услуга коммунальная (х.в., вывоз ТКО - usl_type=3)
-      p_days_wrz:=p_days_wrz+1;
-      --для расчёта объема для нормативного начисления
-      p_days_kpr2:=p_days_kpr2+1;
-    elsif p_usl_type2 in (2) then
-      --для расчёта макс кол-во прожив
-      --услуга коммунальная (х.в.)
-    --ред. 20.08.2014
-    null;
---      p_days:=p_days+1;
-    end if;
-  elsif p_prop in (1,5) and p_prop_reg is null then
-    --прописан или статус=для_начисления без доп.статусов
-    if p_usl_type2 =1 then
-      --услуга жилищная (тек.сод.)
-      p_days:=p_days+1;
-      --для расчёта объема для нормативного начисления
-      p_days_kpr2:=p_days_kpr2+1;
-    elsif p_usl_type2 in (0,3) then
-      --услуга коммунальная (х.в., вывоз ТКО - usl_type=3)
-      p_days:=p_days+1;
-      --для расчёта объема для нормативного начисления
-      p_days_kpr2:=p_days_kpr2+1;
-    elsif p_usl_type2 in (2) then
-      --для расчёта макс кол-во прожив
-      p_days:=p_days+1;
-    end if;
-  elsif p_prop in (1,5) and p_prop_reg in (2) then
-    --прописан или статус=для_начисления и временно отсут.
-    if p_usl_type2 =1 then
-      --услуга жилищная (тек.сод.)
-      p_days:=p_days+1;
-      p_days_wro:=p_days_wro+1;
-    elsif p_usl_type2 in (0) then
-      --услуга коммунальная (х.в.)
-      --p_days:=p_days+1; - кис решили убрать 03.03.2017
-      p_days_wro:=p_days_wro+1;
-    elsif p_usl_type2 in (3) then
-      -- вывоз ТКО - usl_type=3
-      p_days_wro:=p_days_wro+1;
-      /* ред. 17.01.19: У нас в программе есть такой параметр как В.О.-врем.отсуст. ставим, чтобы на него считались коммун.услуги (х.в.,г.в.,водоотв.),
-      если норматив и расценка как на пост.проп. С 2017 года этот параметр практически не используется, вот мы хотим, чтобы В.О. считались только на
-      услугу 140(считались на человека), а х.в.,г.в. и водоотв., если норматив, чтобы этого человека не учитывали. Можно так? Или лучше придумать новый параметр?
-      Например Культурная 28-16, сейчас по л.сч. 13002396 считается на 1 человека, как собственника, а хотелось бы на 2(там 2 В.О.) */
-      /* ред. 28.01.19
-      1) по услуги 140 на статус В.О. тоже не надо начислять(думали, думали и решили так. т.е. если есть такой человек,
-      то коммун.услуги(они сейчас и так не считаются, если норматив) и услуга 140 не начисляется).
-      Короче у услуги 140 заменил в usl.usl_type2 на 1
-      */
-      --для расчёта объема для нормативного начисления
-      p_days_kpr2:=p_days_kpr2+1;
-    elsif p_usl_type2 in (2) then
-      --для расчёта макс кол-во прожив
-      p_days:=p_days+1;
-    end if;
-  elsif p_prop in (1,5) and p_prop_reg in (3,6) then
-    --прописан или статус=для_начисления и временно зарег. (ошибка, не бывает такого)
-    if p_usl_type2 =1 then
-      --услуга жилищная (тек.сод.)
-      p_days:=p_days+1;
-      --для расчёта объема для нормативного начисления
-      p_days_kpr2:=p_days_kpr2+1;
-    elsif p_usl_type2 in (0,3) then
-      --услуга коммунальная (х.в., вывоз ТКО - usl_type=3)
-      p_days:=p_days+1;
-      --для расчёта объема для нормативного начисления
-      p_days_kpr2:=p_days_kpr2+1;
-    elsif p_usl_type2 in (2) then
-      --для расчёта макс кол-во прожив
-    --ред. 20.08.2014
-    null;
---      p_days:=p_days+1;
-    end if;
-  end if;
-elsif p_var_cnt_kpr = 1 then
---#######################################################################
---Вариант Полыс.
-  if p_prop in (4) and p_prop_reg is null then
-    --выписан без доп.статусов
-    null;
-  elsif p_prop in (4) and p_prop_reg in (2) then
-    --выписан и временно отсут. (ошибка, не бывает такого)
-    null;
-  elsif (p_prop in (4) or p_prop is null) and p_prop_reg in (3) then
-    --выписан или пустой основной статус и временно зарег.
-    if p_usl_type2 =1 then
-      --услуга жилищная (отопление)
-      p_days_wrz:=p_days_wrz+1;
-      --для расчёта объема для нормативного начисления
-      --p_days_kpr2:=p_days_kpr2+1;
-      --p_days:=p_days+1;
-    elsif p_usl_type2 in (0) then
-      --услуга коммунальная (х.в.)
-      p_days_wrz:=p_days_wrz+1;
-      --для расчёта объема для нормативного начисления
-      p_days_kpr2:=p_days_kpr2+1;
-      p_days:=p_days+1;
-    elsif p_usl_type2 in (2) then
-      --для расчёта макс кол-во прожив
-      --услуга коммунальная (х.в.)
-      p_days:=p_days+1;
-    end if;
-  elsif (p_prop in (4) or p_prop is null) and p_prop_reg in (6) then
-    --выписан или пустой основной статус и временно зарег.
-    if p_usl_type2 =1 then
-      --услуга жилищная (отопление)
-      p_days_kpr2:=p_days_kpr2+1;
-    elsif p_usl_type2 in (0) then
-      --услуга коммунальная (х.в.)
-      --для расчёта объема для нормативного начисления
-      p_days_kpr2:=p_days_kpr2+1;
-    elsif p_usl_type2 in (2) then
-      --для расчёта макс кол-во прожив
-      p_days_kpr2:=p_days_kpr2+1;
-    end if;
-  elsif p_prop in (1,5) and p_prop_reg is null then
-    --прописан или статус=для_начисления без доп.статусов
-    if p_usl_type2 =1 then
-      --услуга жилищная (тек.сод.)
-      p_days:=p_days+1;
-      --для расчёта объема для нормативного начисления
-      p_days_kpr2:=p_days_kpr2+1;
-    elsif p_usl_type2 in (0) then
-      --услуга коммунальная (х.в.)
-      p_days:=p_days+1;
-      --для расчёта объема для нормативного начисления
-      p_days_kpr2:=p_days_kpr2+1;
-    elsif p_usl_type2 in (2) then
-      --для расчёта макс кол-во прожив
-      p_days:=p_days+1;
-    end if;
-  elsif p_prop in (1,5) and p_prop_reg in (2) then
-    --прописан или статус=для_начисления и временно отсут.
-    if p_usl_type2 =1 then
-      --услуга жилищная (тек.сод.)
-      p_days:=p_days+1;
-      p_days_wro:=p_days_wro+1;
-      --для расчёта объема для нормативного начисления
-      p_days_kpr2:=p_days_kpr2+1;
-    elsif p_usl_type2 in (0) then
-      --услуга коммунальная (х.в.)
-      p_days:=p_days+1;
-      p_days_wro:=p_days_wro+1;
-      --для расчёта объема для нормативного начисления
-      --p_days_kpr2:=p_days_kpr2+1; ---ДОБАВИЛ
-    elsif p_usl_type2 in (2) then
-      --для расчёта макс кол-во прожив
-      p_days:=p_days+1;
-    end if;
-  elsif p_prop in (1,5) and p_prop_reg in (3,6) then
-    --прописан или статус=для_начисления и временно зарег. (ошибка, не бывает такого)
-    if p_usl_type2 =1 then
-      --услуга жилищная (тек.сод.)
-      p_days:=p_days+1;
-      --для расчёта объема для нормативного начисления
-      p_days_kpr2:=p_days_kpr2+1;
-    elsif p_usl_type2 in (0) then
-      --услуга коммунальная (х.в.)
-      p_days:=p_days+1;
-      --для расчёта объема для нормативного начисления
-      p_days_kpr2:=p_days_kpr2+1;
-    elsif p_usl_type2 in (2) then
-      --для расчёта макс кол-во прожив
-      p_days:=p_days+1;
-    end if;
-  end if;
-elsif p_var_cnt_kpr = 2 then
 --#######################################################################
 --Вариант ТСЖ
   if p_prop in (4) and p_prop_reg is null then
@@ -1561,21 +1360,24 @@ elsif p_var_cnt_kpr = 2 then
     null;
   elsif (p_prop in (4) or p_prop is null) and p_prop_reg in (3,6) then
     --выписан или пустой основной статус и временно зарег.
-    if p_usl_type2 =1 then
+    if p_usl_type2 in (2) then
+      --для расчёта макс кол-во прожив
+      --услуга коммунальная (х.в.)
+      p_days:=p_days+1;
+    elsif p_usl in ('007','011','013','015') then
+      --ред.15.04.20 выборочные услуги
+      p_days_wrz:=p_days_wrz+1;
+      --для расчёта объема для нормативного начисления
+    elsif p_usl_type2 =1 then
       --услуга жилищная (отопление)
       p_days_wrz:=p_days_wrz+1;
       --для расчёта объема для нормативного начисления
---      p_days_kpr2:=p_days_kpr2+1;
       p_days:=p_days+1;
     elsif p_usl_type2 in (0) then
       --услуга коммунальная (х.в.)
       p_days_wrz:=p_days_wrz+1;
       --для расчёта объема для нормативного начисления
       p_days_kpr2:=p_days_kpr2+1;
-      p_days:=p_days+1;
-    elsif p_usl_type2 in (2) then
-      --для расчёта макс кол-во прожив
-      --услуга коммунальная (х.в.)
       p_days:=p_days+1;
     end if;
   elsif p_prop in (1,5) and p_prop_reg is null then
@@ -1625,8 +1427,6 @@ elsif p_var_cnt_kpr = 2 then
       p_days:=p_days+1;
     end if;
   end if;
-
-end if;
 end;
 
 function get_is_sch (p_fk_calc in usl.fk_calc_tp%type,
@@ -1673,7 +1473,7 @@ begin
      when p_sptarn = 3 and nvl(p_koeff, 0) <> 0 and nvl(p_norm, 0) <> 0 then
       return 1;
      else
-      return 0; 
+      return 0;
    end case;
 end;
 
@@ -1715,22 +1515,22 @@ begin
    for c in (select * from kart k where k.lsk=p_lsk) loop
       for c2 in (select * from kart k where k.fk_klsk_premise=c.fk_klsk_premise and k.lsk != p_lsk
         order by decode(k.psch,8,1,9,1,0), k.k_lsk_id) loop -- сортировать по незакрытому, наименьшему k_lsk_id
-          return c2.lsk;  
+          return c2.lsk;
           exit;
       end loop;
    end loop;
    -- не найдено ничего
    return null;
-end;  
+end;
 
--- заменить klsk на предложенный во всех таблицах 
+-- заменить klsk на предложенный во всех таблицах
 function replace_klsk (p_lsk in kart.lsk%type, -- лиц.счет по которому искать
                        p_klsk_dst in number   -- klsk на который заменить
                        ) return number is
  l_cnt number;
  l_cd_org t_org.cd%type;
 begin
-  l_cnt:=0; 
+  l_cnt:=0;
   for c in (select * from kart k where k.lsk=p_lsk) loop
   if c.k_lsk_id != p_klsk_dst then
     -- удалить старые счетчики и t_objxpar
@@ -1738,12 +1538,12 @@ begin
     delete from t_objxpar t where t.fk_k_lsk=c.k_lsk_id;
     update kart k set k.k_lsk_id=p_klsk_dst where k.lsk=p_lsk and k.k_lsk_id != nvl(p_klsk_dst,0);
     if sql%rowcount = 1 then
-        l_cnt:=1; 
-    end if;    
+        l_cnt:=1;
+    end if;
     update arch_kart k set k.k_lsk_id=p_klsk_dst where k.lsk=p_lsk and k.k_lsk_id != nvl(p_klsk_dst,0);
     update exs.eolink t set t.fk_klsk_obj=p_klsk_dst where t.lsk=p_lsk and t.fk_klsk_obj != nvl(p_klsk_dst,0);
-    
-/*  полный бред!  
+
+/*  полный бред!
     if utils.get_int_param('HAVE_LK') = 1 then
      -- замена klsk в ЛК
      select o.cd into l_cd_org
@@ -1755,39 +1555,39 @@ begin
                    text_        => 'ОБНОВЛЁН KLSK! старый klsk='||c.k_lsk_id||' новый klsk='||p_klsk_dst,
                    fk_type_act_ => 2);
   end if;
-  if l_cnt = 1 then 
+  if l_cnt = 1 then
     return 0; -- ок
-  else 
+  else
     return 1; -- ошибка
-  end if;  
+  end if;
   end loop;
-end;  
+end;
 
--- заменить house_id на предложенный во всех таблицах 
+-- заменить house_id на предложенный во всех таблицах
 function replace_house_id (p_lsk in kart.lsk%type, -- лиц.счет по которому искать
                        p_house_dst in number   -- house_id на который заменить
                        ) return number is
- l_cnt number;                       
+ l_cnt number;
 begin
-  l_cnt:=0; 
+  l_cnt:=0;
   for c in (select * from kart k where k.lsk=p_lsk) loop
   if c.house_id != p_house_dst then
     update kart k set k.house_id=p_house_dst where k.lsk=p_lsk and k.house_id != nvl(p_house_dst,0);
     if sql%rowcount = 1 then
-        l_cnt:=1; 
-    end if;    
+        l_cnt:=1;
+    end if;
     update arch_kart k set k.house_id=p_house_dst where k.lsk=p_lsk and k.house_id != nvl(p_house_dst,0);
     logger.log_act(lsk_         => p_lsk,
                    text_        => 'ОБНОВЛЁН HOUSE_ID! старый house_id='||c.house_id||' новый house_id='||p_house_dst,
                    fk_type_act_ => 2);
   end if;
-  if l_cnt = 1 then 
+  if l_cnt = 1 then
     return 0; -- ок
-  else 
+  else
     return 1; -- ошибка
-  end if;  
+  end if;
   end loop;
-end;  
+end;
 
 end C_KART;
 /

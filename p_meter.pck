@@ -35,6 +35,10 @@ create or replace package scott.p_meter is
                           p_eolink in number, -- id Eolink счетчика
                           is_connect in number -- привязать - 0, снять связь - 1
                           );
+  -- отменить реестр показаний по счетчикам и все последующие показания, принятые
+  -- либо через реестр, либо вручную
+  function revert_data_meter(p_doc_par_id in number -- id реестра
+    ) return number;
   procedure ins_data_meter(p_lsk in varchar2, --  лиц.счет
                            p_usl in varchar2, -- услуга         
                            p_prev_val       in number, -- предыдущее показание
@@ -307,17 +311,50 @@ create or replace package body scott.p_meter is
     end if;  
   end;                          
 
-  -- отменить реестр показаний по счетчикам (вернуть показания, объемы назад)
-  procedure revert_data_meter(p_doc_par_id in number -- id реестра
-    ) is
+  -- отменить реестр показаний по счетчикам и все последующие показания, принятые
+  -- либо через реестр, либо вручную
+  function revert_data_meter(p_doc_par_id in number -- id реестра
+    ) return number is
+  l_period params.period%type;  
+  l_is_changed number;
+  l_cnt number;
   begin
-    for c in (select t.is_set_prev_val from t_docxpar t where t.id=p_doc_par_id) loop
-    if c.is_set_prev_val =1 then
-      -- были установлены начальные показания
-    null;
-    end if;   
-        
-    end loop; 
+    select period into l_period from params;
+    l_cnt:=0;
+    -- флаг, что не надо добавлять информацию в триггере
+    g_flag := 1;
+    for c in (select min(x.id) as min_id, x.fk_k_lsk
+        from t_doc d join t_objxpar x on d.id=x.fk_doc and d.id=p_doc_par_id
+        where d.mg=l_period
+        group by x.fk_k_lsk) loop
+        -- найти предыдущее показание и установить его
+        l_is_changed:=0;
+        for c2 in (select x.n1 from t_objxpar x 
+           join u_list u on x.fk_list=u.id and u.cd in ('ins_sch')
+           where x.fk_k_lsk=c.fk_k_lsk and x.id < c.min_id
+           order by x.id desc) loop
+          --изменить последнее показание в счетчике
+          update meter m set m.n1 = c2.n1 where m.k_lsk_id = c.fk_k_lsk;
+          l_is_changed:=1;
+          exit;
+        end loop;             
+        if l_is_changed=0 then
+          -- не было изменено, занулить
+          update meter m set m.n1 = 0 where m.k_lsk_id = c.fk_k_lsk;
+        end if;
+        -- удалить показания и объемы, прошедшие начиная с реестра
+        delete from t_objxpar t where t.mg=l_period 
+            and t.fk_list in (select u.id from u_list u where u.cd in ('ins_sch','ins_vol_sch'))
+            and t.id >=c.min_id
+            and t.fk_k_lsk=c.fk_k_lsk;
+        if sql%rowcount > 0 then    
+          l_cnt:=l_cnt+1;
+        end if;  
+    end loop;
+    update t_doc t set t.v=0 where t.id=p_doc_par_id;  
+    -- восстановить флаг, что не надо добавлять информацию в триггере
+    g_flag := 0;
+    return l_cnt;
   end;
   
   --внести показание по счетчику (обычно - Java вызов из BillDirect - загрузка показаний из файла)

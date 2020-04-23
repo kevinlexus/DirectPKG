@@ -145,7 +145,8 @@ create or replace package body scott.gen is
       return;
     end if;
 
-  if utils.get_int_param('CONTROL_METER') = 1 then -- +++
+  if utils.get_int_param('CONTROL_METER') = 1 then
+     -- проверить соответствие показаний счетчиков в meter и kart phw, pgw, pel
      select count(*) into cnt_ from (
      select k.fk_tp, k.k_lsk_id, k.lsk, k.phw as cnt, t.n1 from kart k, meter t, v_lsk_tp tp
           where k.psch not in (8,9)
@@ -174,12 +175,28 @@ create or replace package body scott.gen is
           and k.fk_tp=tp.id
           and tp.cd='LSK_TP_MAIN');
      if cnt_ <> 0 then
-       err_str_:='Стоп, некорректны показания по счетчикам!';
+       err_str_:='Стоп, некорректны показания по счетчикам в KART!';
        err_:=1;
        return;
      end if;
    end if;
 
+  if utils.get_int_param('CONTROL_METER2') = 1 then
+    -- проверить соответствие показаний счетчиков в meter и t_objxpar
+    select count(*) into cnt_ from (
+    select 
+       last_value(x.n1) over (partition by x.fk_k_lsk order by x.id RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_val,
+       m.n1, x.fk_k_lsk from t_objxpar x 
+               join u_list u on x.fk_list=u.id and u.cd in ('ins_sch')
+               join meter m on x.fk_k_lsk=m.k_lsk_id and sysdate between m.dt1 and m.dt2
+               order by x.fk_k_lsk, x.id
+    ) where nvl(last_val,0)<>nvl(n1,0);
+     if cnt_ <> 0 then
+       err_str_:='Стоп, некорректны показания по счетчикам в METER!';
+       err_:=1;
+       return;
+     end if;
+   end if;
 
    select nvl(a.summa,0)-nvl(b.summa,0) into cnt_ -- +++
      from (select nvl(sum(summa),0)+nvl(sum(penya),0) as summa from c_kwtp t
@@ -1009,6 +1026,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
                               dat2_ in xxito10.dat%type) is
     time_ date;
     mg_ params.period%type;
+    l_xxito14_period_var number;
   begin
     --За день
     --Оплата по предприятиям/трестам/услугам
@@ -1114,6 +1132,9 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
                   decode(k.status, 1, 0, 1),
                   v.dopl;
       -- xxito14
+      -- способ получения периода оплаты (1-полыс, 0-остальные) ред.08.04.20
+      l_xxito14_period_var:=utils.get_int_param('XXITO14_PERIOD_VAR'); 
+
       delete from xxito14_lsk t where t.dat = to_date(a, 'YYYYMMDD')
        and t.mg=mg_;
       insert into xxito14_lsk
@@ -1132,10 +1153,10 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
           from (select t.lsk, t.usl, t.org, substr(t.nkom, 1, 2) AS reu, s.trest, 0 as var,
             s.reu as forreu, to_number(substr(op.oigu, 1, 1)) AS oborot,
             t.summa as summar, t.sum_distr, t.fk_distr,
-            t.oper, t.dat_ink as dat, t.usl as usl_b, t.org as org_b, t.dopl,
+            t.oper, t.dat_ink as dat, t.usl as usl_b, t.org as org_b, decode(l_xxito14_period_var,1,s.dopl,t.dopl) as dopl,
             t.priznak as cd_tp
-             from kwtp_day t, kart k, s_reu_trest s, oper op
-           where t.lsk=k.lsk and k.reu=s.reu and t.oper=op.oper/* ред.21.06.11 and t.priznak = 1*/
+             from kwtp_day t, c_kwtp_mg s, kart k, s_reu_trest s, oper op
+           where t.lsk=k.lsk and s.id=t.kwtp_id and k.reu=s.reu and t.oper=op.oper/* ред.21.06.11 and t.priznak = 1*/
            and t.dat_ink between init.g_dt_start and init.g_dt_end) v, kart k
          where v.dat = to_date(a, 'YYYYMMDD')
            and k.lsk = v.lsk
@@ -1191,10 +1212,10 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
           from (select t.lsk, t.usl, t.org, substr(t.nkom, 1, 2) AS reu, s.trest, 0 as var,
             s.reu as forreu, to_number(substr(op.oigu, 1, 1)) AS oborot,
             t.summa as summar, t.sum_distr,
-               t.fk_distr, t.oper, t.dat_ink as dat, t.usl as usl_b, t.org as org_b, t.dopl,
+               t.fk_distr, t.oper, t.dat_ink as dat, t.usl as usl_b, t.org as org_b, decode(l_xxito14_period_var,1,s.dopl,t.dopl) as dopl,
                t.priznak as cd_tp
-             from kwtp_day t, kart k, s_reu_trest s, oper op
-           where t.lsk=k.lsk and k.reu=s.reu and t.oper=op.oper/* ред.21.06.11 and t.priznak = 1*/
+             from kwtp_day t, c_kwtp_mg s, kart k, s_reu_trest s, oper op
+           where t.lsk=k.lsk and s.id=t.kwtp_id and k.reu=s.reu and t.oper=op.oper/* ред.21.06.11 and t.priznak = 1*/
            and t.dat_ink between init.g_dt_start and init.g_dt_end) v, kart k
          where v.dat = to_date(a, 'YYYYMMDD')
            and k.lsk = v.lsk
@@ -1266,6 +1287,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
   procedure gen_opl_xito10 is
     time_ date;
     mg_ params.period%type;
+    l_xxito14_period_var number;
   begin
     select period into mg_ from params p;
 
@@ -1367,6 +1389,10 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
                 v.dopl,
                 v.dat;
 
+    -- xxito14
+    -- способ получения периода оплаты (1-полыс, 0-остальные) ред.08.04.20
+    l_xxito14_period_var:=utils.get_int_param('XXITO14_PERIOD_VAR'); 
+
     delete from xxito14_lsk t where t.mg = mg_;
     insert into xxito14_lsk
       (lsk, usl, org, summa, mg, var, status, dopl, oper, cd_tp, dat)
@@ -1383,10 +1409,10 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
              v.dat
         from (select t.lsk, t.usl, t.org, substr(t.nkom, 1, 2) AS reu, s.trest, 0 as var,
             s.reu as forreu, to_number(substr(op.oigu, 1, 1)) AS oborot,
-            t.summa as summar, t.oper, t.dat_ink as dat, t.usl as usl_b, t.org as org_b, t.dopl,
+            t.summa as summar, t.oper, t.dat_ink as dat, t.usl as usl_b, t.org as org_b, decode(l_xxito14_period_var,1,s.dopl,t.dopl) as dopl,
             t.priznak as cd_tp
-             from kwtp_day t, kart k, s_reu_trest s, oper op
-           where t.lsk=k.lsk and k.reu=s.reu and t.oper=op.oper
+             from kwtp_day t, c_kwtp_mg s, kart k, s_reu_trest s, oper op
+           where t.lsk=k.lsk and s.id=t.kwtp_id and k.reu=s.reu and t.oper=op.oper
            and t.dat_ink between init.g_dt_start and init.g_dt_end) v, kart k
        where k.lsk = v.lsk
          and v.oborot = 1
@@ -1439,9 +1465,9 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
         from (select t.lsk, t.usl, t.org, substr(t.nkom, 1, 2) AS reu, s.trest, 0 as var,
             s.reu as forreu, to_number(substr(op.oigu, 1, 1)) AS oborot,
             t.summa as summar, t.sum_distr, t.fk_distr, t.oper, t.dat_ink as dat,
-            t.usl as usl_b, t.org as org_b, t.dopl, t.priznak as cd_tp
-             from kwtp_day t, kart k, s_reu_trest s, oper op
-           where t.lsk=k.lsk and k.reu=s.reu and t.oper=op.oper
+            t.usl as usl_b, t.org as org_b, decode(l_xxito14_period_var,1,s.dopl,t.dopl) as dopl, t.priznak as cd_tp
+             from kwtp_day t, c_kwtp_mg s, kart k, s_reu_trest s, oper op
+           where t.lsk=k.lsk and s.id=t.kwtp_id and k.reu=s.reu and t.oper=op.oper
            and t.dat_ink between init.g_dt_start and init.g_dt_end) v, kart k
        where k.lsk = v.lsk
          and v.oborot = 1

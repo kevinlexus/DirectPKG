@@ -1,4 +1,4 @@
-create table SCOTT.T_DOCXPAR
+create table SCOTT.T_DOC
 (
   id              NUMBER not null,
   dt_crt          DATE default sysdate,
@@ -6,7 +6,9 @@ create table SCOTT.T_DOCXPAR
   cd              VARCHAR2(132),
   fk_user         NUMBER not null,
   comm            VARCHAR2(1024),
-  is_set_prev_val NUMBER
+  is_set_prev_val NUMBER,
+  mg              VARCHAR2(6),
+  v               NUMBER default 1 not null
 )
 tablespace USERS
   pctfree 10
@@ -19,24 +21,28 @@ tablespace USERS
     minextents 1
     maxextents unlimited
   );
-comment on table SCOTT.T_DOCXPAR
-  is 'Документ по параметру (Например реестр загрузки показаний счетчиков)';
-comment on column SCOTT.T_DOCXPAR.id
+comment on table SCOTT.T_DOC
+  is 'Документ для использования в реестрах и проч.(Например реестр загрузки показаний счетчиков)';
+comment on column SCOTT.T_DOC.id
   is 'ID';
-comment on column SCOTT.T_DOCXPAR.dt_crt
+comment on column SCOTT.T_DOC.dt_crt
   is 'Дата создания';
-comment on column SCOTT.T_DOCXPAR.dt_upd
+comment on column SCOTT.T_DOC.dt_upd
   is 'Дата обновления';
-comment on column SCOTT.T_DOCXPAR.cd
+comment on column SCOTT.T_DOC.cd
   is 'Уникальный CD';
-comment on column SCOTT.T_DOCXPAR.fk_user
+comment on column SCOTT.T_DOC.fk_user
   is 'Пользователь, кто создал запись';
-comment on column SCOTT.T_DOCXPAR.comm
+comment on column SCOTT.T_DOC.comm
   is 'Комментарий, путь к файлу и прочее';
-comment on column SCOTT.T_DOCXPAR.is_set_prev_val
+comment on column SCOTT.T_DOC.is_set_prev_val
   is 'Для реестра показаний по счетчикам 0-текущие объемы, 1-начальные показания по счетчикам';
-alter table SCOTT.T_DOCXPAR
-  add constraint T_DOCXPAR_P primary key (ID)
+comment on column SCOTT.T_DOC.mg
+  is 'Период';
+comment on column SCOTT.T_DOC.v
+  is 'Статус (1-действующий, 0-отменён)';
+alter table SCOTT.T_DOC
+  add constraint T_DOC_P primary key (ID)
   using index 
   tablespace USERS
   pctfree 10
@@ -49,7 +55,7 @@ alter table SCOTT.T_DOCXPAR
     minextents 1
     maxextents unlimited
   );
-alter table SCOTT.T_DOCXPAR
-  add constraint T_DOCXPAR_F_USER foreign key (FK_USER)
+alter table SCOTT.T_DOC
+  add constraint T_DOC_F_USER foreign key (FK_USER)
   references SCOTT.T_USER (ID);
 

@@ -1,0 +1,8 @@
+create sequence EXS.SEQ_SERVGIS
+minvalue 1
+maxvalue 999999999999999999999
+start with 140
+increment by 1
+cache 20
+order;
+

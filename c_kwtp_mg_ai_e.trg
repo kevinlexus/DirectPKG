@@ -44,15 +44,9 @@ begin
           --по-сальдовый способ распределени€ оплаты
           c_gen_pay.dist_pay_lsk(rec_, 0);
         else
-          --по-периодный способ распределени€ оплаты ( ис., ѕолыс.)
-          --сперва подготовить задолжность
-          --(не надо, выполн€етс€ в процедуре)
-          --c_dist_pay.gen_deb_usl(rec_.lsk);
-          --потом распределить оплату
-          --       if :new.lsk<>'15042520' then
+          --по-периодный способ распределени€ оплаты (ѕолыс.)
           select reu into l_reu from kart k where k.lsk = rec_.lsk;
           c_dist_pay.dist_pay_deb_mg_lsk(l_reu, rec_);
-          --       end if;
         end if;
       end if;
     

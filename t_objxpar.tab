@@ -123,7 +123,7 @@ alter table SCOTT.T_OBJXPAR
   );
 alter table SCOTT.T_OBJXPAR
   add constraint T_OBJXPAR_F_DOC foreign key (FK_DOC)
-  references SCOTT.T_DOCXPAR (ID);
+  references SCOTT.T_DOC (ID);
 alter table SCOTT.T_OBJXPAR
   add constraint T_OBJXPAR_F_K_LSK foreign key (FK_K_LSK)
   references SCOTT.K_LSK (ID) on delete cascade;

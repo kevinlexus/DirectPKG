@@ -1,0 +1,7 @@
+create sequence EXS.SEQ_EOLINK
+minvalue 1
+maxvalue 9999999999999999999999999999
+start with 709370
+increment by 1
+cache 20;
+

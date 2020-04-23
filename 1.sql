@@ -1,6 +1,6 @@
 -------------------------------------------
 -- Export file for user SCOTT@ORCL       --
--- Created by Leo on 30.03.2020, 7:18:11 --
+-- Created by Leo on 23.04.2020, 8:16:43 --
 -------------------------------------------
 
 set define off
@@ -1307,10 +1307,10 @@ prompt ==================================
 prompt
 @@t_corrects_payments.tab
 prompt
-prompt Creating table T_DOCXPAR
-prompt ========================
+prompt Creating table T_DOC
+prompt ====================
 prompt
-@@t_docxpar.tab
+@@t_doc.tab
 prompt
 prompt Creating table T_HOUSEXLIST
 prompt ===========================
@@ -4117,11 +4117,6 @@ prompt ========================================
 prompt
 @@t_corrects_payments_bie.trg
 prompt
-prompt Creating trigger T_DOCXPAR_BIU_E
-prompt ================================
-prompt
-@@t_docxpar_biu_e.trg
-prompt
 prompt Creating trigger T_HOUSEXLIST_BIE
 prompt =================================
 prompt
@@ -4216,5 +4211,10 @@ prompt Creating trigger U_LIST_BI
 prompt ==========================
 prompt
 @@u_list_bi.trg
+prompt
+prompt Creating trigger t_doc_BIU_E
+prompt ============================
+prompt
+@@t_doc_biu_e.trg
 
 spool off

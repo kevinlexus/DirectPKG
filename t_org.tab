@@ -54,7 +54,8 @@ create table SCOTT.T_ORG
   is_rso          NUMBER default 0,
   is_exchange_gis NUMBER default 1,
   org_tp_gis      NUMBER default 0,
-  grp_deb         NUMBER
+  grp_deb         NUMBER,
+  is_exchange_ext NUMBER default 0
 )
 tablespace USERS
   pctfree 10
@@ -179,6 +180,8 @@ comment on column SCOTT.T_ORG.org_tp_gis
   is 'Тип организации для ГИС ЖКХ (1-УО (упр.орг.), 2-РСО, 3-ТКО)';
 comment on column SCOTT.T_ORG.grp_deb
   is 'Группировка для долгов Сбера (Не заполнено - брать REU, заполнено - группировать по этому полю)';
+comment on column SCOTT.T_ORG.is_exchange_ext
+  is 'Обмен внешними лиц счетами (0-нет, 1-да) (Например Полыс - Чистый город)';
 create unique index SCOTT.T_ORG_U on SCOTT.T_ORG (CD)
   tablespace USERS
   pctfree 10

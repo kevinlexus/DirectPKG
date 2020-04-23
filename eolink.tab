@@ -1,0 +1,181 @@
+create table EXS.EOLINK
+(
+  id          NUMBER not null,
+  reu         VARCHAR2(4),
+  kul         VARCHAR2(4),
+  nd          VARCHAR2(6),
+  kw          VARCHAR2(64),
+  lsk         VARCHAR2(8),
+  entry       NUMBER,
+  usl         VARCHAR2(3),
+  id_cnt      NUMBER,
+  guid        VARCHAR2(36),
+  cd          VARCHAR2(128),
+  fk_objtp    NUMBER not null,
+  uniqnum     VARCHAR2(255),
+  fk_objtpx   NUMBER,
+  app_tp      NUMBER,
+  parent_id   NUMBER,
+  ogrn        VARCHAR2(13),
+  dt_crt      DATE default sysdate,
+  fk_user     NUMBER,
+  status      NUMBER default 1,
+  id_grp      NUMBER,
+  c_lsk_id    NUMBER,
+  comm        VARCHAR2(1024),
+  dt_upd      DATE default sysdate,
+  serviceid   VARCHAR2(13),
+  err         NUMBER,
+  fk_uk       NUMBER,
+  tguid       VARCHAR2(36),
+  fk_klsk_obj NUMBER
+)
+tablespace DATA
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table EXS.EOLINK
+  is 'Связь с объектом во внешней системе';
+comment on column EXS.EOLINK.id
+  is 'ID';
+comment on column EXS.EOLINK.reu
+  is 'РЭУ в системе "Квартплата"';
+comment on column EXS.EOLINK.kul
+  is 'Улица в системе "Квартплата"';
+comment on column EXS.EOLINK.nd
+  is 'Дом в системе "Квартплата"';
+comment on column EXS.EOLINK.kw
+  is 'Квартира в системе "Квартплата"';
+comment on column EXS.EOLINK.lsk
+  is 'Лиц.счет в системе "Квартплата"';
+comment on column EXS.EOLINK.entry
+  is 'Подъезд в  системе "Квартплата" (а так же в новой системе)';
+comment on column EXS.EOLINK.usl
+  is 'Услуга в системе "Квартплата" (для счетчика)';
+comment on column EXS.EOLINK.id_cnt
+  is 'ID Группового счетчика в системе "Квартплата" из таблицы a_flow.n1';
+comment on column EXS.EOLINK.guid
+  is 'GUID объекта во внешней системе';
+comment on column EXS.EOLINK.cd
+  is 'CD (для ПД - номер документа в биллинге)';
+comment on column EXS.EOLINK.fk_objtp
+  is '(select * from addrtp t) FK на тип объекта (для идентификации объекта из "Квартплаты") (Например "Документ")';
+comment on column EXS.EOLINK.uniqnum
+  is 'Уникальный номер объекта во внешней системе';
+comment on column EXS.EOLINK.fk_objtpx
+  is 'FK на дополнительный тип объекта (для идентификации объекта из "Квартплаты") (Например "Договор управления")';
+comment on column EXS.EOLINK.app_tp
+  is 'Тип информационной системы (0-"Старая разработка", 1- "Новая разработка") (Работает на уровне Организация! на прочих не гарантируется заполнение!)';
+comment on column EXS.EOLINK.parent_id
+  is 'FK на родительский объект';
+comment on column EXS.EOLINK.ogrn
+  is 'NOT_USED - используется SCOTT.T_ORG.KOD_OGRN! ОГРН Организации';
+comment on column EXS.EOLINK.dt_crt
+  is 'Дата создания записи';
+comment on column EXS.EOLINK.fk_user
+  is 'Пользователь, кто создал запись';
+comment on column EXS.EOLINK.status
+  is 'Статус, 0 - архивная запись, 1-активная запись, 2 - аннулированный объект, 3 - в процессе создания/не окончено';
+comment on column EXS.EOLINK.id_grp
+  is 'ID Группы счетчика в системе "Квартплата" из таблицы a_flow.n2';
+comment on column EXS.EOLINK.c_lsk_id
+  is 'NOT_USED';
+comment on column EXS.EOLINK.comm
+  is 'Примечание по объекту';
+comment on column EXS.EOLINK.dt_upd
+  is 'Дата обновления записи';
+comment on column EXS.EOLINK.serviceid
+  is 'Идентификатор ЖКУ (Заполняется только для Лиц.счетов, при экспорте из ГИС)';
+comment on column EXS.EOLINK.err
+  is 'Битовый код ошибки';
+comment on column EXS.EOLINK.fk_uk
+  is 'FK на Eolink УК (Принадлежащий УК лиц.счет)';
+comment on column EXS.EOLINK.tguid
+  is 'от ГИС ЖКХ Транспортный GUID';
+comment on column EXS.EOLINK.fk_klsk_obj
+  is 'KLSK Объекта, ассоциированного с Ko';
+create index EXS.EOLINK_I on EXS.EOLINK (PARENT_ID)
+  tablespace INDX_FAST
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create index EXS.EOLINK_I3 on EXS.EOLINK (FK_OBJTP)
+  tablespace INDX_FAST
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create unique index EXS.EOLINK_I4 on EXS.EOLINK (GUID)
+  tablespace INDX_FAST
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create unique index EOLINK_I5 on EXS.EOLINK (FK_KLSK_OBJ)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table EXS.EOLINK
+  add constraint EOLINK_P primary key (ID)
+  using index 
+  tablespace DATA
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table EXS.EOLINK
+  add constraint EOLINK_F_K_LSK_OBJ foreign key (FK_KLSK_OBJ)
+  references K_LSK (ID);
+alter table EXS.EOLINK
+  add constraint EOLINK_F_OBJTP foreign key (FK_OBJTP)
+  references BS.ADDR_TP (ID);
+alter table EXS.EOLINK
+  add constraint EOLINK_F_OBJTPX foreign key (FK_OBJTPX)
+  references BS.LIST (ID);
+alter table EXS.EOLINK
+  add constraint EOLINK_F_PARENT_ID foreign key (PARENT_ID)
+  references EXS.EOLINK (ID) on delete cascade;
+alter table EXS.EOLINK
+  add constraint EOLINK_F_UK foreign key (FK_UK)
+  references EXS.EOLINK (ID);
+
