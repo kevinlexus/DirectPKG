@@ -1,8 +1,7 @@
-create sequence SCOTT.LOG_ERR_ID
+create sequence SCOTT.C_CHARGEPAY2_ID
 minvalue 1
 maxvalue 999999999999999999999999999
-start with 962
+start with 1
 increment by 1
-cache 20
-order;
+cache 20;
 

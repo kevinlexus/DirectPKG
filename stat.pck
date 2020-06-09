@@ -55,6 +55,8 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
     sqlstr_ VARCHAR2(2000);
     sqlstr2_ VARCHAR2(2000);
     sqlstr3_ VARCHAR2(2000);
+    sql_det VARCHAR2(2000);
+    
     l_sql VARCHAR2(2000); --для хранения полного текста запроса
     period_ varchar2(55);
     uslg_ usl.uslg%type;
@@ -1254,6 +1256,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
 --    kpr1_, kpr1_, kpr1_, kpr2_, kpr2_, kpr2_, n1_, n2_, n1_, n2_;
     end if;
  elsif сd_ = '56' then
+   Raise_application_error(-20000, 'Раздел закрыт 03.06.2020');
  --Списки льготников
    if var_ = 3 then
     --По дому
@@ -1929,8 +1932,8 @@ select t.trest||'' ''||t.name_reu as predp,
       select
       l.name||', '||NVL(LTRIM(s.nd,'0'),'0')||'-'||NVL(LTRIM(s.kw,'0'),'0') as adr,
       p.fio, p.dat_rog
-      from arch_kart s, a_kart_pr p, spul l
-      where s.mg=mg_ and s.lsk=p.lsk and s.kul=l.id and s.mg=p.mg
+      from arch_kart s, a_kart_pr2 p, spul l
+      where s.mg=mg_ and s.lsk=p.lsk and s.kul=l.id and s.mg between p.mgFrom and p.mgTo
       and s.reu=reu_ and s.kul=kul_ and s.nd=nd_ and p.dat_rog between dat2_ and dat3_
       and s.psch<>8 and ((gndr_ <> 2 and p.pol=gndr_) or gndr_ = 2)
       and p.status<>4
@@ -1941,8 +1944,8 @@ select t.trest||'' ''||t.name_reu as predp,
       select
       l.name||', '||NVL(LTRIM(s.nd,'0'),'0')||'-'||NVL(LTRIM(s.kw,'0'),'0') as adr,
       p.fio, p.dat_rog
-      from arch_kart s, a_kart_pr p, spul l
-      where s.mg=mg_ and s.lsk=p.lsk and s.kul=l.id and s.mg=p.mg
+      from arch_kart s, a_kart_pr2 p, spul l
+      where s.mg=mg_ and s.lsk=p.lsk and s.kul=l.id and s.mg between p.mgFrom and p.mgTo
       and s.reu=reu_ and p.dat_rog between dat2_ and dat3_
       and s.psch<>8 and ((gndr_ <> 2 and p.pol=gndr_) or gndr_ = 2)
       and p.status<>4
@@ -1953,8 +1956,8 @@ select t.trest||'' ''||t.name_reu as predp,
       select
       l.name||', '||NVL(LTRIM(s.nd,'0'),'0')||'-'||NVL(LTRIM(s.kw,'0'),'0') as adr,
       p.fio, p.dat_rog
-      from arch_kart s, a_kart_pr p, spul l, s_reu_trest t
-      where s.mg=mg_ and s.lsk=p.lsk and s.kul=l.id and s.mg=p.mg
+      from arch_kart s, a_kart_pr2 p, spul l, s_reu_trest t
+      where s.mg=mg_ and s.lsk=p.lsk and s.kul=l.id and s.mg between p.mgFrom and p.mgTo
       and s.reu=t.reu and t.trest=trest_ and p.dat_rog between dat2_ and dat3_
       and s.psch<>8 and ((gndr_ <> 2 and p.pol=gndr_) or gndr_ = 2)
       and p.status<>4
@@ -1965,8 +1968,8 @@ select t.trest||'' ''||t.name_reu as predp,
       select
       l.name||', '||NVL(LTRIM(s.nd,'0'),'0')||'-'||NVL(LTRIM(s.kw,'0'),'0') as adr,
       p.fio, p.dat_rog
-      from arch_kart s, a_kart_pr p, spul l
-      where s.mg=mg_ and s.lsk=p.lsk and s.kul=l.id and s.mg=p.mg
+      from arch_kart s, a_kart_pr2 p, spul l
+      where s.mg=mg_ and s.lsk=p.lsk and s.kul=l.id and s.mg between p.mgFrom and p.mgTo
       and p.dat_rog between dat2_ and dat3_
       and s.psch<>8 and ((gndr_ <> 2 and p.pol=gndr_) or gndr_ = 2)
       and p.status<>4
@@ -2224,8 +2227,8 @@ select t.trest||'' ''||t.name_reu as predp,
       select
       l.name||', '||NVL(LTRIM(s.nd,'0'),'0')||'-'||NVL(LTRIM(s.kw,'0'),'0') as adr,
       p.fio, r.name as rel, p.dat_prop as dt1, p.dat_ub as dt2
-      from arch_kart s, a_kart_pr p, spul l, relations r
-      where s.mg=mg_ and s.lsk=p.lsk and s.kul=l.id and s.mg=p.mg and p.relat_id=r.id(+)
+      from arch_kart s, a_kart_pr2 p, spul l, relations r
+      where s.mg=mg_ and s.lsk=p.lsk and s.kul=l.id and s.mg between p.mgFrom and p.mgTo and p.relat_id=r.id(+)
       and s.reu=reu_ and s.kul=kul_ and s.nd=nd_
       and decode(prop_,0,p.dat_prop, p.dat_ub) between dat2_ and dat3_
       and s.psch<>8
@@ -2236,8 +2239,8 @@ select t.trest||'' ''||t.name_reu as predp,
       select
       l.name||', '||NVL(LTRIM(s.nd,'0'),'0')||'-'||NVL(LTRIM(s.kw,'0'),'0') as adr,
       p.fio, r.name as rel, p.dat_prop as dt1, p.dat_ub as dt2
-      from arch_kart s, a_kart_pr p, spul l, relations r
-      where s.mg=mg_ and s.lsk=p.lsk and s.kul=l.id and s.mg=p.mg and p.relat_id=r.id(+)
+      from arch_kart s, a_kart_pr2 p, spul l, relations r
+      where s.mg=mg_ and s.lsk=p.lsk and s.kul=l.id and s.mg between p.mgFrom and p.mgTo and p.relat_id=r.id(+)
       and s.reu=reu_ and decode(prop_,0,p.dat_prop, p.dat_ub) between dat2_ and dat3_
       and s.psch<>8
       order by l.name, utils.f_order(s.nd,6), utils.f_order(s.kw,7);
@@ -2247,8 +2250,8 @@ select t.trest||'' ''||t.name_reu as predp,
       select
       l.name||', '||NVL(LTRIM(s.nd,'0'),'0')||'-'||NVL(LTRIM(s.kw,'0'),'0') as adr,
       p.fio, r.name as rel, p.dat_prop as dt1, p.dat_ub as dt2
-      from arch_kart s, a_kart_pr p, spul l, relations r, s_reu_trest t
-      where s.mg=mg_ and s.lsk=p.lsk and s.kul=l.id and s.mg=p.mg and p.relat_id=r.id(+)
+      from arch_kart s, a_kart_pr2 p, spul l, relations r, s_reu_trest t
+      where s.mg=mg_ and s.lsk=p.lsk and s.kul=l.id and s.mg between p.mgFrom and p.mgTo and p.relat_id=r.id(+)
       and s.reu=t.reu and t.trest=trest_ and decode(prop_,0,p.dat_prop, p.dat_ub) between dat2_ and dat3_
       and s.psch<>8
       order by l.name, utils.f_order(s.nd,6), utils.f_order(s.kw,7);
@@ -2258,8 +2261,8 @@ select t.trest||'' ''||t.name_reu as predp,
       select
       l.name||', '||NVL(LTRIM(s.nd,'0'),'0')||'-'||NVL(LTRIM(s.kw,'0'),'0') as adr,
       p.fio, r.name as rel, p.dat_prop as dt1, p.dat_ub as dt2
-      from arch_kart s, a_kart_pr p, spul l, relations r
-      where s.mg=mg_ and s.lsk=p.lsk and s.kul=l.id and s.mg=p.mg and p.relat_id=r.id(+)
+      from arch_kart s, a_kart_pr2 p, spul l, relations r
+      where s.mg=mg_ and s.lsk=p.lsk and s.kul=l.id and s.mg between p.mgFrom and p.mgTo and p.relat_id=r.id(+)
       and decode(prop_,0,p.dat_prop, p.dat_ub) between dat2_ and dat3_
       and s.psch<>8
       order by l.name, utils.f_order(s.nd,6), utils.f_order(s.kw,7);
@@ -3285,7 +3288,7 @@ elsif сd_ in  ('88') then
     if var_ = 0 then
     --по Городу
       if utils.get_int_param('CAP_VAR_REP1') = 0 then
-          -- версия для остальных
+          -- версия для остальных (Полыс)
           open prep_refcursor for
                     select * from
                     (select
@@ -3323,7 +3326,7 @@ elsif сd_ in  ('88') then
             join scott.t_org o on o.fk_orgtp = tp.id
             join scott.spul s on k.kul = s.id
             join scott.status d on k.status = d.id
-            join v_lsk_tp tp2 on k.fk_tp=tp2.id
+            join v_lsk_tp tp2 on k.fk_tp=tp2.id and tp2.cd = 'LSK_TP_ADDIT'
             left join (select t.lsk, t.org,  sum(t.charges) as charges, sum(t.changes) as changes,
                      sum(t.pinsal) as pinsal, sum(t.pcur) as pcur,
                      sum(t.poutsal) as poutsal, sum(t.indebet) as indebet, sum(t.inkredit) as inkredit,
@@ -3338,7 +3341,8 @@ elsif сd_ in  ('88') then
                         group by p.lsk) sl on k.lsk = sl.lsk
             left join scott.spk sp on sl.fk_spk = sp.id
             left join scott.spk_gr g on sp.gr_id = g.id
-             where k.mg = mg_
+             where k.mg = mg_ 
+             and k.lsk not in ('04001692') -- просит Полыс. не выгружать л.с. ред.21.05.20
            order by scott.utils.f_ord_digit(k.nd), scott.utils.f_ord3(k.nd),
                     scott.utils.f_ord_digit(k.kw), scott.utils.f_ord3(k.kw)
                     ) xx1 ) xx2
@@ -3766,14 +3770,14 @@ elsif сd_ in  ('88') then
     OPEN prep_refcursor for select scott.utils.month_name(substr(k.mg, 5, 2)) as mon,
                  substr(k.mg, 1, 4) as year, k.lsk as ls, s.name as ul, ltrim(k.nd,'0') as dom, ltrim(k.kw,'0') as kv,
      a.name as st, k.opl, k.k_fam as sur, k.k_im as nam, k.k_ot as mid, k.kpr, t.dat_rog
-     from arch_kart k, a_kart_pr t, spul s, status a
+     from arch_kart k, a_kart_pr2 t, spul s, status a
     where k.psch not in (8,9)
-      and k.lsk=t.lsk and k.mg=t.mg and k.mg=mg_
+      and k.lsk=t.lsk and k.mg between t.mgFrom and t.mgTo and k.mg=mg_
       and k.kul=s.id and k.status=a.id and a.cd='PRV'
-      and exists (select min(p.id) from a_kart_pr p, relations r where
-       months_between(to_date(p.mg||'01','YYYYMMDD'), p.dat_rog) /12 >= 70
+      and exists (select min(p.id) from a_kart_pr2 p, relations r where
+       months_between(to_date(mg_||'01','YYYYMMDD'), p.dat_rog) /12 >= 70
        and p.dat_rog is not null
-       and p.id=t.id and p.mg=mg_
+       and p.id=t.id and mg_ between p.mgFrom and p.mgTo
        and p.relat_id=r.id and r.cd in ('Квартиросъемщик', 'Собственник')
        and p.status=1
        having min(p.id)=t.id
@@ -4357,6 +4361,77 @@ elsif сd_ in  ('88') then
 16  Исправный
 17  Аварийный*/
        
+
+ elsif сd_ in ('97') then -- следующий номер CD смотреть так же в REP_LSK!
+-- показания счетчиков
+     IF var_ = 3 THEN
+      -- по дому
+--      sqlstr_:='AND s.reu='''||reu_||''' AND s.kul='''||kul_||''' AND s.nd='''||nd_||'''';
+      sqlstr_:='and s.kul='''||kul_||''' AND s.nd='''||nd_||'''';
+      ELSIF var_ = 2 THEN
+        -- по РЭУ
+      sqlstr_:='and s.reu='''||reu_||'''';
+       ELSIF var_ = 1 THEN
+        -- по УК
+      sqlstr_:='and r.trest='''||trest_||'''';
+      ELSIF var_ = 0 THEN
+        -- все УК
+      sqlstr_:='';
+      END IF;   
+      if det_=3 then
+        -- детализация по квартирам
+        sql_det:= 'p.name||'', ''||NVL(LTRIM(s.nd,''0''),''0'')||''-''||NVL(LTRIM(s.kw,''0''),''0'')';
+      else
+        sql_det:= 'p.name||'', ''||NVL(LTRIM(s.nd,''0''),''0'')';
+      end if;
+/*      insert into txt(memo)
+      values ('select s.reu, s.lsk, '||sql_det||' AS predpr_det,
+          det.ord1, u.usl||''-''||u.nm as name_usl, m.n1, a.vol
+          FROM kart s 
+          join spul p on s.kul=p.id
+          join s_reu_trest r on r.reu=s.reu
+          join kart_detail det on s.lsk=det.lsk and det.is_main=1 -- основной лиц.сч.
+          join usl u on 1=1
+          left join meter m on m.fk_klsk_obj=s.k_lsk_id and m.fk_usl=u.usl
+          left join (select k2.k_lsk_id, t.usl, sum(t.test_opl) as vol from '||sql_charge||' t join kart k2 on k2.lsk=t.lsk
+            where t.type=1
+            group by k2.k_lsk_id, t.usl) a on s.k_lsk_id=a.k_lsk_id and u.usl=a.usl 
+          where s.psch not in (8,9) '||sql_charge_where||'
+          and u.usl in (''011'',''015'',''038'') '||sqlstr_||
+          ' order by det.ord1, u.usl');
+          commit;*/
+/*   НЕ удалять пока до 12.06.20!   OPEN prep_refcursor FOR 'select s.reu, s.lsk, '||sql_det||' AS predpr_det,
+          det.ord1, u.usl||''-''||u.nm as name_usl, m.n1, a.vol
+          FROM kart s 
+          join spul p on s.kul=p.id
+          join s_reu_trest r on r.reu=s.reu
+          join kart_detail det on s.lsk=det.lsk and det.is_main=1 -- основной лиц.сч.
+          join usl u on 1=1
+          left join meter m on m.fk_klsk_obj=s.k_lsk_id and m.fk_usl=u.usl
+          left join (select k2.k_lsk_id, decode(t.usl,''016'',''015'',''012'',''011'',t.usl) as usl, 
+            sum(t.test_opl) as vol from '||sql_charge||' t join kart k2 on k2.lsk=t.lsk
+            where t.type=1 '||sql_charge_where||'
+            group by k2.k_lsk_id, decode(t.usl,''016'',''015'',''012'',''011'',t.usl)) a on s.k_lsk_id=a.k_lsk_id and u.usl=a.usl 
+          where s.psch not in (8,9) 
+          and u.usl in (''011'',''015'',''038'') '||sqlstr_||
+          ' order by det.ord1, u.usl';   */
+      
+         OPEN prep_refcursor FOR 'select s.reu, max(s.lsk) as lsk, s.k_lsk_id, '||sql_det||' AS predpr_det,
+          det.ord1, u.usl, u.usl||''-''||u.nm as name_usl, sum(m.n1) as n1, sum(a.vol) as vol
+          FROM kart s 
+          join spul p on s.kul=p.id
+          join s_reu_trest r on r.reu=s.reu
+          join kart_detail det on s.lsk=det.lsk and det.is_main=1 -- основной лиц.сч.
+          join usl u on 1=1
+          left join meter m on m.fk_klsk_obj=s.k_lsk_id and m.fk_usl=u.usl
+          left join (select t.fk_k_lsk, sum(t.n1) as vol from t_objxpar t 
+          join u_list us on t.fk_list=us.id and us.cd=''ins_vol_sch''
+          where t.mg='||mg_||'
+          group by t.fk_k_lsk) a on m.k_lsk_id=a.fk_k_lsk 
+          where u.usl in (''011'',''015'',''038'') '||sqlstr_||
+          ' group by s.reu, s.k_lsk_id, '||sql_det||', det.ord1, u.usl, u.usl||''-''||u.nm 
+          order by det.ord1, u.usl';   
+           
  end if;
 
 

@@ -25,9 +25,9 @@ procedure main_arch(p_sel_obj   in number, -- вариант выборки: 0 - по лиц.счету,
                p_lsk       in kart.lsk%type, -- лиц.начальный
                p_lsk1      in kart.lsk%type, -- лиц.конечный
                p_is_closed in number, -- выводить ли закрытый фонд, если есть долг? (0-нет, 1-да)
-               p_firstNum  in number, -- начальный номер счета (дл€ печати по ” )
-               p_lastNum   in number, -- конечный номер счета
-               p_mg        in params.period%type, -- период выборки
+               p_firstNum  in number default null, -- начальный номер счета (дл€ печати по ” ) -- убрать после тестировани€! ред.28.05.2020
+               p_lastNum   in number default null, -- конечный номер счета -- убрать после тестировани€! ред.28.05.2020
+               p_mg        in params.period%type default null, -- период выборки (дл€ арх.справки-обычно текущий период) -- убрать после тестировани€! ред.28.05.2020
                p_sel_uk    in varchar2, -- список ” 
                p_rfcur     out ccur -- исх.рефкурсор
                );
@@ -220,14 +220,55 @@ procedure main_arch(p_sel_obj   in number, -- вариант выборки: 0 - по лиц.счету,
                p_lsk       in kart.lsk%type, -- лиц.начальный
                p_lsk1      in kart.lsk%type, -- лиц.конечный
                p_is_closed in number, -- выводить ли закрытый фонд, если есть долг? (0-нет, 1-да)
-               p_firstNum  in number, -- начальный номер счета (дл€ печати по ” )
-               p_lastNum   in number, -- конечный номер счета
-               p_mg        in params.period%type, -- период выборки (дл€ арх.справки-обычно текущий период)
+               p_firstNum  in number default null, -- начальный номер счета (дл€ печати по ” ) -- убрать после тестировани€! ред.28.05.2020
+               p_lastNum   in number default null, -- конечный номер счета -- убрать после тестировани€! ред.28.05.2020
+               p_mg        in params.period%type default null, -- период выборки (дл€ арх.справки-обычно текущий период) -- убрать после тестировани€! ред.28.05.2020
                p_sel_uk    in varchar2, -- список ” 
                p_rfcur     out ccur -- исх.рефкурсор
                ) is
 begin
     -- по лиц.счету, и прочие варианты
+    open p_rfcur for
+      select k.k_lsk_id, s.name || ', ' ||
+                nvl(ltrim(k.nd, '0'), '0') || '-' ||
+                nvl(ltrim(k.kw, '0'), '0') as adr, k.lsk, k.kpr, k.opl, decode(st.cd,
+                       'MUN',
+                       'Ќаниматель',
+                       '—обственник') as pers_tp, k.fio, o.name as name_uk
+        from scott.kart k
+          left join scott.spul s
+            on k.kul = s.id
+          left join scott.status st
+            on k.status = st.id
+          join t_org o on k.reu=o.reu
+          join (select *
+                  from (select k2.lsk, -- фильтр приоритетного открытого и основного лиц счета
+                                first_value(k2.lsk) over(partition by k2.k_lsk_id order by decode(k2.psch, 8, 1, 9, 1, 0), tp2.npp) as lsk_main
+                           from KART k2
+                           join u_list tp2
+                             on k2.fk_tp = tp2.id
+                           where decode(p_sel_obj, 0, p_lsk, k2.lsk) = k2.lsk
+                              --and k2.mg = p_mg
+                            ) a
+                 where a.lsk = a.lsk_main) b
+            on b.lsk = k.lsk
+       where decode(p_sel_obj, 0, p_lsk, k.lsk) >= k.lsk
+         and -- по лиц.счету
+             decode(p_sel_obj, 0, p_lsk1, k.lsk) <= k.lsk
+         and -- по лиц.счету
+             decode(p_sel_obj, 1, nvl(p_kul, k.kul), k.kul) = k.kul
+         and -- по адресу
+             decode(p_sel_obj, 1, nvl(p_nd, k.nd), k.nd) = k.nd
+         and decode(p_sel_obj, 1, nvl(p_kw, k.kw), k.kw) = k.kw
+         group by k.k_lsk_id, s.name || ', ' ||
+                nvl(ltrim(k.nd, '0'), '0') || '-' ||
+                nvl(ltrim(k.kw, '0'), '0'), k.lsk, k.kpr, k.opl, decode(st.cd,
+                       'MUN',
+                       'Ќаниматель',
+                       '—обственник'), k.fio, o.name
+         order by k_lsk_id;
+/*
+
     open p_rfcur for
       select k.k_lsk_id, s.name || ', ' ||
                 nvl(ltrim(k.nd, '0'), '0') || '-' ||
@@ -269,6 +310,8 @@ begin
                        'Ќаниматель',
                        '—обственник'), k.fio, o.name
          order by k_lsk_id;
+
+*/         
 end;
 
 -- исполнители по ѕƒ

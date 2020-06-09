@@ -936,17 +936,19 @@ begin
   --добавляем корректировки оплаты
   --тип-4 корректировка из t_corrects_payment (либо var_=0,null - до предварительного форм.сальдо, 1- после)
   --тип-11 корректировка которая НЕ должна пройти в c_deb_usl
-  if p_lsk is null then 
+  if p_lsk is null then   
     insert into kwtp_day
     (fk_distr, kwtp_id, lsk, summa, oper, dopl, nkom, nink, dat_ink, priznak, usl, org, dtek)
-    select decode(t.var,0,4,1,4, 12, 12, 4) as fk_distr, null, t.lsk, t.summa, '99' as oper,
+    select decode(t.var,0,4,1,4, 12, 12, 4) as fk_distr, null, t.lsk, t.summa,
+     decode(utils.get_int_param('IS_LONG_OPER_CODE'),1,'099','99') as oper,
     t.dopl,
     c.nkom, c.nink, t.dat, 1, t.usl, t.org, t.dat
     from t_corrects_payments t, c_comps c, params p where c.nkom='999' and t.mg=p.period;
   else
     insert into kwtp_day
     (fk_distr, kwtp_id, lsk, summa, oper, dopl, nkom, nink, dat_ink, priznak, usl, org, dtek)
-    select decode(t.var,0,4,1,4, 12, 12, 4) as fk_distr, null, t.lsk, t.summa, '99' as oper,
+    select decode(t.var,0,4,1,4, 12, 12, 4) as fk_distr, null, t.lsk, t.summa, 
+    decode(utils.get_int_param('IS_LONG_OPER_CODE'),1,'099','99') as oper,
     t.dopl,
     c.nkom, c.nink, t.dat, 1, t.usl, t.org, t.dat
     from t_corrects_payments t, c_comps c, params p where c.nkom='999' and t.mg=p.period and t.lsk=p_lsk;

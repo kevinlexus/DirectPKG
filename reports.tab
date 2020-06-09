@@ -1,27 +1,29 @@
 create table SCOTT.REPORTS
 (
-  id            NUMBER not null,
-  name          VARCHAR2(100),
-  maxlevel      NUMBER,
-  fk_type       NUMBER,
-  expand_row    NUMBER,
-  expand_col    NUMBER,
-  can_detail    NUMBER,
-  show_sel_org  NUMBER,
-  show_sel_oper NUMBER,
-  cd            VARCHAR2(32),
-  sel_many      NUMBER,
-  have_date     NUMBER,
-  fname         VARCHAR2(32),
-  iscnt         NUMBER,
-  issum         NUMBER,
-  fldsum        VARCHAR2(32),
-  ishead        NUMBER,
-  show_paychk   NUMBER,
-  show_deb      NUMBER,
-  frx_fname     VARCHAR2(64),
-  isoem         NUMBER,
-  frm_name      VARCHAR2(64)
+  id             NUMBER not null,
+  name           VARCHAR2(100),
+  maxlevel       NUMBER,
+  fk_type        NUMBER,
+  expand_row     NUMBER,
+  expand_col     NUMBER,
+  can_detail     NUMBER,
+  show_sel_org   NUMBER,
+  show_sel_oper  NUMBER,
+  cd             VARCHAR2(32),
+  sel_many       NUMBER,
+  have_date      NUMBER,
+  fname          VARCHAR2(32),
+  iscnt          NUMBER,
+  issum          NUMBER,
+  fldsum         VARCHAR2(32),
+  ishead         NUMBER,
+  show_paychk    NUMBER,
+  show_deb       NUMBER,
+  frx_fname      VARCHAR2(64),
+  isoem          NUMBER,
+  frm_name       VARCHAR2(64),
+  show_total_row NUMBER default 1,
+  show_total_col NUMBER default 1
 )
 tablespace USERS
   pctfree 10
@@ -81,6 +83,10 @@ comment on column SCOTT.REPORTS.isoem
   is 'Выгружать TXT файл в кодировке DOS  (0-нет, 1 - да)';
 comment on column SCOTT.REPORTS.frm_name
   is 'Наименование формы, для вызова';
+comment on column SCOTT.REPORTS.show_total_row
+  is 'Показывать итоги по строкам в OLAP';
+comment on column SCOTT.REPORTS.show_total_col
+  is 'Показывать итоги по столбцам в OLAP';
 create unique index SCOTT.REPORTS_I on SCOTT.REPORTS (CD)
   tablespace USERS
   pctfree 10

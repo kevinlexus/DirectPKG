@@ -264,6 +264,7 @@ insert into statistics_lsk
     logger.ins_period_rep('18', mg_, null, 0);
     logger.ins_period_rep('57', mg_, null, 0);
     logger.ins_period_rep('83', mg_, null, 0);
+    logger.ins_period_rep('97', mg_, null, 0);
   else
     logger.ins_period_rep('13', null, dat_, 0);
     logger.ins_period_rep('18', null, dat_, 0);

@@ -475,15 +475,18 @@ begin
       return 0;
     end if;
   elsif p_distr in (19) then
-    --по деб сальдо, по уже неработающим организациям в текущем периоде
+    --по деб сальдо, уже неработающих организаций в текущем периоде, но работающим в периоде оплаты
     select rec_summ(d.usl, d.org, sum(d.summa), 0) bulk collect
           into t_summ from
             (select t.usl, t.org, nvl(t.indebet,0) as summa
               from xitog3_lsk t, kart k, params p --взять входящее деб сальдо
               where t.lsk=p_rec.lsk and t.lsk=k.lsk
               and t.mg=p.period
-              and not exists
-              (select * from nabor n where n.lsk=t.lsk and n.usl=t.usl and n.org=t.org)) d
+              and not exists -- неработающие в текущем периоде
+              (select * from nabor n where n.lsk=t.lsk and n.usl=t.usl and n.org=t.org)
+              and exists     -- работающие в периоде оплаты
+              (select * from a_nabor2 n where n.lsk=t.lsk and n.usl=t.usl and n.org=t.org and p_mg between n.mgfrom and mgto)
+              ) d
              group by d.usl, d.org
              having  sum(summa ) > 0;
     if sql%rowcount =0 then

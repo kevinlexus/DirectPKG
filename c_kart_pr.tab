@@ -48,7 +48,9 @@ create table SCOTT.C_KART_PR
   priv_proc          VARCHAR2(10),
   acpt               NUMBER(1),
   dok_snils          VARCHAR2(11),
-  use_gis_divide_els NUMBER(1) default 0 not null
+  use_gis_divide_els NUMBER(1) default 0 not null,
+  dok_div            VARCHAR2(120),
+  dok_inn            VARCHAR2(12)
 )
 tablespace USERS
   pctfree 1
@@ -162,6 +164,10 @@ comment on column SCOTT.C_KART_PR.dok_snils
   is 'СНИЛС';
 comment on column SCOTT.C_KART_PR.use_gis_divide_els
   is 'Использовать информацию для привязки к разделенному лиц.счету (1-да, 0-нет)';
+comment on column SCOTT.C_KART_PR.dok_div
+  is 'Код подразделения';
+comment on column SCOTT.C_KART_PR.dok_inn
+  is 'ИНН';
 create index SCOTT.C_KART_PR_I on SCOTT.C_KART_PR (LSK, ID)
   tablespace USERS
   pctfree 10

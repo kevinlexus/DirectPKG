@@ -1,6 +1,6 @@
 -------------------------------------------
 -- Export file for user SCOTT@ORCL       --
--- Created by Leo on 23.04.2020, 8:16:43 --
+-- Created by Leo on 09.06.2020, 7:17:02 --
 -------------------------------------------
 
 set define off
@@ -76,6 +76,11 @@ prompt Creating table A_KART_PR
 prompt ========================
 prompt
 @@a_kart_pr.tab
+prompt
+prompt Creating table A_KART_PR2
+prompt =========================
+prompt
+@@a_kart_pr2.tab
 prompt
 prompt Creating table A_KWTP
 prompt =====================
@@ -251,6 +256,11 @@ prompt Creating table C_CHARGEPAY
 prompt ==========================
 prompt
 @@c_chargepay.tab
+prompt
+prompt Creating table C_CHARGEPAY2
+prompt ===========================
+prompt
+@@c_chargepay2.tab
 prompt
 prompt Creating table C_CHARGE_PREP
 prompt ============================
@@ -1547,6 +1557,11 @@ prompt ==================================
 prompt
 @@a_charge_prep_id.seq
 prompt
+prompt Creating sequence A_KART_PR2_ID
+prompt ===============================
+prompt
+@@a_kart_pr2_id.seq
+prompt
 prompt Creating sequence A_NABOR_ID
 prompt ============================
 prompt
@@ -1571,6 +1586,11 @@ prompt Creating sequence C_BILL_ID
 prompt ===========================
 prompt
 @@c_bill_id.seq
+prompt
+prompt Creating sequence C_CHARGEPAY2_ID
+prompt =================================
+prompt
+@@c_chargepay2_id.seq
 prompt
 prompt Creating sequence C_CHARGE_ID
 prompt =============================
@@ -2917,6 +2937,11 @@ prompt =============================================
 prompt
 @@drn144_карточки_внешних_лс.prc
 prompt
+prompt Creating procedure DRN146_ОБЪЕМЫ_ПО_СЧЕТЧИКАМ
+prompt =============================================
+prompt
+@@drn146_объемы_по_счетчикам.prc
+prompt
 prompt Creating procedure DRN14_ОПЛАТА_ПО_УСЛУГЕ
 prompt =========================================
 prompt
@@ -3357,6 +3382,11 @@ prompt ===========================================
 prompt
 @@drx_print_bills_спр_арх2.prc
 prompt
+prompt Creating procedure DRX_PRINT_BILLS_СПР_АРХ3
+prompt ===========================================
+prompt
+@@drx_print_bills_спр_арх3.prc
+prompt
 prompt Creating procedure DRX_PRINT_BILLS_СПР_ЗАД
 prompt ==========================================
 prompt
@@ -3377,6 +3407,11 @@ prompt =======================================
 prompt
 @@drx_print_bills_счет.prc
 prompt
+prompt Creating procedure DRX_ВЕРНУТЬ_ОПЛАТУ
+prompt =====================================
+prompt
+@@drx_вернуть_оплату.prc
+prompt
 prompt Creating procedure DRX_ПРОСМОТР_ДОЛГ_ПЕРИОД
 prompt ===========================================
 prompt
@@ -3391,6 +3426,11 @@ prompt Creating procedure DRX_УДАЛ_ПЕРЕРАСЧ
 prompt ====================================
 prompt
 @@drx_удал_перерасч.prc
+prompt
+prompt Creating procedure DRX_УДАЛИТЬ_ОПЛАТУ
+prompt =====================================
+prompt
+@@drx_удалить_оплату.prc
 prompt
 prompt Creating procedure DRX_УСТАНОВКА_ПРИЗНАКА_СЧ
 prompt ============================================
@@ -3532,6 +3572,11 @@ prompt ===================================
 prompt
 @@a_charge_prep2_bie.trg
 prompt
+prompt Creating trigger A_KART_PR2_BIE
+prompt ===============================
+prompt
+@@a_kart_pr2_bie.trg
+prompt
 prompt Creating trigger A_NABOR2_BIE
 prompt =============================
 prompt
@@ -3561,6 +3606,11 @@ prompt Creating trigger C_CHANGE_DOCS_BI_E
 prompt ===================================
 prompt
 @@c_change_docs_bi_e.trg
+prompt
+prompt Creating trigger C_CHARGEPAY2_BIE
+prompt =================================
+prompt
+@@c_chargepay2_bie.trg
 prompt
 prompt Creating trigger C_CHARGE_BI
 prompt ============================

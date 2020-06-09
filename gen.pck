@@ -1150,16 +1150,19 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
                v.oper,
                v.cd_tp,
                mg_
-          from (select t.lsk, t.usl, t.org, substr(t.nkom, 1, 2) AS reu, s.trest, 0 as var,
-            s.reu as forreu, to_number(substr(op.oigu, 1, 1)) AS oborot,
+          from (select t.lsk, t.usl, t.org, substr(t.nkom, 1, 2) AS reu, s2.trest, 0 as var,
+            s2.reu as forreu, to_number(substr(op.oigu, 1, 1)) AS oborot,
             t.summa as summar, t.sum_distr, t.fk_distr,
-            t.oper, t.dat_ink as dat, t.usl as usl_b, t.org as org_b, decode(l_xxito14_period_var,1,s.dopl,t.dopl) as dopl,
+            t.oper, t.dat_ink as dat, t.usl as usl_b, t.org as org_b, 
+            decode(l_xxito14_period_var,1,nvl(s.dopl,t.dopl),t.dopl) as dopl,
             t.priznak as cd_tp
-             from kwtp_day t, c_kwtp_mg s, kart k, s_reu_trest s, oper op
-           where t.lsk=k.lsk and s.id=t.kwtp_id and k.reu=s.reu and t.oper=op.oper/* ред.21.06.11 and t.priznak = 1*/
-           and t.dat_ink between init.g_dt_start and init.g_dt_end) v, kart k
-         where v.dat = to_date(a, 'YYYYMMDD')
-           and k.lsk = v.lsk
+             from kwtp_day t 
+             left join c_kwtp_mg s on s.id=t.kwtp_id
+             join kart k on t.lsk=k.lsk 
+             join s_reu_trest s2 on k.reu=s2.reu
+             join oper op on t.oper=op.oper
+           where t.dat_ink = to_date(a, 'YYYYMMDD')) v, kart k
+         where k.lsk = v.lsk
            and v.oborot = 1
          group by v.lsk,
                   v.usl,
@@ -1209,16 +1212,19 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
                v.oper,
                v.cd_tp,
                mg_
-          from (select t.lsk, t.usl, t.org, substr(t.nkom, 1, 2) AS reu, s.trest, 0 as var,
-            s.reu as forreu, to_number(substr(op.oigu, 1, 1)) AS oborot,
-            t.summa as summar, t.sum_distr,
-               t.fk_distr, t.oper, t.dat_ink as dat, t.usl as usl_b, t.org as org_b, decode(l_xxito14_period_var,1,s.dopl,t.dopl) as dopl,
-               t.priznak as cd_tp
-             from kwtp_day t, c_kwtp_mg s, kart k, s_reu_trest s, oper op
-           where t.lsk=k.lsk and s.id=t.kwtp_id and k.reu=s.reu and t.oper=op.oper/* ред.21.06.11 and t.priznak = 1*/
-           and t.dat_ink between init.g_dt_start and init.g_dt_end) v, kart k
-         where v.dat = to_date(a, 'YYYYMMDD')
-           and k.lsk = v.lsk
+          from (select t.lsk, t.usl, t.org, substr(t.nkom, 1, 2) AS reu, s2.trest, 0 as var,
+            s2.reu as forreu, to_number(substr(op.oigu, 1, 1)) AS oborot,
+            t.summa as summar, t.sum_distr, t.fk_distr,
+            t.oper, t.dat_ink as dat, t.usl as usl_b, t.org as org_b, 
+            decode(l_xxito14_period_var,1,nvl(s.dopl,t.dopl),t.dopl) as dopl,
+            t.priznak as cd_tp
+             from kwtp_day t 
+             left join c_kwtp_mg s on s.id=t.kwtp_id
+             join kart k on t.lsk=k.lsk 
+             join s_reu_trest s2 on k.reu=s2.reu
+             join oper op on t.oper=op.oper
+           where t.dat_ink = to_date(a, 'YYYYMMDD')) v, kart k
+         where k.lsk = v.lsk
            and v.oborot = 1
          group by v.usl,
                   v.org,
@@ -1407,13 +1413,18 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
              v.oper,
              v.cd_tp,
              v.dat
-        from (select t.lsk, t.usl, t.org, substr(t.nkom, 1, 2) AS reu, s.trest, 0 as var,
-            s.reu as forreu, to_number(substr(op.oigu, 1, 1)) AS oborot,
-            t.summa as summar, t.oper, t.dat_ink as dat, t.usl as usl_b, t.org as org_b, decode(l_xxito14_period_var,1,s.dopl,t.dopl) as dopl,
+        from (select t.lsk, t.usl, t.org, substr(t.nkom, 1, 2) AS reu, s2.trest, 0 as var,
+            s2.reu as forreu, to_number(substr(op.oigu, 1, 1)) AS oborot,
+            t.summa as summar, t.sum_distr, t.fk_distr,
+            t.oper, t.dat_ink as dat, t.usl as usl_b, t.org as org_b, 
+            decode(l_xxito14_period_var,1,nvl(s.dopl,t.dopl),t.dopl) as dopl,
             t.priznak as cd_tp
-             from kwtp_day t, c_kwtp_mg s, kart k, s_reu_trest s, oper op
-           where t.lsk=k.lsk and s.id=t.kwtp_id and k.reu=s.reu and t.oper=op.oper
-           and t.dat_ink between init.g_dt_start and init.g_dt_end) v, kart k
+             from kwtp_day t 
+             left join c_kwtp_mg s on s.id=t.kwtp_id
+             join kart k on t.lsk=k.lsk 
+             join s_reu_trest s2 on k.reu=s2.reu
+             join oper op on t.oper=op.oper
+           where t.dat_ink between init.g_dt_start and init.g_dt_end) v, kart k
        where k.lsk = v.lsk
          and v.oborot = 1
        group by k.lsk,
@@ -1462,13 +1473,18 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
              v.oper,
              v.cd_tp,
              v.dat
-        from (select t.lsk, t.usl, t.org, substr(t.nkom, 1, 2) AS reu, s.trest, 0 as var,
-            s.reu as forreu, to_number(substr(op.oigu, 1, 1)) AS oborot,
-            t.summa as summar, t.sum_distr, t.fk_distr, t.oper, t.dat_ink as dat,
-            t.usl as usl_b, t.org as org_b, decode(l_xxito14_period_var,1,s.dopl,t.dopl) as dopl, t.priznak as cd_tp
-             from kwtp_day t, c_kwtp_mg s, kart k, s_reu_trest s, oper op
-           where t.lsk=k.lsk and s.id=t.kwtp_id and k.reu=s.reu and t.oper=op.oper
-           and t.dat_ink between init.g_dt_start and init.g_dt_end) v, kart k
+        from (select t.lsk, t.usl, t.org, substr(t.nkom, 1, 2) AS reu, s2.trest, 0 as var,
+            s2.reu as forreu, to_number(substr(op.oigu, 1, 1)) AS oborot,
+            t.summa as summar, t.sum_distr, t.fk_distr,
+            t.oper, t.dat_ink as dat, t.usl as usl_b, t.org as org_b, 
+            decode(l_xxito14_period_var,1,nvl(s.dopl,t.dopl),t.dopl) as dopl,
+            t.priznak as cd_tp
+             from kwtp_day t 
+             left join c_kwtp_mg s on s.id=t.kwtp_id
+             join kart k on t.lsk=k.lsk 
+             join s_reu_trest s2 on k.reu=s2.reu
+             join oper op on t.oper=op.oper
+           where t.dat_ink between init.g_dt_start and init.g_dt_end) v, kart k
        where k.lsk = v.lsk
          and v.oborot = 1
        group by v.usl,
@@ -3590,45 +3606,46 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
 
     --карточки проживающих
     if lsk_ is null then
-      trunc_part('a_kart_pr', mg_);
-      insert into a_kart_pr
+      delete from a_kart_pr2 a
+       where mg_ between a.mgFrom and a.mgTo;
+      insert into a_kart_pr2
         (id, lsk, fio, status, dat_rog, pol, dok, dok_c, dok_n,
-        dok_d, dok_v, dok_snils, dat_prop, dat_ub, relat_id,
+        dok_d, dok_v, dok_snils, dok_div, dok_inn, dat_prop, dat_ub, relat_id,
         status_datb, status_dat, status_chng, k_fam, k_im, k_ot,
         fk_doc_tp, fk_nac, b_place, fk_frm_cntr, fk_frm_regn,
         fk_frm_distr, frm_town, frm_dat, fk_frm_kul, frm_nd,
         frm_kw, w_place, fk_ub, fk_to_cntr, fk_to_regn,
         fk_to_distr, to_town, fk_to_kul, to_nd, to_kw,
-        fk_citiz, fk_milit, fk_milit_regn, priv_proc, mg)
+        fk_citiz, fk_milit, fk_milit_regn, priv_proc, mgFrom, mgTo)
         select c.id, c.lsk, c.fio, c.status, c.dat_rog, c.pol, c.dok, c.dok_c, c.dok_n,
-          c.dok_d, c.dok_v, c.dok_snils, c.dat_prop, c.dat_ub, c.relat_id,
+          c.dok_d, c.dok_v, c.dok_snils, c.dok_div, c.dok_inn, c.dat_prop, c.dat_ub, c.relat_id,
           c.status_datb, c.status_dat, c.status_chng, c.k_fam, c.k_im, c.k_ot,
           c.fk_doc_tp, c.fk_nac, c.b_place, c.fk_frm_cntr, c.fk_frm_regn,
           c.fk_frm_distr, c.frm_town, c.frm_dat, c.fk_frm_kul, c.frm_nd,
           c.frm_kw, c.w_place, c.fk_ub, c.fk_to_cntr, c.fk_to_regn,
           c.fk_to_distr, c.to_town, c.fk_to_kul, c.to_nd, c.to_kw,
-          c.fk_citiz, c.fk_milit, c.fk_milit_regn, c.priv_proc, p.period
+          c.fk_citiz, c.fk_milit, c.fk_milit_regn, c.priv_proc, p.period as mgFrom, p.period as mgTo
         from c_kart_pr c, params p;
     else
-      delete from a_kart_pr a
-       where a.lsk=lsk_ and a.mg = mg_;
-      insert into a_kart_pr
+      delete from a_kart_pr2 a
+       where a.lsk=lsk_ and mg_ between a.mgFrom and a.mgTo;
+      insert into a_kart_pr2
         (id, lsk, fio, status, dat_rog, pol, dok, dok_c, dok_n,
-        dok_d, dok_v, dat_prop, dat_ub, relat_id,
+        dok_d, dok_v, dok_snils, dok_div, dok_inn, dat_prop, dat_ub, relat_id,
         status_datb, status_dat, status_chng, k_fam, k_im, k_ot,
         fk_doc_tp, fk_nac, b_place, fk_frm_cntr, fk_frm_regn,
         fk_frm_distr, frm_town, frm_dat, fk_frm_kul, frm_nd,
         frm_kw, w_place, fk_ub, fk_to_cntr, fk_to_regn,
         fk_to_distr, to_town, fk_to_kul, to_nd, to_kw,
-        fk_citiz, fk_milit, fk_milit_regn, priv_proc, mg)
+        fk_citiz, fk_milit, fk_milit_regn, priv_proc, mgFrom, mgTo)
         select c.id, c.lsk, c.fio, c.status, c.dat_rog, c.pol, c.dok, c.dok_c, c.dok_n,
-          c.dok_d, c.dok_v, c.dat_prop, c.dat_ub, c.relat_id,
+          c.dok_d, c.dok_v, c.dok_snils, c.dok_div, c.dok_inn, c.dat_prop, c.dat_ub, c.relat_id,
           c.status_datb, c.status_dat, c.status_chng, c.k_fam, c.k_im, c.k_ot,
           c.fk_doc_tp, c.fk_nac, c.b_place, c.fk_frm_cntr, c.fk_frm_regn,
           c.fk_frm_distr, c.frm_town, c.frm_dat, c.fk_frm_kul, c.frm_nd,
           c.frm_kw, c.w_place, c.fk_ub, c.fk_to_cntr, c.fk_to_regn,
           c.fk_to_distr, c.to_town, c.fk_to_kul, c.to_nd, c.to_kw,
-          c.fk_citiz, c.fk_milit, c.fk_milit_regn, c.priv_proc, p.period
+          c.fk_citiz, c.fk_milit, c.fk_milit_regn, c.priv_proc, p.period as mgFrom, p.period as mgTo
         from c_kart_pr c, params p
          where c.lsk = lsk_;
     end if;
@@ -3955,7 +3972,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
       subs_cur, k_fam, k_im, k_ot, memo, fk_distr,
       law_doc, law_doc_dt, prvt_doc, prvt_doc_dt,
       fk_pasp_org, fk_err, mg, dolg, cpn, penya,
-      kpr_wrp, pn_dt, fk_tp, fact_meter_tp, for_bill, sel1, vvod_ot, entr, pot, mot, parent_lsk, kpr_own)
+      kpr_wrp, pn_dt, fk_tp, fact_meter_tp, for_bill, sel1, vvod_ot, entr, pot, mot, parent_lsk, kpr_own, fk_klsk_premise)
       select
       k.lsk, k.kul, k.nd, k.kw, k.fio, k.kpr, k.kpr_wr, k.kpr_ot,
       k.kpr_cem, k.kpr_s, k.opl, k.ppl, k.pldop, k.ki, k.psch,
@@ -3973,7 +3990,8 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
       nvl(d.penya,0)-nvl(b.penya,0) as penya,
       k.kpr_wrp, pn_dt, k.fk_tp, k.fact_meter_tp,
       case when nvl(e.summa,0) <> 0 or nvl(b.penya,0) <> 0 or nvl(b.dolg/*b.penya*/,0) <> 0 then 1 --добавил пеню 09.03.2016, счет будет выбираться для печати если есть долг или текущ начисление))
-        else 0 end as for_bill, k.sel1, k.vvod_ot, k.entr, k.pot, k.mot, k.parent_lsk, k.kpr_own
+        else 0 end as for_bill, k.sel1, k.vvod_ot, k.entr, k.pot, k.mot, k.parent_lsk, k.kpr_own,
+      k.fk_klsk_premise
       from kart k, params p,
       (select t.k_lsk_id, nvl(sum(summa),0) as dolg from saldo_usl s, kart t where
         t.lsk=s.lsk and s.mg=mg1_
@@ -4175,7 +4193,7 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
       subs_cur, k_fam, k_im, k_ot, memo, fk_distr,
       law_doc, law_doc_dt, prvt_doc, prvt_doc_dt,
       fk_pasp_org, fk_err, mg, dolg, cpn, penya,
-      kpr_wrp, pn_dt, fk_tp, for_bill, prn_num, prn_new, sel1, vvod_ot, entr, pot, mot, kpr_own)
+      kpr_wrp, pn_dt, fk_tp, for_bill, prn_num, prn_new, sel1, vvod_ot, entr, pot, mot, kpr_own, fk_klsk_premise)
       select
       k.lsk, k.kul, k.nd, k.kw, k.fio, k.kpr, k.kpr_wr, k.kpr_ot,
       k.kpr_cem, k.kpr_s, k.opl, k.ppl, k.pldop, k.ki, k.psch,
@@ -4194,7 +4212,8 @@ select c.lsk, a.*, b.*, a.summa-b.summa as diff
       k.kpr_wrp, pn_dt, k.fk_tp,
       --case when nvl(e.summa,0) <> 0 or nvl(b.dolg/*b.penya*/,0) <> 0 then 1 --счет будет выбираться для печати если есть долг или текущ начисление))
       case when nvl(e.summa,0) <> 0 or nvl(b.penya,0) <> 0 or nvl(b.dolg/*b.penya*/,0) <> 0 then 1 --добавил пеню 09.03.2016, счет будет выбираться для печати если есть долг или текущ начисление))
-        else 0 end as for_bill, p_rec.prn_num, p_rec.prn_new, k.sel1, k.vvod_ot, k.entr, k.pot, k.mot, k.kpr_own
+        else 0 end as for_bill, p_rec.prn_num, p_rec.prn_new, k.sel1, k.vvod_ot, k.entr, k.pot, k.mot, k.kpr_own,
+      k.fk_klsk_premise
       from kart k, params p,
       (select t.k_lsk_id, nvl(sum(summa),0) as dolg from saldo_usl s, kart t where
         t.lsk=s.lsk and s.mg=p_mg1

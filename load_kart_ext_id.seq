@@ -1,7 +1,7 @@
 create sequence SCOTT.LOAD_KART_EXT_ID
 minvalue 1
 maxvalue 999999999999999999999999999
-start with 153081
+start with 154401
 increment by 1
 cache 20
 order;

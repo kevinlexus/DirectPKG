@@ -1,17 +1,19 @@
 create table SCOTT.LOAD_KART_EXT
 (
-  id         NUMBER not null,
-  ext_lsk    VARCHAR2(9),
-  guid       VARCHAR2(36),
-  fio        VARCHAR2(60),
-  address    VARCHAR2(255),
-  code       NUMBER,
-  nm         VARCHAR2(25),
-  period_deb VARCHAR2(6),
-  summa      NUMBER,
-  comm       VARCHAR2(255),
-  status     NUMBER,
-  lsk        CHAR(8)
+  id              NUMBER not null,
+  ext_lsk         VARCHAR2(9),
+  guid            VARCHAR2(36),
+  fio             VARCHAR2(60),
+  address         VARCHAR2(255),
+  code            NUMBER,
+  nm              VARCHAR2(25),
+  period_deb      VARCHAR2(6),
+  summa           NUMBER,
+  comm            VARCHAR2(255),
+  status          NUMBER,
+  lsk             CHAR(8),
+  fk_klsk_premise NUMBER,
+  fk_klsk_id      NUMBER
 )
 tablespace USERS
   pctfree 10
@@ -50,6 +52,10 @@ comment on column SCOTT.LOAD_KART_EXT.status
   is '—татус (0 - прин€ть к загрузке, 1 - уже загружен, 2 - ошибка (смотреть COMM)';
 comment on column SCOTT.LOAD_KART_EXT.lsk
   is 'Ћиц.счет в системе "ƒирект"';
+comment on column SCOTT.LOAD_KART_EXT.fk_klsk_premise
+  is 'FK на помещение (имеет приоритет перед LSK)';
+comment on column SCOTT.LOAD_KART_EXT.fk_klsk_id
+  is 'FK на фин.лиц.счет (не должен указыватьс€ одновременно с LSK и FK_KLSK_PREMISE)';
 create index SCOTT.LOAD_KART_EXT_I on SCOTT.LOAD_KART_EXT (EXT_LSK)
   tablespace USERS
   pctfree 10

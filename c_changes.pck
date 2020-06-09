@@ -136,8 +136,30 @@ PROCEDURE gen_changes_proc(lsk_start_ in c_change.lsk%type,
     l_h_usl number; --have especial services (флаг) -есть особые услуги, для перерасч.
     l_one_ls number; --флаг перерасчета только по одному л.с.
     l_wo_kpr number;
+    l_sql_str varchar2(1000);
+    l_sql_str2 varchar2(1000);
+    l_sql_wo_kpr varchar2(1000);
+    l_sql_add varchar2(1000);
     -- кол-во домов для перерасчета
     l_cnt_house number;
+    TYPE empcurtyp IS REF CURSOR;
+    c     empcurtyp;
+    
+    type REC IS RECORD 
+   (
+     lsk char(8), 
+     lsk_kan char(8),
+     org number,
+     proc number,
+     mg char(6),
+     usl char(3),
+     summa number,
+     vol number,
+     proc_kan number,
+     proc_itg number
+   );
+   rec_change REC;
+    
     cursor cur_list_choices
     is
     select distinct h.id as house_id
@@ -620,61 +642,112 @@ insert into a_charge2
   logger.log_(l_time, 'Перерасчет : c_changes.gen_changes_proc: промежуточный коммит');
   l_time:=sysdate;
 
+
 --изменения начислений в % отношении
 --блок ТОЛЬКО для перерасчета канализования по проведенному перерасчету по основной услуге
 --Канализование пересчитается в случае, если был перерасчет в процентах по воде и
 --если это затребовано на форме
+
+--delete from kmp_c_change2;
+--insert into kmp_c_change2
+--select * from temp_c_change2;
+
+delete from tmp_a_charge2;
+insert into tmp_a_charge2
+  (id, lsk, usl, summa, kart_pr_id, spk_id, type, test_opl, test_cena, test_tarkoef, test_spk_koef, main, lg_doc_id, npp, sch, kpr, kprz, kpro, kpr2, opl, mgfrom, mgto)
+  select id, t.lsk, usl, summa, kart_pr_id, spk_id, type, test_opl, test_cena, test_tarkoef, test_spk_koef, main, lg_doc_id, npp, sch, t.kpr, kprz, kpro, kpr2, t.opl, mgfrom, mgto
+    from a_charge2 t join kart k on t.lsk=k.lsk
+   where t.type = 1
+     and exists (select * from temp_c_change2 i join kart k2 on i.lsk=k2.lsk 
+                  where i.lsk = t.lsk and k2.k_lsk_id=k.k_lsk_id);
+
 if l_h_usl > 0 and p_kan=1 then
   l_part:=0;
   loop
+    if l_part=0 then
+      l_sql_str:=' and u.cd in (''канализ'', ''канализ/св.нор'') ';
+      l_sql_str2:=' and m.cd in (''х.вода'', ''х.вода/св.нор'', ''г.вода'', ''г.вода/св.нор'') ';
+    else
+      l_sql_str:=' and u.cd in (''канализ.ОДН'') ';
+      l_sql_str2:=' and m.cd in (''х.вода.ОДН'',''г.вода.ОДН'') ';
+    end if;  
+    if l_wo_kpr=1 then
+      l_sql_wo_kpr:=' and k.kpr=0 '; 
+    else
+      l_sql_wo_kpr:=''; 
+    end if;  
+
+    if l_mg=mg_ then
+      l_sql_add:=' exists (select *
+            from kart k, u_list tp
+            where k.fk_tp=tp.id(+)
+            and case when p_houses.get_g_lsk_tp=0 and tp.cd=''LSK_TP_MAIN'' then 1 --только основные лс
+                     when p_houses.get_g_lsk_tp=1 and tp.cd=''LSK_TP_ADDIT'' then 1  --только дополнительные лс
+                     when p_houses.get_g_lsk_tp=2 then 1 --все лс
+                     else 0 end=1
+            and k.lsk=t.lsk and k.status not in (9) '||l_sql_wo_kpr||') '; --кроме нежилых помещений, текущий или архивный период!
+    
+    else 
+      
+      l_sql_add:=' exists (select *
+            from arch_kart k, u_list tp
+            where k.fk_tp=tp.id(+)
+            and case when p_houses.get_g_lsk_tp=0 and tp.cd=''LSK_TP_MAIN'' then 1 --только основные лс
+                     when p_houses.get_g_lsk_tp=0 and tp.cd is null then 1 --считать основными лс где не заполнено k.fk_tp (старые периоды)
+                     when p_houses.get_g_lsk_tp=1 and tp.cd=''LSK_TP_ADDIT'' then 1  --только дополнительные лс
+                     when p_houses.get_g_lsk_tp=2 then 1 --все лс
+                     else 0 end=1
+            and k.lsk=t.lsk and k.status not in (9) '||l_sql_wo_kpr||' and k.mg='''||mg_||''') ';
+    end if;
+
+--  insert into txt(memo)
+--  values('');
+--      commit;
+
      -- ред.23.08.2019 - убрал условие так как стал неэффективный запрос в полыс. Но так странно, ведь я же его ставил год назад, чтобы выполнялся быстрее...
      -- ред.03.09.2019 - восстановил условие, так как стало тормозить в кис!
-    for c in (select /*+ USE_HASH(t,a,b,d) */ t.lsk, b.lsk as lsk_kan, t.org, t.proc, t.mg, d.usl, d.summa, d.vol,
+     -- ред.03.05.2020 - убрал хинт /*+ USE_HASH(t,a,b,d) */ 
+    open c for 'select /*+ USE_HASH(t,a,b,d) */t.lsk, b.lsk as lsk_kan, t.org, t.proc, t.mg, d.usl, d.summa, d.vol,
        a.summa/b.summa as proc_kan, --доля услуги в канализовании (отношение объемов)
        round(t.proc * a.summa/b.summa,3) as proc_itg
          from temp_c_change2 t join usl m on t.usl = m.usl
       left join (select u.usl, t.mgFrom||t.mgTo, --нужно чтобы выборка периодов была правильной ред. 19.10.2017
       t.mgFrom, t.mgTo, t.lsk, sum(t.test_opl) as summa
-      from a_charge2 t, usl u
-      where t.type=1         --объем основной услуги
-      and t.usl=u.usl
+      from tmp_a_charge2 t, usl u
+      where t.usl=u.usl
       and exists (select * from temp_c_change2 i where i.lsk=t.lsk and i.usl=t.usl)
       group by u.usl, t.mgFrom||t.mgTo, t.mgFrom, t.mgTo, t.lsk) a on t.lsk=a.lsk and t.mg between a.mgFrom and a.mgTo and t.usl=a.usl
       
       left join (select k.k_lsk_id, t.mgFrom, t.mgTo, t.mgFrom||t.mgTo, t.lsk, sum(t.test_opl) as summa
-      from arch_kart k, a_charge2 t, usl u --объем канализ
-      where t.type=1 and t.usl=u.usl and k.lsk=t.lsk
+      from arch_kart k, tmp_a_charge2 t, long_table g, usl u --объем канализ
+      where t.usl=u.usl and k.lsk=t.lsk
         and exists (select * from temp_c_change2 i where i.lsk=t.lsk)
-        and k.mg between t.mgFrom and t.mgTo and k.psch not in (8,9) -- только открытые на тот период лиц.счета
-        and (l_part=0 and u.cd in ('канализ', 'канализ/св.нор')
-        or l_part=1 and u.cd in ('канализ.ОДН'))
+        and k.mg=g.mg and g.mg between t.mgFrom and t.mgTo and k.psch not in (8,9) -- только открытые на тот период лиц.счета
+        '||l_sql_str||'
       group by k.k_lsk_id, t.mgFrom, t.mgTo, t.mgFrom||t.mgTo, t.lsk) b on t.k_lsk_id=b.k_lsk_id and t.mg between b.mgFrom and b.mgTo
       
       left join (select k.k_lsk_id, t.usl, t.mgFrom, t.mgTo, t.mgFrom||t.mgTo, t.lsk, sum(t.summa) as summa, sum(t.test_opl) as vol
-      from arch_kart k, a_charge2 t, usl u --начисление канализ, детализир и объем
-      where t.type=1 and t.usl=u.usl and k.lsk=t.lsk
+      from arch_kart k, tmp_a_charge2 t, long_table g, usl u --начисление канализ, детализир и объем
+      where t.usl=u.usl and k.lsk=t.lsk
         and exists (select * from temp_c_change2 i where i.lsk=t.lsk)
-        and k.mg between t.mgFrom and t.mgTo and k.psch not in (8,9) -- только открытые на тот период лиц.счета
-        and (l_part=0 and u.cd in ('канализ', 'канализ/св.нор')
-        or l_part=1 and u.cd in ('канализ.ОДН'))
+        and k.mg=g.mg and g.mg between t.mgFrom and t.mgTo and k.psch not in (8,9) -- только открытые на тот период лиц.счета
+        '||l_sql_str||'
       group by k.k_lsk_id, t.usl, t.mgFrom, t.mgTo, t.mgFrom||t.mgTo, t.lsk) d on t.k_lsk_id=d.k_lsk_id and t.mg between d.mgFrom and d.mgTo
       
       where 
-      (l_mg=mg_ and exists (select * from v_kart k where k.lsk=t.lsk and k.status not in (9) and (l_wo_kpr=1 and k.kpr=0 or l_wo_kpr=0)) --кроме нежилых помещений, текущий или архивный период!
-       or l_mg<>mg_ and exists (select * from v_arch_kart k where k.lsk=t.lsk and k.status not in (9) and (l_wo_kpr=1 and k.kpr=0 or l_wo_kpr=0) and k.mg=mg_))  --жесть вообще писать exists через OR ред 02.12.14
+      '||l_sql_add||'
        --кроме нежилых помещений
-      and (l_part=0 and m.cd in ('х.вода', 'х.вода/св.нор', 'г.вода', 'г.вода/св.нор')
-      or l_part=1 and m.cd in ('х.вода.ОДН','г.вода.ОДН'))
+      '||l_sql_str2||'
       and t.proc <> 0 -- в % отношении
       and nvl(b.summa,0) <> 0 --где есть вообще объем по канализ
-      and nvl(a.summa,0) <> 0 --где есть вообще объем по основной услуге
-      )
+      and nvl(a.summa,0) <> 0 --где есть вообще объем по основной услуге';
     loop
-      insert into c_change
-              (lsk, mgchange, mg2, usl, proc, summa, org, type, dtek, ts, user_id, doc_id, vol)
-      values (c.lsk_kan, mg2_, c.mg, c.usl, c.proc_itg, round(c.proc_itg/100 * c.summa,2),
-       c.org, decode(p_tp, 1, 3, 0), init.get_date, sysdate, l_uid, id_, round(c.proc_itg/100 * c.vol,4));
-
+      fetch c into rec_change;
+       EXIT WHEN c%NOTFOUND;
+        insert into c_change
+                (lsk, mgchange, mg2, usl, proc, summa, org, type, dtek, ts, user_id, doc_id, vol)
+        values (rec_change.lsk_kan, mg2_, rec_change.mg, rec_change.usl, rec_change.proc_itg, round(rec_change.proc_itg/100 * rec_change.summa,2),
+         rec_change.org, decode(p_tp, 1, 3, 0), init.get_date, sysdate, l_uid, id_, round(rec_change.proc_itg/100 * rec_change.vol,4));
     end loop;
     exit when l_part=1;
     l_part:=l_part+1;

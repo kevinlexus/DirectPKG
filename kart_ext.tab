@@ -1,12 +1,14 @@
 create table SCOTT.KART_EXT
 (
-  id      NUMBER not null,
-  ext_lsk VARCHAR2(9),
-  lsk     CHAR(8),
-  fio     VARCHAR2(60),
-  dt_crt  DATE default sysdate,
-  dt_upd  DATE default sysdate,
-  v       NUMBER default 1 not null
+  id              NUMBER not null,
+  ext_lsk         VARCHAR2(9),
+  lsk             CHAR(8),
+  fio             VARCHAR2(60),
+  dt_crt          DATE default sysdate,
+  dt_upd          DATE default sysdate,
+  v               NUMBER default 1 not null,
+  fk_klsk_premise NUMBER,
+  fk_klsk_id      NUMBER
 )
 tablespace DATA
   pctfree 10
@@ -26,7 +28,7 @@ comment on column SCOTT.KART_EXT.id
 comment on column SCOTT.KART_EXT.ext_lsk
   is 'Уникальный лиц.счет во внешней системе';
 comment on column SCOTT.KART_EXT.lsk
-  is 'Лиц.счет в системе "Директ"';
+  is 'Лиц.счет в системе "Директ" (не должен указываться одновременно с FK_KLSK_PREMISE)';
 comment on column SCOTT.KART_EXT.fio
   is 'ФИО абонента во внешней системе';
 comment on column SCOTT.KART_EXT.dt_crt
@@ -35,6 +37,10 @@ comment on column SCOTT.KART_EXT.dt_upd
   is 'Дата обновления записи';
 comment on column SCOTT.KART_EXT.v
   is 'Статус (1-действующий, 0-отменён)';
+comment on column SCOTT.KART_EXT.fk_klsk_premise
+  is 'FK на помещение (не должен указываться одновременно с LSK)';
+comment on column SCOTT.KART_EXT.fk_klsk_id
+  is 'FK на фин.лиц.счет (не должен указываться одновременно с LSK и FK_KLSK_PREMISE)';
 create unique index SCOTT.KART_EXT_I1 on SCOTT.KART_EXT (EXT_LSK)
   tablespace USERS
   pctfree 10
@@ -64,4 +70,7 @@ alter table SCOTT.KART_EXT
 alter table SCOTT.KART_EXT
   add constraint KART_EXT_F_LSK foreign key (LSK)
   references SCOTT.KART (LSK);
+alter table SCOTT.KART_EXT
+  add constraint KART_EXT_F_PREMISE foreign key (FK_KLSK_PREMISE)
+  references SCOTT.K_LSK (ID);
 

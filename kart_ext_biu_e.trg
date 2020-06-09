@@ -11,6 +11,9 @@ begin
   elsif updating then
     :new.dt_upd := sysdate;
   end if;
+  if :new.lsk is not null and :new.fk_klsk_premise is not null then
+    Raise_application_error(-20000, 'Ошибка! Не должно быть заполнено одновременно Лиц.сч. и KLSK Помещения!');
+  end if;
 
 end KART_EXT_biu_e;
 /

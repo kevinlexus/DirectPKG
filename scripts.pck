@@ -58,7 +58,8 @@ procedure CREATE_UK_NEW2(p_reu_dst          in kart.reu%type, -- код УК назначен
                          p_special_tp       in varchar2, -- создать дополнительный лиц.счет в добавок к вновь созданному (NULL- не создавать, 'LSK_TP_ADDIT' - капремонт)
                          p_special_reu      in varchar2, -- УК дополнительного лиц.счета
                          p_mg_sal           in c_change.mgchange%type, -- период сальдо
-                         p_remove_nabor_usl in varchar2 default null, -- переместить данные услуги (задавать как '033,034,035)
+                         p_remove_nabor_usl in varchar2 default null, -- переместить данные услуги (задавать как 033,034,035)
+                         p_create_nabor_usl in varchar2 default null, -- создать данные услуги (задавать как 033,034,035) не использовать совместно с p_remove_nabor_usl!
                          p_forced_usl       in varchar2 default null, -- установить данную услугу в назначении (если не указано, взять из источника)
                          p_forced_org       in number default null, -- установить организацию в наборе назначения (null - брать из источника)
                          p_mg_pen           in c_change.mgchange%type, -- период по которому перенести пеню. null - не переносить (обычно месяц назад)
@@ -1157,7 +1158,7 @@ generator.disable_keys(null);
     fk_frm_distr, frm_town, frm_dat, fk_frm_kul, frm_nd,
     frm_kw, w_place, fk_ub, fk_to_cntr, fk_to_regn,
     fk_to_distr, to_town, fk_to_kul, to_nd, to_kw,
-    fk_citiz, fk_milit, fk_milit_regn)
+    fk_citiz, fk_milit, fk_milit_regn, dok_div, dok_inn)
     select c.id, c.lsk, c.fio, c.status, c.dat_rog, c.pol, c.dok, c.dok_c, c.dok_n,
       c.dok_d, c.dok_v, c.dat_prop, c.dat_ub, c.relat_id,
       c.status_dat, c.status_chng, c.k_fam, c.k_im, c.k_ot,
@@ -1165,8 +1166,8 @@ generator.disable_keys(null);
       c.fk_frm_distr, c.frm_town, c.frm_dat, c.fk_frm_kul, c.frm_nd,
       c.frm_kw, c.w_place, c.fk_ub, c.fk_to_cntr, c.fk_to_regn,
       c.fk_to_distr, c.to_town, c.fk_to_kul, c.to_nd, c.to_kw,
-      c.fk_citiz, c.fk_milit, c.fk_milit_regn
-    from a_kart_pr c where c.mg=mg_;
+      c.fk_citiz, c.fk_milit, c.fk_milit_regn, c.dok_div, c.dok_inn
+    from a_kart_pr2 c where mg_ between c.mgFrom and c.mgTo;
   commit;
 
   insert into c_lg_docs
@@ -3480,7 +3481,8 @@ procedure CREATE_UK_NEW2(p_reu_dst          in kart.reu%type, -- код УК назначен
                          p_special_tp       in varchar2, -- создать дополнительный лиц.счет в добавок к вновь созданному (NULL- не создавать, 'LSK_TP_ADDIT' - капремонт)
                          p_special_reu      in varchar2, -- УК дополнительного лиц.счета
                          p_mg_sal           in c_change.mgchange%type, -- период сальдо
-                         p_remove_nabor_usl in varchar2 default null, -- переместить данные услуги (задавать как '033,034,035)
+                         p_remove_nabor_usl in varchar2 default null, -- переместить данные услуги (задавать как 033,034,035)
+                         p_create_nabor_usl in varchar2 default null, -- создать данные услуги (задавать как 033,034,035) не использовать совместно с p_remove_nabor_usl!
                          p_forced_usl       in varchar2 default null, -- установить данную услугу в назначении (если не указано, взять из источника)
                          p_forced_org       in number default null, -- установить организацию в наборе назначения (null - брать из источника)
                          p_mg_pen           in c_change.mgchange%type, -- период по которому перенести пеню. null - не переносить (обычно месяц назад)
@@ -3507,6 +3509,11 @@ procedure CREATE_UK_NEW2(p_reu_dst          in kart.reu%type, -- код УК назначен
   l_flag      number;
   i           number;
 begin
+  -- проверки 
+  if p_remove_nabor_usl is not null and p_create_nabor_usl is not null then
+    Raise_application_error(-20000, 'Некорректно использовать одновременно p_remove_nabor_usl и p_create_nabor_usl!');
+  end if;
+
   --признак как переносить сальдо
   --0-не переносить, 2 - переносить и дебет и кредит,
   --1-только дебет
@@ -3684,7 +3691,13 @@ begin
        where regexp_instr(p_remove_nabor_usl,
                           '(^|,|;)' || n.usl || '($|,|;)') > 0
          and n.lsk = c.old_lsk;
-    else
+    elsif p_create_nabor_usl is not null then
+      insert into nabor
+        (lsk, usl, org)
+      select l_lsk_new as lsk, u.usl as usl, o.id as org from usl u join t_org o on o.reu=p_reu_dst
+              where regexp_instr(p_create_nabor_usl,
+                          '(^|,|;)' || u.usl || '($|,|;)') > 0;
+    else 
       insert into nabor
         (lsk, usl, org, koeff, norm, fk_vvod)
         select l_lsk_new, n.usl, nvl(p_forced_org, n.org), n.koeff, n.norm, n.fk_vvod -- n.fk_vvod ред. 03.07.2018 странно, раньше было n.fk_vvod

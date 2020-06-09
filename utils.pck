@@ -1453,9 +1453,9 @@ begin
     delete from a_change a
      where a.lsk = lsk_
        and a.mg = l_mg;
-    delete from a_kart_pr a
+    delete from a_kart_pr2 a
      where a.lsk = lsk_
-       and a.mg = l_mg;
+       and l_mg between a.mgfrom and a.mgTo;
     delete from a_lg_docs c
      where c.mg = l_mg
        and exists (select *

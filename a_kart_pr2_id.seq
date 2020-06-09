@@ -1,7 +1,7 @@
-create sequence SCOTT.LOG_ERR_ID
+create sequence SCOTT.A_KART_PR2_ID
 minvalue 1
 maxvalue 999999999999999999999999999
-start with 962
+start with 6181
 increment by 1
 cache 20
 order;

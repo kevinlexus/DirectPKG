@@ -1,100 +1,51 @@
-create table EXS.U_LIST
+create table SCOTT.U_LIST
 (
-  id         NUMBER not null,
-  fk_listtp  NUMBER not null,
-  name       VARCHAR2(2000) not null,
-  npp        NUMBER not null,
-  nm         VARCHAR2(255),
-  s1         VARCHAR2(2000),
-  s2         VARCHAR2(255),
-  su1        VARCHAR2(255),
-  su2        VARCHAR2(255),
-  su3        VARCHAR2(255),
-  parent_id  NUMBER,
-  s3         VARCHAR2(255),
-  s4         VARCHAR2(255),
-  is_path    NUMBER,
-  dt1        DATE,
-  dt2        DATE,
-  actual     NUMBER,
-  guid       VARCHAR2(255),
-  ref_code   VARCHAR2(255),
-  ref_guid   VARCHAR2(255),
-  val_tp     VARCHAR2(2),
-  tp         NUMBER,
-  parent_id2 NUMBER,
-  parent_id3 NUMBER,
-  hide_in_pd NUMBER
+  id            NUMBER not null,
+  cd            VARCHAR2(32) not null,
+  name          VARCHAR2(96) not null,
+  nm            VARCHAR2(32),
+  fk_listtp     NUMBER not null,
+  npp           NUMBER default 0,
+  val_tp        VARCHAR2(3),
+  fk_unit       NUMBER,
+  sqltext       VARCHAR2(1000),
+  fk_exs_u_list NUMBER
 )
-tablespace DATA
-  pctfree 10
+tablespace USERS
+  pctfree 1
   initrans 1
   maxtrans 255
   storage
   (
-    initial 64K
+    initial 576K
     next 1M
     minextents 1
     maxextents unlimited
   );
-comment on table EXS.U_LIST
-  is 'Справочник элементов';
-comment on column EXS.U_LIST.id
-  is 'ID';
-comment on column EXS.U_LIST.name
-  is 'ИЗ ГИС ЖКХ: Название справочника или элемента';
-comment on column EXS.U_LIST.parent_id
-  is 'ИЗ ГИС ЖКХ: Связь записи дочернего элемента с главной записью';
-comment on column EXS.U_LIST.dt1
-  is 'ИЗ ГИС ЖКХ: Дата начала действия значения';
-comment on column EXS.U_LIST.dt2
-  is 'ИЗ ГИС ЖКХ: Дата окончания действия значения';
-comment on column EXS.U_LIST.actual
-  is 'ИЗ ГИС ЖКХ: Признак актуальности элемента справочника (null, 0-актуально, 1-неактуально)';
-comment on column EXS.U_LIST.guid
-  is 'ИЗ ГИС ЖКХ: GUID элемента';
-comment on column EXS.U_LIST.ref_code
-  is 'Значение типа RF (code), OK (code)';
-comment on column EXS.U_LIST.ref_guid
-  is 'Значение типа RF (guid)';
-comment on column EXS.U_LIST.val_tp
-  is 'Тип значения из ГИС ЖКХ: [(NM)number;  (ST)string;  (DT)date;  (BL) boolean (RF) reference (OK) OkeiRefFieldType]';
-comment on column EXS.U_LIST.tp
-  is 'NOT USE!ПЕРЕШЁЛ НА U_LISTTP.FK_EXT                     ЗАПОЛНЯТЬ ТОЛЬКО У УСЛУГ С GUID<>null! Тип услуги 0-жилищная, 1-коммунальная (напр.Х.В.), 2-дополнительная (напр Замок), 3 - в т.ч. усл.на ОИ, 4-Капремонт';
-comment on column EXS.U_LIST.parent_id2
-  is 'Связь записи услуги ОИ с основной услугой';
-comment on column EXS.U_LIST.parent_id3
-  is 'Связь услуги повыш. коэфф с основной услугой';
-comment on column EXS.U_LIST.hide_in_pd
-  is 'Не присоединять услугу к ПД непосредственно (обычно для Повыш.коэфф.)';
-create index EXS.U_LIST_I on EXS.U_LIST (FK_LISTTP)
-  tablespace INDX
-  pctfree 10
-  initrans 2
-  maxtrans 255
-  storage
-  (
-    initial 64K
-    next 1M
-    minextents 1
-    maxextents unlimited
-  );
-create index EXS.U_LIST_I3 on EXS.U_LIST (GUID)
-  tablespace DATA
-  pctfree 10
-  initrans 2
-  maxtrans 255
-  storage
-  (
-    initial 64K
-    next 1M
-    minextents 1
-    maxextents unlimited
-  );
-alter table EXS.U_LIST
-  add constraint U_LIST_P primary key (ID)
+comment on table SCOTT.U_LIST
+  is 'Справочник различных списков';
+comment on column SCOTT.U_LIST.cd
+  is 'Код';
+comment on column SCOTT.U_LIST.name
+  is 'Наименование';
+comment on column SCOTT.U_LIST.nm
+  is 'Наименование краткое';
+comment on column SCOTT.U_LIST.fk_listtp
+  is 'ID вид списка ';
+comment on column SCOTT.U_LIST.npp
+  is '№пп';
+comment on column SCOTT.U_LIST.val_tp
+  is 'тип (NM)number;  (ST)string;  (DT)date; (ID) - ID шник из SELECT поля SQLTEXT, (EL) - элемент списка';
+comment on column SCOTT.U_LIST.fk_unit
+  is 'Единица измерения (для параметров)';
+comment on column SCOTT.U_LIST.sqltext
+  is 'SQL запрос для получения ID шника для параметра типа ID';
+comment on column SCOTT.U_LIST.fk_exs_u_list
+  is 'FK на справочник ГИС ЖКХ (Связь соответствующих элементов)';
+alter table SCOTT.U_LIST
+  add constraint U_LIST_PK primary key (ID)
   using index 
-  tablespace DATA
+  tablespace USERS
   pctfree 10
   initrans 2
   maxtrans 255
@@ -105,16 +56,27 @@ alter table EXS.U_LIST
     minextents 1
     maxextents unlimited
   );
-alter table EXS.U_LIST
-  add constraint U_LIST_F foreign key (FK_LISTTP)
-  references EXS.U_LISTTP (ID) on delete cascade;
-alter table EXS.U_LIST
-  add constraint U_LIST_F_PARENT foreign key (PARENT_ID)
-  references EXS.U_LIST (ID) on delete cascade;
-alter table EXS.U_LIST
-  add constraint U_LIST_F_PARENT2 foreign key (PARENT_ID2)
-  references EXS.U_LIST (ID) on delete cascade;
-alter table EXS.U_LIST
-  add constraint U_LIST_F_PARENT3 foreign key (PARENT_ID3)
-  references EXS.U_LIST (ID) on delete cascade;
+alter table SCOTT.U_LIST
+  add constraint U_LIST_U unique (CD)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.U_LIST
+  add constraint U_LIST_FK_EXS_U_LIST foreign key (FK_EXS_U_LIST)
+  references EXS.U_LIST (ID);
+alter table SCOTT.U_LIST
+  add constraint U_LIST_FK_LISTTP foreign key (FK_LISTTP)
+  references SCOTT.U_LISTTP (ID);
+alter table SCOTT.U_LIST
+  add constraint U_LIST_FK_UNIT foreign key (FK_UNIT)
+  references SCOTT.U_LIST (ID);
 

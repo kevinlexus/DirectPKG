@@ -74,11 +74,11 @@ create or replace package body scott.rep_lists is
         initcap(rtrim(a.fio)) ||', '||to_char(a.dat_rog,'DD/MM/YYYY')||', '||trim(d.doc)||', '||decode(t.cnt_main, 0, 'ïîëüç.', 'íîñèò.') as fio,
         null as other1,
         rtrim(p.name) as lg_name
-       from xito_lg4 t, a_kart_pr a, (select /* ×¨ÏÎÏÀËÎ ÍÀÏÈÑÀË, ĞÅÀËÜÍÎ */ c_kart_pr_id, mg, max(doc) as doc
+       from xito_lg4 t, a_kart_pr2 a, (select /* ×¨ÏÎÏÀËÎ ÍÀÏÈÑÀË, ĞÅÀËÜÍÎ */ c_kart_pr_id, mg, max(doc) as doc
           from a_lg_docs group by c_kart_pr_id, mg) d, usl u, sprorg s, spk p, spul l
        where t.mg=mg_ and t.org=org_
          and t.nomer=a.id and a.id=d.c_kart_pr_id and t.kul=l.id and t.usl = u.usl and t.lg_id=p.id
-         and t.org = s.kod  and a.mg=mg_ and d.mg=mg_
+         and t.org = s.kod  and mg_ between a.mgFrom and a.mgTo and d.mg=mg_
           and exists
           (select * from scott.list_choices_reu l where l.reu=t.reu and l.sel=0);
 

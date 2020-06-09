@@ -47,7 +47,7 @@ create table SCOTT.A_KART_PR
   fk_deb_org         NUMBER,
   priv_proc          VARCHAR2(10),
   dok_snils          VARCHAR2(11),
-  use_gis_divide_els NUMBER(1) default 0 not null
+  use_gis_divide_els NUMBER default 0 not null
 )
 tablespace USERS
   pctfree 10

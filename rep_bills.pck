@@ -123,6 +123,7 @@ procedure deb(p_k_lsk_id in number,
 procedure arch(p_k_lsk in number, p_sel_obj in number, p_lsk in kart.lsk%type, 
                p_mg1 in params.period%type, p_mg2 in params.period%type,
                p_sel_uk    in varchar2, -- список УК
+               p_tp in number default 0, -- 0- старая арх.спр., 1- новая
                p_rfcur out ccur);
 --архивная справка, вспомогательный запрос
 procedure arch_supp(p_k_lsk in number, 
@@ -1790,78 +1791,186 @@ end;
 procedure arch(p_k_lsk in number, p_sel_obj in number, p_lsk in kart.lsk%type,
                p_mg1 in params.period%type, p_mg2 in params.period%type,
                p_sel_uk    in varchar2, -- список УК
-               p_rfcur out ccur) is
+               p_tp in number default 0,-- 0- старая арх.спр., 1- новая
+               p_rfcur out ccur
+               ) is
+l_mg params.period%type;
+l_mg_prev params.period%type;
 begin
-open p_rfcur for
-  select substr(m.mg,1,4)||'-'||substr(m.mg,5,2) as mg,
-   m.mg_new, m.lsk|| chr(10) ||o.name as lsk, -- добавил перенос строки. ред.16.10.19
-   nvl(a.nm,u2.nm2) as nm, case when a.summa=0 then null else a.summa end as summa,
-  case when s.sal=0 then null else s.sal end as sal,
 
-  case when m.mg < '200804' then
-     case when e.pay=0 then null else e.pay end
-       when m.mg >= '200804' then
-     case when e2.pay=0 then null else e2.pay end
-       end as pay, --оплата
+select p.period, p.period3 into l_mg, l_mg_prev from v_params p;
+if p_tp=0 then
+  -- арх.спр.-2
 
-  case when m.mg < '200804' then
-     case when e.pay_pen=0 then null else e.pay_pen end
-       when m.mg >= '200804' then
-     case when e2.pay_pen=0 then null else e2.pay_pen end
-       end as pay_pen, --оплата пени
+  open p_rfcur for
+    select substr(m.mg,1,4)||'-'||substr(m.mg,5,2) as mg,
+     m.mg_new, m.lsk|| chr(10) ||o.name as lsk, -- добавил перенос строки. ред.16.10.19
+     nvl(a.nm,u2.nm2) as nm, case when a.summa=0 then null else a.summa end as summa,
+    case when s.sal=0 then null else s.sal end as sal,
 
-  case when f.pen=0 then null else f.pen end as pen
-   from
-   (select k.reu, k.lsk, t.mg, t.mg_new, k.mg1, k.mg2 from scott.kart k,
-   (select to_char(add_months(to_date(p.period||'01', 'YYYYMMDD'), -1*level),'YYYYMM') as mg,
-   to_char(add_months(to_date(p.period||'01', 'YYYYMMDD'), -1*level+1),'YYYYMM') as mg_new
-    from scott.params p connect by level <= 1000) t
-    where (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
-    and decode(p_sel_uk,
-                '0',
-                1,
-                instr(p_sel_uk, '''' || k.reu || ''';', 1)) > 0
+    case when m.mg < '200804' then
+       case when e.pay=0 then null else e.pay end
+         when m.mg >= '200804' then
+       case when e2.pay=0 then null else e2.pay end
+         end as pay, --оплата
 
-    ) m
-    join
-    scott.usl u2 on u2.usl='003'
-    join t_org o on m.reu=o.reu
-    left join
-    (select lsk, mg, nm, sum(summa) as summa from (
-      select t.lsk, t.mg, decode(u.for_arch, 1, u.nm, u.nm2) as nm, t.summa as summa
-      from scott.kart k, scott.arch_charges t, scott.usl u
-     where u.usl=t.usl_id and k.lsk=t.lsk and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
-      union all
-      select t.lsk, t.mg, decode(u.for_arch, 1, u.nm, u.nm2) as nm, t.summa as summa
-        from scott.kart k, scott.arch_changes t, scott.usl u
+    case when m.mg < '200804' then
+       case when e.pay_pen=0 then null else e.pay_pen end
+         when m.mg >= '200804' then
+       case when e2.pay_pen=0 then null else e2.pay_pen end
+         end as pay_pen, --оплата пени
+
+    case when f.pen=0 then null else f.pen end as pen
+     from
+     (select k.reu, k.lsk, t.mg, t.mg_new, k.mg1, k.mg2 from scott.kart k,
+     (select to_char(add_months(to_date(p.period||'01', 'YYYYMMDD'), -1*level),'YYYYMM') as mg,
+     to_char(add_months(to_date(p.period||'01', 'YYYYMMDD'), -1*level+1),'YYYYMM') as mg_new
+      from scott.params p connect by level <= 1000) t
+      where (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
+      and decode(p_sel_uk,
+                  '0',
+                  1,
+                  instr(p_sel_uk, '''' || k.reu || ''';', 1)) > 0
+
+      ) m
+      join
+      scott.usl u2 on u2.usl='003'
+      join t_org o on m.reu=o.reu
+      left join
+      (select lsk, mg, nm, sum(summa) as summa from (
+        select t.lsk, t.mg, decode(u.for_arch, 1, u.nm, u.nm2) as nm, t.summa as summa
+        from scott.kart k, scott.arch_charges t, scott.usl u
        where u.usl=t.usl_id and k.lsk=t.lsk and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
-      )
-      group by lsk, mg, nm) a on m.mg=a.mg and m.lsk=a.lsk
-    left join
-   (select t.mg, t.lsk, sum(t.summa) as sal from scott.kart k, scott.saldo_usl t
-    where k.lsk=t.lsk and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
-    group by t.mg, t.lsk) s on m.mg_new=s.mg and m.lsk=s.lsk
-    left join
-   (select t.mg1, t.lsk, sum(t.penya) as pen from scott.kart k, scott.a_penya t, v_params p
-    where k.lsk=t.lsk and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
-    and t.mg1 between p_mg1 and p_mg2
-    and t.mg=p.period3
-    group by t.mg1, t.lsk) f on m.mg=f.mg1 and m.lsk=f.lsk
-    left join
-   (select t.mg, t.lsk, sum(t.summa) as pay, sum(t.penya) as pay_pen from scott.kart k, scott.a_kwtp t --запрос для оплаты до 200804
-    where k.lsk=t.lsk and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
-    and t.mg between p_mg1 and p_mg2
-    group by t.mg, t.lsk) e on m.mg < '200804' and m.mg=e.mg and m.lsk=e.lsk
-    left join
-   (select t.mg, t.lsk, sum(t.summa) as pay, sum(t.penya) as pay_pen from scott.kart k, scott.a_kwtp_mg t --запрос для оплаты после 200804, включительно
-    where k.lsk=t.lsk and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
-    and t.mg between p_mg1 and p_mg2
-    group by t.mg, t.lsk) e2 on m.mg >= '200804' and m.mg=e2.mg and m.lsk=e2.lsk
-  where m.mg between p_mg1 and p_mg2
-        and (nvl(a.summa,0) <> 0 or nvl(s.sal,0) <> 0
-         or nvl(e.pay,0) <> 0 or nvl(e.pay_pen,0) <> 0
-         or nvl(e2.pay,0) <> 0 or nvl(e2.pay_pen,0) <> 0
-        ) order by m.mg, m.mg1, u2.npp;
+        union all
+        select t.lsk, t.mg, decode(u.for_arch, 1, u.nm, u.nm2) as nm, t.summa as summa
+          from scott.kart k, scott.arch_changes t, scott.usl u
+         where u.usl=t.usl_id and k.lsk=t.lsk and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
+        )
+        group by lsk, mg, nm) a on m.mg=a.mg and m.lsk=a.lsk
+      left join
+     (select t.mg, t.lsk, sum(t.summa) as sal from scott.kart k, scott.saldo_usl t
+      where k.lsk=t.lsk and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
+      group by t.mg, t.lsk) s on m.mg_new=s.mg and m.lsk=s.lsk
+      left join
+     (select t.mg1, t.lsk, sum(t.penya) as pen from scott.kart k, scott.a_penya t, v_params p
+      where k.lsk=t.lsk and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
+      and t.mg1 between p_mg1 and p_mg2
+      and t.mg=p.period3
+      group by t.mg1, t.lsk) f on m.mg=f.mg1 and m.lsk=f.lsk
+      left join
+     (select t.mg, t.lsk, sum(t.summa) as pay, sum(t.penya) as pay_pen from scott.kart k, scott.a_kwtp t --запрос для оплаты до 200804
+      where k.lsk=t.lsk and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
+      and t.mg between p_mg1 and p_mg2
+      group by t.mg, t.lsk) e on m.mg < '200804' and m.mg=e.mg and m.lsk=e.lsk
+      left join
+     (select t.mg, t.lsk, sum(t.summa) as pay, sum(t.penya) as pay_pen from scott.kart k, scott.a_kwtp_mg t --запрос для оплаты после 200804, включительно
+      where k.lsk=t.lsk and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
+      and t.mg between p_mg1 and p_mg2
+      group by t.mg, t.lsk) e2 on m.mg >= '200804' and m.mg=e2.mg and m.lsk=e2.lsk
+    where m.mg between p_mg1 and p_mg2
+          and (nvl(a.summa,0) <> 0 or nvl(s.sal,0) <> 0
+           or nvl(e.pay,0) <> 0 or nvl(e.pay_pen,0) <> 0
+           or nvl(e2.pay,0) <> 0 or nvl(e2.pay_pen,0) <> 0
+          ) order by m.mg, m.mg1, u2.npp;
+else
+  -- арх.спр.-3
+  open p_rfcur for
+
+    select substr(m.mg,1,4)||'-'||substr(m.mg,5,2) as mg,
+      m.mg_new, m.lsk|| chr(10) ||o.name as lsk,
+      case when s.sal=0 then null else s.sal end as sal_in,    -- вх.сальдо на период
+      case when s2.sal=0 then null else s2.sal end as sal_out,  -- исх.сальдо за период
+      case when nvl(s3.summa,0)+nvl(s4.summa,0)=0 then null else nvl(s3.summa,0)+nvl(s4.summa,0) end as sum_chrg,  -- начислено, в т.ч. перерасчеты
+      case when m.mg < '200804' then
+         case when e.pay=0 then null else e.pay end
+           when m.mg >= '200804' then
+         case when e2.pay=0 then null else e2.pay end
+           end as pay, --оплата
+      case when m.mg < '200804' then
+         case when e.pay_pen=0 then null else e.pay_pen end
+           when m.mg >= '200804' then
+         case when e2.pay_pen=0 then null else e2.pay_pen end
+           end as pay_pen, --оплата пени
+      case when f.pen=0 then null else f.pen end as pen_in, -- вх.сальдо по пене
+      case when f2.pen=0 then null else f2.pen end as pen_out, -- исх.сальдо по пене
+      case when f3.pen=0 then null else f3.pen end as pen_cur -- текущая пеня
+
+     from
+     (select k.reu, k.lsk, t.mg, t.mg_new, k.mg1, k.mg2 from scott.kart k,
+     (select to_char(add_months(to_date(p.period||'01', 'YYYYMMDD'), -1*level+1),'YYYYMM') as mg,
+     to_char(add_months(to_date(p.period||'01', 'YYYYMMDD'), -1*level+2),'YYYYMM') as mg_new
+      from scott.params p connect by level <= 1000) t
+      where (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
+      and decode(p_sel_uk,
+                  '0',
+                  1,
+                  instr(p_sel_uk, '''' || k.reu || ''';', 1)) > 0
+      ) m
+      join t_org o on m.reu=o.reu
+      left join
+     (select t.mg, t.lsk, sum(t.summa) as sal from scott.kart k, scott.saldo_usl t
+      where k.lsk=t.lsk and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
+      group by t.mg, t.lsk) s on m.mg=s.mg and m.lsk=s.lsk -- вх.сальдо на период
+      left join
+     (select t.mg, t.lsk, sum(t.summa) as sal from scott.kart k, scott.saldo_usl t
+      where k.lsk=t.lsk and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
+      group by t.mg, t.lsk) s2 on m.mg_new=s2.mg and m.lsk=s2.lsk -- исх.сальдо за период
+      left join
+     (select o.mg, t.lsk, sum(t.summa) as summa from scott.kart k, long_table o, scott.a_charge2 t
+      where k.lsk=t.lsk and t.type=1 and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
+      and o.mg between p_mg1 and p_mg2
+      and o.mg between t.mgFrom and t.mgTo
+      group by o.mg, t.lsk) s3 on m.mg=s3.mg and m.lsk=s3.lsk -- начислено
+      left join
+     (select t.mg, t.lsk, sum(t.summa) as summa from scott.kart k, scott.a_change t
+      where k.lsk=t.lsk and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
+      and t.mg between p_mg1 and p_mg2
+      group by t.mg, t.lsk) s4 on m.mg=s4.mg and m.lsk=s4.lsk -- перерасчеты
+      left join
+     (select t.mg1, t.lsk, sum(t.penya) as pen from scott.kart k, scott.a_penya t
+      where k.lsk=t.lsk and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
+      and t.mg1 between p_mg1 and p_mg2
+      and t.mg=l_mg_prev
+      group by t.mg1, t.lsk) f on m.mg=f.mg1 and m.lsk=f.lsk -- вх.сальдо по пене
+      left join
+     (select t.mg1, t.lsk, sum(t.penya) as pen from scott.kart k, scott.a_penya t
+      where k.lsk=t.lsk and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
+      and t.mg1 between p_mg1 and p_mg2
+      and t.mg=l_mg
+      group by t.mg1, t.lsk) f2 on m.mg=f2.mg1 and m.lsk=f2.lsk -- исх.сальдо по пене
+      left join
+     (select t.mg1, t.lsk, sum(t.penya) as pen from scott.kart k, scott.a_pen_cur t
+      where k.lsk=t.lsk and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
+      and t.mg1 between p_mg1 and p_mg2
+      and t.mg=l_mg
+      group by t.mg1, t.lsk) f3 on m.mg=f3.mg1 and m.lsk=f3.lsk -- текущая пеня
+      left join
+     (select t.mg, t.lsk, sum(t.summa) as pay, sum(t.penya) as pay_pen from scott.kart k, scott.a_kwtp t
+      where k.lsk=t.lsk and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
+      and t.mg between p_mg1 and p_mg2
+      group by t.mg, t.lsk) e on m.mg < '200804' and m.mg=e.mg and m.lsk=e.lsk -- оплата до 04.2008
+      left join
+     (select t.mg, t.lsk, sum(t.summa) as pay, sum(t.penya) as pay_pen from scott.kart k, scott.a_kwtp_mg t
+      where k.lsk=t.lsk and (p_sel_obj=1 and k.k_lsk_id=p_k_lsk or p_sel_obj=0 and k.lsk=p_lsk)
+      and t.mg between p_mg1 and p_mg2
+      group by t.mg, t.lsk) e2 on m.mg >= '200804' and m.mg=e2.mg and m.lsk=e2.lsk -- оплата после 04.2008, включительно
+    where m.mg between p_mg1 and p_mg2
+          and (
+          nvl(s.sal,0) <> 0 or 
+          nvl(s2.sal,0) <> 0 or 
+          nvl(s3.summa,0)+nvl(s4.summa,0) <> 0 or 
+          nvl(f.pen,0) <> 0 or 
+          nvl(f2.pen,0) <> 0 or 
+          nvl(f3.pen,0) <> 0 or 
+          nvl(e.pay,0) <> 0 or 
+          nvl(e.pay_pen,0) <> 0 or 
+          nvl(e2.pay,0) <> 0 or 
+          nvl(e2.pay_pen,0) <> 0
+          )
+          order by m.mg, m.mg1;
+
+end if;
+
 end;
 
 --архивная справка, вспомогательный запрос

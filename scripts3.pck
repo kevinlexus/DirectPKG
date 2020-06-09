@@ -44,10 +44,10 @@ create or replace package body scott.scripts3 is
     l_last_kr_max       number;
     l_last_deb_max      number;
   begin
-    l_mg       := '202002'; --тек.период
-    l_cd       := 'dist_saldo_polis_202002';
+    l_mg       := '202005'; --тек.период
+    l_cd       := 'dist_saldo_polis_202005';
     l_mgchange := l_mg;
-    l_dt       := to_date('20200227', 'YYYYMMDD');
+    l_dt       := to_date('20200526', 'YYYYMMDD');
     l_mg3      := utils.add_months_pr(l_mg, 1); --мес€ц вперед, если надо по исх сальдо
   
     --l_mg3 := l_mg; -- сальдо - вх.на текущий мес€ц
@@ -356,11 +356,11 @@ create or replace package body scott.scripts3 is
     l_last_kr_max       number;
     l_last_deb_max      number;
   begin
-    l_mg       := '202003'; --тек.период
-    l_cd       := 'dist_pen_polis_202003';
+    l_mg       := '202005'; --тек.период
+    l_cd       := 'dist_pen_polis_202005';
     l_mgchange := l_mg;
-    l_dt       := to_date('20200328', 'YYYYMMDD');
-    l_mg3      := '202003';
+    l_dt       := to_date('20200526', 'YYYYMMDD');
+    l_mg3      := '202005';
   
     --l_mg3 := l_mg; -- сальдо - вх.на текущий мес€ц
   

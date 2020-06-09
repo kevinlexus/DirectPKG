@@ -9,5 +9,8 @@ tablespace USERS
   storage
   (
     initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
   );
 

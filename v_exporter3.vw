@@ -17,7 +17,7 @@ select t.lsk,
        t.mg
   from xito_lg4 t,
        arch_kart k,
-       a_kart_pr a,
+       a_kart_pr2 a,
        (select /* ×¨ÏÎÏÀËÎ ÍÀÏÈÑÀË, ĞÅÀËÜÍÎ */
          c_kart_pr_id, mg, max(doc) as doc
           from a_lg_docs
@@ -25,10 +25,10 @@ select t.lsk,
        spul s
  where t.lsk = a.lsk
    and a.id = d.c_kart_pr_id
-   and a.mg = d.mg
+   and t.mg = d.mg
    and t.kul = s.id
    and t.nomer = a.id
-   and t.mg = a.mg
+   and t.mg between a.mgFrom and a.mgTo
    and t.lsk = k.lsk
    and t.mg = k.mg
    and exists (select *
