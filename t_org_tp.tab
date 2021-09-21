@@ -1,16 +1,17 @@
 create table SCOTT.T_ORG_TP
 (
-  id        NUMBER not null,
-  cd        VARCHAR2(32) default '32' not null,
-  name      VARCHAR2(32) default '32' not null,
-  npp       NUMBER default 0 not null,
-  v         NUMBER default 1 not null,
-  parent_id NUMBER,
-  type      NUMBER,
-  menu_id   NUMBER,
-  name_0    VARCHAR2(25),
-  name_1    VARCHAR2(25),
-  comm      VARCHAR2(255) default '/'
+  id         NUMBER not null,
+  cd         VARCHAR2(32) default '32' not null,
+  name       VARCHAR2(32) default '32' not null,
+  npp        NUMBER default 0 not null,
+  v          NUMBER default 1 not null,
+  parent_id  NUMBER,
+  type       NUMBER,
+  menu_id    NUMBER,
+  name_0     VARCHAR2(25),
+  name_1     VARCHAR2(25),
+  comm       VARCHAR2(255) default '/',
+  name_short VARCHAR2(32)
 )
 tablespace USERS
   pctfree 10
@@ -45,6 +46,8 @@ comment on column SCOTT.T_ORG_TP.name_0
   is 'дополнение для FinDay.permissions';
 comment on column SCOTT.T_ORG_TP.name_1
   is 'дополнение для FinDay.permissions';
+comment on column SCOTT.T_ORG_TP.name_short
+  is 'Наименование укороченное';
 alter table SCOTT.T_ORG_TP
   add constraint T_ORGTP_PK primary key (ID)
   using index 

@@ -1,0 +1,49 @@
+create table SCOTT.C_CHARGEPAY_OLD
+(
+  lsk    CHAR(8),
+  type   NUMBER,
+  summa  NUMBER,
+  mg     CHAR(6),
+  period CHAR(6),
+  summap NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 8M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on table SCOTT.C_CHARGEPAY_OLD
+  is 'поступления -начисления по месячно';
+comment on column SCOTT.C_CHARGEPAY_OLD.lsk
+  is 'л.с.';
+comment on column SCOTT.C_CHARGEPAY_OLD.type
+  is '0-начисление 1-поступление';
+comment on column SCOTT.C_CHARGEPAY_OLD.summa
+  is 'Оплата';
+comment on column SCOTT.C_CHARGEPAY_OLD.mg
+  is 'Период';
+comment on column SCOTT.C_CHARGEPAY_OLD.period
+  is 'период на тек состояние';
+comment on column SCOTT.C_CHARGEPAY_OLD.summap
+  is 'Оплата пени';
+create index SCOTT.C_CHARGEPAY_PERIOD on SCOTT.C_CHARGEPAY_OLD (LSK, TYPE, MG)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 10M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+

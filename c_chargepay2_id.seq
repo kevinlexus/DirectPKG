@@ -1,7 +1,7 @@
 create sequence SCOTT.C_CHARGEPAY2_ID
 minvalue 1
 maxvalue 999999999999999999999999999
-start with 1
+start with 24661
 increment by 1
 cache 20;
 

@@ -1,0 +1,61 @@
+create table SCOTT.CRAWLER_LOG
+(
+  id       NUMBER not null,
+  dt       DATE,
+  dt_post  DATE,
+  cd       VARCHAR2(200),
+  username VARCHAR2(25),
+  text     CLOB
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.CRAWLER_LOG
+  is 'Для тестового примера';
+comment on column SCOTT.CRAWLER_LOG.id
+  is 'Id';
+comment on column SCOTT.CRAWLER_LOG.dt
+  is 'Дата создания записи';
+comment on column SCOTT.CRAWLER_LOG.dt_post
+  is 'Дата публикации';
+comment on column SCOTT.CRAWLER_LOG.cd
+  is 'Уникальный идентификатор сообщения';
+comment on column SCOTT.CRAWLER_LOG.username
+  is 'Имя пользователя';
+comment on column SCOTT.CRAWLER_LOG.text
+  is 'Текст сообщения';
+create unique index SCOTT.CRAWLER_LOG_I on SCOTT.CRAWLER_LOG (CD)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.CRAWLER_LOG
+  add constraint CRAWLER_LOG_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

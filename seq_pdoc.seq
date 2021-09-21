@@ -1,8 +1,0 @@
-create sequence EXS.SEQ_PDOC
-minvalue 1
-maxvalue 999999999999999999999
-start with 621
-increment by 1
-cache 20
-order;
-

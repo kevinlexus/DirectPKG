@@ -49,9 +49,11 @@ create table SCOTT.A_KART_PR2
   fk_deb_org         NUMBER,
   priv_proc          VARCHAR2(10),
   dok_snils          VARCHAR2(11),
-  use_gis_divide_els NUMBER not null,
+  use_gis_divide_els NUMBER,
   mgfrom             NUMBER not null,
-  mgto               NUMBER not null
+  mgto               NUMBER not null,
+  dok_death_c        VARCHAR2(10),
+  dok_death_n        VARCHAR2(10)
 )
 tablespace USERS
   pctfree 10
@@ -146,7 +148,24 @@ comment on column SCOTT.A_KART_PR2.mgfrom
   is 'Начальный период';
 comment on column SCOTT.A_KART_PR2.mgto
   is 'Конечный период';
+comment on column SCOTT.A_KART_PR2.dok_death_c
+  is 'Документ о смерти: Серия';
+comment on column SCOTT.A_KART_PR2.dok_death_n
+  is 'Документ о смерти: Номер';
 create index SCOTT.A_KART_PR2_I on SCOTT.A_KART_PR2 (LSK)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  compress  nologging;
+create index SCOTT.A_KART_PR2_I2 on SCOTT.A_KART_PR2 (ID)
   tablespace USERS
   pctfree 10
   initrans 2
@@ -158,14 +177,14 @@ create index SCOTT.A_KART_PR2_I on SCOTT.A_KART_PR2 (LSK)
     minextents 1
     maxextents unlimited
   );
-create index SCOTT.A_KART_PR2_I2 on SCOTT.A_KART_PR2 (ID)
+create index SCOTT.A_KART_PR2_I3 on SCOTT.A_KART_PR2 (MGFROM, MGTO)
   tablespace USERS
   pctfree 10
   initrans 2
   maxtrans 255
   storage
   (
-    initial 10M
+    initial 64K
     next 1M
     minextents 1
     maxextents unlimited

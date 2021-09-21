@@ -1,0 +1,19 @@
+create table SCOTT.DOA_MESSAGES
+(
+  constraint_name VARCHAR2(30) not null,
+  actions         VARCHAR2(3) not null,
+  parent_child    VARCHAR2(1) not null,
+  error_message   VARCHAR2(2000)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

@@ -51,7 +51,8 @@ create table SCOTT.EXPPRIVS
   lkodn    NUMBER(8,2),
   lg3      NUMBER(8,2),
   lg2      NUMBER(8,2),
-  lel7     NUMBER(8,2)
+  lel7     NUMBER(8,2),
+  lgwxx    NUMBER(8,2)
 )
 tablespace USERS
   pctfree 10

@@ -46,7 +46,7 @@ comment on column SCOTT.REPORTS.name
 comment on column SCOTT.REPORTS.maxlevel
   is 'максимальный уровень детализации';
 comment on column SCOTT.REPORTS.fk_type
-  is 'Тип отчета (0 - OLAP, 1- Fastreport, 2-DBF,3-TXT, 4 -форма, 5 - реестр, 6 - единичная справка)';
+  is 'Тип отчета (0 - OLAP, 1- Fastreport, 2-DBF,3-TXT, 4 -форма, 5 - реестр, 6 - единичная справка, 7-вспомогательный)';
 comment on column SCOTT.REPORTS.expand_row
   is 'Раскрывать ли строки в PivotGrid';
 comment on column SCOTT.REPORTS.expand_col

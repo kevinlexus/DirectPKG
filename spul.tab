@@ -1,9 +1,10 @@
 create table SCOTT.SPUL
 (
-  id       CHAR(4) not null,
-  name     VARCHAR2(25),
-  cd_kladr VARCHAR2(256),
-  cd_uszn  VARCHAR2(256)
+  id            CHAR(4) not null,
+  name          VARCHAR2(25),
+  cd_kladr      VARCHAR2(256),
+  cd_uszn       VARCHAR2(256),
+  fk_settlement NUMBER
 )
 tablespace USERS
   pctfree 1
@@ -26,6 +27,8 @@ comment on column SCOTT.SPUL.cd_kladr
   is 'Улица из справочника KLADR';
 comment on column SCOTT.SPUL.cd_uszn
   is 'Улица из справочника УСЗН';
+comment on column SCOTT.SPUL.fk_settlement
+  is 'FK на населенный пункт';
 alter table SCOTT.SPUL
   add constraint SPUL_P_ID primary key (ID)
   using index 
@@ -40,4 +43,7 @@ alter table SCOTT.SPUL
     minextents 1
     maxextents unlimited
   );
+alter table SCOTT.SPUL
+  add constraint SPUL_F_SETLLEMENT foreign key (FK_SETTLEMENT)
+  references SCOTT.T_ORG (ID);
 

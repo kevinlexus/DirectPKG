@@ -1,7 +1,0 @@
-create sequence EXS.SEQ_LOG
-minvalue 0
-maxvalue 9999999999999
-start with 11
-increment by 1
-cache 20;
-

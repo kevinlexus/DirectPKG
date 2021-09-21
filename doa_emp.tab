@@ -1,0 +1,46 @@
+create table SCOTT.DOA_EMP
+(
+  empno    NUMBER(4) not null,
+  ename    VARCHAR2(10),
+  job      VARCHAR2(9),
+  mgr      NUMBER(4),
+  hiredate DATE,
+  sal      NUMBER(7,2),
+  comm     NUMBER(7,2),
+  deptno   NUMBER(2)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.DOA_EMP
+  add constraint DOA_EMP_PK primary key (EMPNO)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.DOA_EMP
+  add constraint DOA_EMP_DEPT_FK foreign key (DEPTNO)
+  references SCOTT.DOA_DEPT (DEPTNO);
+alter table SCOTT.DOA_EMP
+  add constraint DOA_EMP_MGR_FK foreign key (MGR)
+  references SCOTT.DOA_EMP (EMPNO);
+alter table SCOTT.DOA_EMP
+  add constraint DOA_EMP_MGR_CK
+  check (EMPNO <> MGR);
+

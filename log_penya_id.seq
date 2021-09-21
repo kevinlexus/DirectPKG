@@ -1,0 +1,7 @@
+create sequence SCOTT.LOG_PENYA_ID
+minvalue 1
+maxvalue 9999999999999999999999999999
+start with 21291
+increment by 1
+cache 10;
+

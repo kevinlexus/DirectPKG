@@ -1,0 +1,31 @@
+create table SCOTT.LOG_PENYA
+(
+  id        NUMBER,
+  ts        DATE default SYSDATE,
+  comm      VARCHAR2(1024),
+  summa     NUMBER,
+  summa_deb NUMBER,
+  mg        VARCHAR2(6),
+  dtek      DATE,
+  tp        NUMBER,
+  iter      NUMBER,
+  summa2    NUMBER,
+  days      NUMBER,
+  day_iter  DATE,
+  fk_stav   NUMBER,
+  mg1       VARCHAR2(6),
+  penya     NUMBER,
+  lsk       VARCHAR2(8)
+)
+tablespace ARCH
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

@@ -1,14 +1,14 @@
 create table SCOTT.LOAD_BANK
 (
   dtek  DATE,
-  lsk   CHAR(8),
+  lsk   VARCHAR2(20),
   code  CHAR(2),
   summa NUMBER(9,2),
   dopl  CHAR(6),
   dn    NUMBER,
   nkvit NUMBER,
   nkom  CHAR(3),
-  lsk2  CHAR(8)
+  lsk2  VARCHAR2(20)
 )
 tablespace USERS
   pctfree 10
@@ -23,7 +23,7 @@ comment on table SCOTT.LOAD_BANK
 comment on column SCOTT.LOAD_BANK.dtek
   is 'Дата';
 comment on column SCOTT.LOAD_BANK.lsk
-  is 'Л.С.';
+  is 'Лиц.сч., ЕЛС ГИС жкх';
 comment on column SCOTT.LOAD_BANK.code
   is 'Код банковской операции (01-платеж, 02-пеня)';
 comment on column SCOTT.LOAD_BANK.summa
@@ -37,5 +37,5 @@ comment on column SCOTT.LOAD_BANK.nkvit
 comment on column SCOTT.LOAD_BANK.nkom
   is '№ комп.';
 comment on column SCOTT.LOAD_BANK.lsk2
-  is 'Л.С., как он выглядит в банке)))';
+  is 'Лиц.сч, ЕЛС ГИС жкх, как он выглядит в банке';
 

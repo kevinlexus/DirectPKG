@@ -1,24 +1,27 @@
 create table SCOTT.T_OBJXPAR
 (
-  id       NUMBER not null,
-  fk_lsk   CHAR(8),
-  fk_k_lsk NUMBER,
-  fk_list  NUMBER not null,
-  s1       VARCHAR2(255),
-  d1       DATE,
-  n1       NUMBER,
-  c1       CLOB,
-  pass     RAW(50),
-  fk_user  NUMBER,
-  fk_usl   CHAR(3),
-  tp       NUMBER,
-  ts       DATE default sysdate,
-  mg       VARCHAR2(6),
-  fk_val   NUMBER,
-  status   NUMBER default 0 not null,
-  tguid    VARCHAR2(36),
-  comm     VARCHAR2(1024),
-  fk_doc   NUMBER
+  id          NUMBER not null,
+  fk_lsk      CHAR(8),
+  fk_k_lsk    NUMBER,
+  fk_list     NUMBER not null,
+  s1          VARCHAR2(255),
+  d1          DATE,
+  n1          NUMBER,
+  c1          CLOB,
+  pass        RAW(50),
+  fk_user     NUMBER,
+  fk_usl      CHAR(3),
+  tp          NUMBER,
+  ts          DATE default sysdate,
+  mg          VARCHAR2(6),
+  fk_val      NUMBER,
+  status      NUMBER default 0 not null,
+  tguid       VARCHAR2(36),
+  comm        VARCHAR2(1024),
+  fk_doc      NUMBER,
+  dt_crt      DATE default sysdate,
+  dt_upd      DATE default sysdate,
+  fk_user_upd NUMBER
 )
 tablespace USERS
   pctfree 10
@@ -52,7 +55,7 @@ comment on column SCOTT.T_OBJXPAR.c1
 comment on column SCOTT.T_OBJXPAR.pass
   is 'значение параметра типа RAW(50)';
 comment on column SCOTT.T_OBJXPAR.fk_user
-  is 'FK на пользователя, добавившего запись (Счетчики)';
+  is 'Пользователь, кто создал запись';
 comment on column SCOTT.T_OBJXPAR.fk_usl
   is 'FK на услугу (Счетчики)';
 comment on column SCOTT.T_OBJXPAR.tp
@@ -71,6 +74,12 @@ comment on column SCOTT.T_OBJXPAR.comm
   is 'Результат загрузки в ГИС';
 comment on column SCOTT.T_OBJXPAR.fk_doc
   is 'FK на документ (например реестр загрузки показаний счетчиков)';
+comment on column SCOTT.T_OBJXPAR.dt_crt
+  is 'Дата создания записи';
+comment on column SCOTT.T_OBJXPAR.dt_upd
+  is 'Дата обновления записи';
+comment on column SCOTT.T_OBJXPAR.fk_user_upd
+  is 'Пользователь, кто обновил запись';
 create index SCOTT.T_OBJXPAR_I on SCOTT.T_OBJXPAR (FK_K_LSK, FK_LIST)
   tablespace USERS
   pctfree 10

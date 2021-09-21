@@ -86,7 +86,6 @@ create table SCOTT.KART
   parent_lsk      CHAR(8),
   fk_klsk_obj     NUMBER,
   dt_cr           DATE default sysdate not null,
-  usl_name_short  VARCHAR2(50),
   fact_meter_tp   NUMBER,
   kpr_own         NUMBER,
   fk_klsk_premise NUMBER not null,
@@ -251,8 +250,6 @@ comment on column SCOTT.KART.fk_klsk_obj
   is 'KLSK Лиц.счета';
 comment on column SCOTT.KART.dt_cr
   is 'Дата создания записи';
-comment on column SCOTT.KART.usl_name_short
-  is 'Список коротких наименований услуг, по лиц.счету  (для удобного представления счета при оплате) обновляется при начислении';
 comment on column SCOTT.KART.fact_meter_tp
   is 'Фактическое наличие счетчика, в случае отсутствия объема, для формирования статистики (1-х.в г.в, 2- х.в., 3-г.в.) Устанавливается в Java начислении';
 comment on column SCOTT.KART.kpr_own

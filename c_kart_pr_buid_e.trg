@@ -6,14 +6,18 @@ declare
   txt_      c_status_pr.name%type;
   txt2_     c_status_pr.name%type;
   lsk_      c_kart_pr.lsk%type;
-  flag_kv_  number;
+  l_relat_cnt number;
+  l_new_relat_id number;
+  l_old_relat_id number;
 begin
   --флаг смены квартиросъемщика
-  flag_kv_                := 0;
+  --flag_kv_                := 0;
   c_charges.chng_relat_id := 0;
 
   aud_text_ := '';
 
+  l_new_relat_id:=0;
+  l_old_relat_id:=0;
   if inserting then
     --для подсчета кол-во проживающих в триггере c_kart_pr_auid
     c_charges.tab_lsk.extend;
@@ -41,9 +45,10 @@ begin
     lsk_                 := :new.lsk;
 
     -- обновить ФИО собственника в kart, в триггере c_kart_pr_auid
-    if nvl(:new.relat_id, 0) = 11 then
-      flag_kv_ := 1;
-    end if;
+    --if nvl(:new.relat_id, 0) = 11 then
+    --  flag_kv_ := 1;
+    --end if;
+    l_new_relat_id:=:new.relat_id;
   elsif updating then
     --Записываем ФИО, Л.С. для аудита
     c_charges.trg_c_kart_pr_bd_fio := :old.fio;
@@ -97,9 +102,11 @@ begin
                    logger.log_text('Cтатус', trim(txt_), trim(txt2_));
     end if;
     -- обновить ФИО собственника в kart, в триггере c_kart_pr_auid
-    if nvl(:new.relat_id, 0) = 11 or nvl(:old.relat_id, 0) = 11 then
-      flag_kv_ := 1;
-    end if;
+    --if nvl(:new.relat_id, 0) = 11 or nvl(:old.relat_id, 0) = 11 then
+    --  flag_kv_ := 1;
+    --end if;
+    l_new_relat_id:=:new.relat_id;
+    l_old_relat_id:=:old.relat_id;
   elsif deleting then
     --Записываем ФИО, Л.С. для аудита
     c_charges.trg_c_kart_pr_bd_fio := :old.fio;
@@ -122,21 +129,22 @@ begin
     aud_text_            := 'Удален проживающий: ' || trim(:old.fio);
     lsk_                 := :old.lsk;
     -- обновить ФИО собственника в kart, в триггере c_kart_pr_auid
-    if nvl(:old.relat_id, 0) = 11 then
-      flag_kv_ := 1;
-    end if;
+    --if nvl(:old.relat_id, 0) = 11 then
+    --  flag_kv_ := 1;
+    --end if;
+    l_old_relat_id:=:old.relat_id;
   end if;
 
-  if ((nvl(:new.relat_id, 0) = 11 or nvl(:old.relat_id, 0) = 11) and
-     nvl(:new.relat_id, 0) <> nvl(:old.relat_id, 0) or flag_kv_ = 1) then
-    --возможно изменился квартиросъемщик
+  select count(*) into l_relat_cnt 
+    from relations r where r.id in (l_new_relat_id,l_old_relat_id) and r.fk_relat_tp=1;
+
+  if l_relat_cnt = 1 then
+    -- изменился квартиросъемщик
     c_charges.chng_relat_id := 1;
   end if;
 
   if length(aud_text_) > 0 then
-    --    if c_charges.trg_proc_next_month = 0 then
     aud_text_ := 'Обновлены данные проживающего: ' || aud_text_;
-    --    end if;
     logger.log_act(lsk_, aud_text_, 2);
   end if;
 

@@ -1,14 +1,20 @@
 create table SCOTT.KART_EXT
 (
   id              NUMBER not null,
-  ext_lsk         VARCHAR2(9),
+  ext_lsk         VARCHAR2(20),
   lsk             CHAR(8),
   fio             VARCHAR2(60),
   dt_crt          DATE default sysdate,
   dt_upd          DATE default sysdate,
   v               NUMBER default 1 not null,
   fk_klsk_premise NUMBER,
-  fk_klsk_id      NUMBER
+  fk_klsk_id      NUMBER,
+  insal           NUMBER,
+  outsal          NUMBER,
+  chrg            NUMBER,
+  payment         NUMBER,
+  fk_uk           NUMBER,
+  raschet_schet   VARCHAR2(20)
 )
 tablespace DATA
   pctfree 10
@@ -41,8 +47,56 @@ comment on column SCOTT.KART_EXT.fk_klsk_premise
   is 'FK на помещение (не должен указываться одновременно с LSK)';
 comment on column SCOTT.KART_EXT.fk_klsk_id
   is 'FK на фин.лиц.счет (не должен указываться одновременно с LSK и FK_KLSK_PREMISE)';
-create unique index SCOTT.KART_EXT_I1 on SCOTT.KART_EXT (EXT_LSK)
-  tablespace USERS
+comment on column SCOTT.KART_EXT.insal
+  is 'Входящий остаток';
+comment on column SCOTT.KART_EXT.outsal
+  is 'Исходящий остаток  (сумма к оплате за текущий период)';
+comment on column SCOTT.KART_EXT.chrg
+  is 'Начислено';
+comment on column SCOTT.KART_EXT.payment
+  is 'Оплачено';
+comment on column SCOTT.KART_EXT.fk_uk
+  is 'Принадлежность к УК (РСО)';
+comment on column SCOTT.KART_EXT.raschet_schet
+  is 'Расчетный счет, для выставления счетов на оплату (используется в REP_BILLS_COMPOUND)';
+create unique index SCOTT.KART_EXT_I1 on SCOTT.KART_EXT (EXT_LSK, FK_UK)
+  tablespace INDX
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create unique index SCOTT.KART_EXT_I2 on SCOTT.KART_EXT (LSK)
+  tablespace INDX
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create unique index SCOTT.KART_EXT_I3 on SCOTT.KART_EXT (FK_KLSK_PREMISE)
+  tablespace INDX
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create unique index SCOTT.KART_EXT_I4 on SCOTT.KART_EXT (FK_KLSK_ID)
+  tablespace INDX
   pctfree 10
   initrans 2
   maxtrans 255
@@ -73,4 +127,7 @@ alter table SCOTT.KART_EXT
 alter table SCOTT.KART_EXT
   add constraint KART_EXT_F_PREMISE foreign key (FK_KLSK_PREMISE)
   references SCOTT.K_LSK (ID);
+alter table SCOTT.KART_EXT
+  add constraint KART_EXT_F_UK foreign key (FK_UK)
+  references SCOTT.T_ORG (ID);
 

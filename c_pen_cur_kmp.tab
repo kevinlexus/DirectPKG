@@ -1,0 +1,73 @@
+create table SCOTT.C_PEN_CUR_KMP
+(
+  lsk     CHAR(8),
+  mg1     CHAR(6),
+  curdays NUMBER,
+  summa2  NUMBER,
+  penya   NUMBER,
+  fk_stav NUMBER,
+  dt1     DATE,
+  dt2     DATE,
+  id      NUMBER not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.C_PEN_CUR_KMP
+  is 'Начисление пени за текущий период';
+comment on column SCOTT.C_PEN_CUR_KMP.lsk
+  is 'Лиц. счет';
+comment on column SCOTT.C_PEN_CUR_KMP.mg1
+  is 'Период';
+comment on column SCOTT.C_PEN_CUR_KMP.curdays
+  is 'Кол-во текущих дней долга';
+comment on column SCOTT.C_PEN_CUR_KMP.summa2
+  is 'Сумма задолжности,  по которой расчёт пени';
+comment on column SCOTT.C_PEN_CUR_KMP.penya
+  is 'Сумма пени';
+comment on column SCOTT.C_PEN_CUR_KMP.fk_stav
+  is 'fk использованной ставки';
+comment on column SCOTT.C_PEN_CUR_KMP.dt1
+  is 'Дата начала';
+comment on column SCOTT.C_PEN_CUR_KMP.dt2
+  is 'Дата окончания';
+comment on column SCOTT.C_PEN_CUR_KMP.id
+  is 'id';
+create index SCOTT.C_PEN_CUR_KMP_I on SCOTT.C_PEN_CUR_KMP (LSK, MG1)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.C_PEN_CUR_KMP
+  add constraint C_PEN_CUR_KMP_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.C_PEN_CUR_KMP
+  add constraint C_PEN_CUR_KMP_F_STAV foreign key (FK_STAV)
+  references SCOTT.STAV_R (ID);
+

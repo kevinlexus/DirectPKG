@@ -1,6 +1,6 @@
 -------------------------------------------
 -- Export file for user SCOTT@ORCL       --
--- Created by Leo on 09.06.2020, 7:17:02 --
+-- Created by Leo on 21.09.2021, 8:02:59 --
 -------------------------------------------
 
 set define off
@@ -72,15 +72,15 @@ prompt =======================
 prompt
 @@a_houses.tab
 prompt
-prompt Creating table A_KART_PR
-prompt ========================
-prompt
-@@a_kart_pr.tab
-prompt
 prompt Creating table A_KART_PR2
 prompt =========================
 prompt
 @@a_kart_pr2.tab
+prompt
+prompt Creating table A_KART_PR_OLD
+prompt ============================
+prompt
+@@a_kart_pr_old.tab
 prompt
 prompt Creating table A_KWTP
 prompt =====================
@@ -147,6 +147,11 @@ prompt =====================
 prompt
 @@a_vvod.tab
 prompt
+prompt Creating table CRAWLER_LOG
+prompt ==========================
+prompt
+@@crawler_log.tab
+prompt
 prompt Creating table C_BILL
 prompt =====================
 prompt
@@ -182,6 +187,31 @@ prompt ========================
 prompt
 @@spr_koeff.tab
 prompt
+prompt Creating table T_ORG_TP
+prompt =======================
+prompt
+@@t_org_tp.tab
+prompt
+prompt Creating table USLG
+prompt ===================
+prompt
+@@uslg.tab
+prompt
+prompt Creating table USLM
+prompt ===================
+prompt
+@@uslm.tab
+prompt
+prompt Creating table USL
+prompt ==================
+prompt
+@@usl.tab
+prompt
+prompt Creating table T_ORG
+prompt ====================
+prompt
+@@t_org.tab
+prompt
 prompt Creating table SPUL
 prompt ===================
 prompt
@@ -191,16 +221,6 @@ prompt Creating table STATUS
 prompt =====================
 prompt
 @@status.tab
-prompt
-prompt Creating table T_ORG_TP
-prompt =======================
-prompt
-@@t_org_tp.tab
-prompt
-prompt Creating table T_ORG
-prompt ====================
-prompt
-@@t_org.tab
 prompt
 prompt Creating table C_HOUSES
 prompt =======================
@@ -222,21 +242,6 @@ prompt =====================
 prompt
 @@t_user.tab
 prompt
-prompt Creating table USLG
-prompt ===================
-prompt
-@@uslg.tab
-prompt
-prompt Creating table USLM
-prompt ===================
-prompt
-@@uslm.tab
-prompt
-prompt Creating table USL
-prompt ==================
-prompt
-@@usl.tab
-prompt
 prompt Creating table C_CHANGE
 prompt =======================
 prompt
@@ -252,15 +257,15 @@ prompt =======================
 prompt
 @@c_charge.tab
 prompt
-prompt Creating table C_CHARGEPAY
-prompt ==========================
-prompt
-@@c_chargepay.tab
-prompt
 prompt Creating table C_CHARGEPAY2
 prompt ===========================
 prompt
 @@c_chargepay2.tab
+prompt
+prompt Creating table C_CHARGEPAY_OLD
+prompt ==============================
+prompt
+@@c_chargepay_old.tab
 prompt
 prompt Creating table C_CHARGE_PREP
 prompt ============================
@@ -357,6 +362,11 @@ prompt ======================
 prompt
 @@c_penya.tab
 prompt
+prompt Creating table C_PENYA_KMP
+prompt ==========================
+prompt
+@@c_penya_kmp.tab
+prompt
 prompt Creating table C_PEN_CORR
 prompt =========================
 prompt
@@ -371,6 +381,11 @@ prompt Creating table C_PEN_CUR
 prompt ========================
 prompt
 @@c_pen_cur.tab
+prompt
+prompt Creating table C_PEN_CUR_KMP
+prompt ============================
+prompt
+@@c_pen_cur_kmp.tab
 prompt
 prompt Creating table C_PEN_USL_CORR
 prompt =============================
@@ -417,6 +432,16 @@ prompt =====================
 prompt
 @@c_vvod.tab
 prompt
+prompt Creating table DATABASECHANGELOG
+prompt ================================
+prompt
+@@databasechangelog.tab
+prompt
+prompt Creating table DATABASECHANGELOGLOCK
+prompt ====================================
+prompt
+@@databasechangeloglock.tab
+prompt
 prompt Creating table DAY_HINTS
 prompt ========================
 prompt
@@ -456,6 +481,21 @@ prompt Creating table DEB_USL_MG
 prompt =========================
 prompt
 @@deb_usl_mg.tab
+prompt
+prompt Creating table DOA_DEPT
+prompt =======================
+prompt
+@@doa_dept.tab
+prompt
+prompt Creating table DOA_EMP
+prompt ======================
+prompt
+@@doa_emp.tab
+prompt
+prompt Creating table DOA_MESSAGES
+prompt ===========================
+prompt
+@@doa_messages.tab
 prompt
 prompt Creating table DU_OBJ
 prompt =====================
@@ -596,6 +636,16 @@ prompt Creating table KMP_LSK4
 prompt =======================
 prompt
 @@kmp_lsk4.tab
+prompt
+prompt Creating table KMP_MMMMMMMM
+prompt ===========================
+prompt
+@@kmp_mmmmmmmm.tab
+prompt
+prompt Creating table KMP_T_ORG
+prompt ========================
+prompt
+@@kmp_t_org.tab
 prompt
 prompt Creating table KWTP_DAY
 prompt =======================
@@ -752,6 +802,11 @@ prompt ======================
 prompt
 @@log_err.tab
 prompt
+prompt Creating table LOG_PENYA
+prompt ========================
+prompt
+@@log_penya.tab
+prompt
 prompt Creating table LOG_VERSION
 prompt ==========================
 prompt
@@ -816,11 +871,6 @@ prompt Creating table PEN_REF
 prompt ======================
 prompt
 @@pen_ref.tab
-prompt
-prompt Creating table REPORTS
-prompt ======================
-prompt
-@@reports.tab
 prompt
 prompt Creating table PERIOD_REPORTS
 prompt =============================
@@ -942,6 +992,11 @@ prompt ========================
 prompt
 @@redir_pay.tab
 prompt
+prompt Creating table REPORTS
+prompt ======================
+prompt
+@@reports.tab
+prompt
 prompt Creating table SPR_PARAMS
 prompt =========================
 prompt
@@ -1016,6 +1071,11 @@ prompt Creating table SPK_TEMP
 prompt =======================
 prompt
 @@spk_temp.tab
+prompt
+prompt Creating table SPR_BILL_PRINT
+prompt =============================
+prompt
+@@spr_bill_print.tab
 prompt
 prompt Creating table SPR_GEN_ITM
 prompt ==========================
@@ -1101,36 +1161,6 @@ prompt Creating table SWX
 prompt ==================
 prompt
 @@swx.tab
-prompt
-prompt Creating table SYS_EXPORT_FULL_01
-prompt =================================
-prompt
-@@sys_export_full_01.tab
-prompt
-prompt Creating table SYS_EXPORT_FULL_02
-prompt =================================
-prompt
-@@sys_export_full_02.tab
-prompt
-prompt Creating table SYS_EXPORT_FULL_03
-prompt =================================
-prompt
-@@sys_export_full_03.tab
-prompt
-prompt Creating table SYS_IMPORT_FULL_01
-prompt =================================
-prompt
-@@sys_import_full_01.tab
-prompt
-prompt Creating table SYS_IMPORT_FULL_02
-prompt =================================
-prompt
-@@sys_import_full_02.tab
-prompt
-prompt Creating table SYS_IMPORT_TABLE_01
-prompt ==================================
-prompt
-@@sys_import_table_01.tab
 prompt
 prompt Creating table S_TREST2
 prompt =======================
@@ -1577,6 +1607,11 @@ prompt ============================
 prompt
 @@changes_id.seq
 prompt
+prompt Creating sequence CRAWLER_LOG_ID
+prompt ================================
+prompt
+@@crawler_log_id.seq
+prompt
 prompt Creating sequence C_BILL_DET_ID
 prompt ===============================
 prompt
@@ -1777,6 +1812,11 @@ prompt ========================
 prompt
 @@log_id.seq
 prompt
+prompt Creating sequence LOG_PENYA_ID
+prompt ==============================
+prompt
+@@log_penya_id.seq
+prompt
 prompt Creating sequence LOG_VERSION_ID
 prompt ================================
 prompt
@@ -1871,6 +1911,11 @@ prompt Creating sequence SEQ_C_USERS_ID
 prompt ================================
 prompt
 @@seq_c_users_id.seq
+prompt
+prompt Creating sequence SPR_BILL_PRINT_ID
+prompt ===================================
+prompt
+@@spr_bill_print_id.seq
 prompt
 prompt Creating sequence SPR_KOEFF_ID
 prompt ==============================
@@ -2062,6 +2107,11 @@ prompt ===========================
 prompt
 @@u_list_id.seq
 prompt
+prompt Creating synonym DETAIL
+prompt =======================
+prompt
+@@detail.syn
+prompt
 prompt Creating function GETDT
 prompt =======================
 prompt
@@ -2145,7 +2195,7 @@ prompt
 prompt Creating package P_HOUSES
 prompt =========================
 prompt
-@@p_houses.pck
+@@p_houses.spc
 prompt
 prompt Creating view V_ARCH_KART
 prompt =========================
@@ -2166,11 +2216,6 @@ prompt Creating view V_CHANGES_FOR_SALDO_DET
 prompt =====================================
 prompt
 @@v_changes_for_saldo_det.vw
-prompt
-prompt Creating view V_CHARGEPAY
-prompt =========================
-prompt
-@@v_chargepay.vw
 prompt
 prompt Creating view V_CHECK_INKAS
 prompt ===========================
@@ -2360,7 +2405,7 @@ prompt
 prompt Creating package INIT
 prompt =====================
 prompt
-@@init.pck
+@@init.spc
 prompt
 prompt Creating view V_PENYA_FOR_SALDO
 prompt ===============================
@@ -2460,27 +2505,27 @@ prompt
 prompt Creating package ADMIN
 prompt ======================
 prompt
-@@admin.pck
+@@admin.spc
 prompt
 prompt Creating package AGENT
 prompt ======================
 prompt
-@@agent.pck
+@@agent.spc
 prompt
 prompt Creating package C_CHANGES
 prompt ==========================
 prompt
-@@c_changes.pck
+@@c_changes.spc
 prompt
 prompt Creating package C_CHARGES
 prompt ==========================
 prompt
-@@c_charges.pck
+@@c_charges.spc
 prompt
 prompt Creating package C_CPENYA
 prompt =========================
 prompt
-@@c_cpenya.pck
+@@c_cpenya.spc
 prompt
 prompt Creating type REC_REDIR
 prompt =======================
@@ -2495,42 +2540,42 @@ prompt
 prompt Creating package C_DIST_PAY
 prompt ===========================
 prompt
-@@c_dist_pay.pck
+@@c_dist_pay.spc
 prompt
 prompt Creating package C_EXP_LIST
 prompt ===========================
 prompt
-@@c_exp_list.pck
+@@c_exp_list.spc
 prompt
 prompt Creating package C_GEN_PAY
 prompt ==========================
 prompt
-@@c_gen_pay.pck
+@@c_gen_pay.spc
 prompt
 prompt Creating package C_GET_PAY
 prompt ==========================
 prompt
-@@c_get_pay.pck
+@@c_get_pay.spc
 prompt
 prompt Creating package C_KART
 prompt =======================
 prompt
-@@c_kart.pck
+@@c_kart.spc
 prompt
 prompt Creating package C_LOAD_FIAS
 prompt ============================
 prompt
-@@c_load_fias.pck
+@@c_load_fias.spc
 prompt
 prompt Creating package C_LOAD_PRIVS
 prompt =============================
 prompt
-@@c_load_privs.pck
+@@c_load_privs.spc
 prompt
 prompt Creating package C_OBJ_PAR
 prompt ==========================
 prompt
-@@c_obj_par.pck
+@@c_obj_par.spc
 prompt
 prompt Creating type REC_SUMM
 prompt ======================
@@ -2545,32 +2590,32 @@ prompt
 prompt Creating package C_PREP
 prompt =======================
 prompt
-@@c_prep.pck
+@@c_prep.spc
 prompt
 prompt Creating package DBASE_PKG
 prompt ==========================
 prompt
-@@dbase_pkg.pck
+@@dbase_pkg.spc
 prompt
 prompt Creating package DBMS_NUMSYSTEM
 prompt ===============================
 prompt
-@@dbms_numsystem.pck
+@@dbms_numsystem.spc
 prompt
 prompt Creating package EXT_PKG
 prompt ========================
 prompt
-@@ext_pkg.pck
+@@ext_pkg.spc
 prompt
 prompt Creating package GEN
 prompt ====================
 prompt
-@@gen.pck
+@@gen.spc
 prompt
 prompt Creating package GENERATOR
 prompt ==========================
 prompt
-@@generator.pck
+@@generator.spc
 prompt
 prompt Creating package GEN_PREP
 prompt =========================
@@ -2580,37 +2625,37 @@ prompt
 prompt Creating package GEN_STAT
 prompt =========================
 prompt
-@@gen_stat.pck
+@@gen_stat.spc
 prompt
 prompt Creating package LOGGER
 prompt =======================
 prompt
-@@logger.pck
+@@logger.spc
 prompt
 prompt Creating package P_JAVA
 prompt =======================
 prompt
-@@p_java.pck
+@@p_java.spc
 prompt
 prompt Creating package P_METER
 prompt ========================
 prompt
-@@p_meter.pck
+@@p_meter.spc
 prompt
 prompt Creating package P_THREAD
 prompt =========================
 prompt
-@@p_thread.pck
+@@p_thread.spc
 prompt
 prompt Creating package P_VVOD
 prompt =======================
 prompt
-@@p_vvod.pck
+@@p_vvod.spc
 prompt
 prompt Creating package REP_BILLS
 prompt ==========================
 prompt
-@@rep_bills.pck
+@@rep_bills.spc
 prompt
 prompt Creating type REC_BILL_DETAIL
 prompt =============================
@@ -2625,7 +2670,7 @@ prompt
 prompt Creating package REP_BILLS_COMPOUND
 prompt ===================================
 prompt
-@@rep_bills_compound.pck
+@@rep_bills_compound.spc
 prompt
 prompt Creating type REC_BILL_ROW
 prompt ==========================
@@ -2640,82 +2685,62 @@ prompt
 prompt Creating package REP_BILLS_EXT
 prompt ==============================
 prompt
-@@rep_bills_ext.pck
+@@rep_bills_ext.spc
 prompt
 prompt Creating package REP_CHARGES
 prompt ============================
 prompt
-@@rep_charges.pck
+@@rep_charges.spc
 prompt
 prompt Creating package REP_LISTS
 prompt ==========================
 prompt
-@@rep_lists.pck
+@@rep_lists.spc
 prompt
 prompt Creating package REP_LSK
 prompt ========================
 prompt
-@@rep_lsk.pck
+@@rep_lsk.spc
 prompt
 prompt Creating package REP_OPL
 prompt ========================
 prompt
-@@rep_opl.pck
+@@rep_opl.spc
 prompt
 prompt Creating package REP_SALDO
 prompt ==========================
 prompt
-@@rep_saldo.pck
+@@rep_saldo.spc
 prompt
 prompt Creating package SCRIPTS
 prompt ========================
 prompt
-@@scripts.pck
-prompt
-prompt Creating type REC_TMP
-prompt =====================
-prompt
-@@rec_tmp.tps
-prompt
-prompt Creating type TAB_TMP
-prompt =====================
-prompt
-@@tab_tmp.tps
-prompt
-prompt Creating package SCRIPTS2
-prompt =========================
-prompt
-@@scripts2.pck
-prompt
-prompt Creating package SCRIPTS3
-prompt =========================
-prompt
-@@scripts3.pck
+@@scripts.spc
 prompt
 prompt Creating package SCRIPTS_MIGRATION
 prompt ==================================
 prompt
-@@scripts_migration.pck
+@@scripts_migration.spc
 prompt
 prompt Creating package STAT
 prompt =====================
 prompt
-@@stat.pck
+@@stat.spc
 prompt
 prompt Creating package UPDATER
 prompt ========================
 prompt
-@@updater.pck
+@@updater.spc
 prompt
 prompt Creating package UTILS
 prompt ======================
 prompt
-@@utils.pck
+@@utils.spc
 prompt
 prompt Creating package UTILS_EXT
 prompt ==========================
 prompt
-@@utils_ext.pck
+@@utils_ext.spc
 prompt
 prompt Creating type REC_BILLS
 prompt =======================
@@ -2736,6 +2761,11 @@ prompt Creating type REC_STATE
 prompt =======================
 prompt
 @@rec_state.tps
+prompt
+prompt Creating type REC_TMP
+prompt =====================
+prompt
+@@rec_tmp.tps
 prompt
 prompt Creating type REC_USL_ROUND
 prompt ===========================
@@ -2791,6 +2821,11 @@ prompt Creating type TAB_STATE
 prompt =======================
 prompt
 @@tab_state.tps
+prompt
+prompt Creating type TAB_TMP
+prompt =====================
+prompt
+@@tab_tmp.tps
 prompt
 prompt Creating type TAB_USL_ROUND
 prompt ===========================
@@ -2931,6 +2966,16 @@ prompt Creating procedure DRN143_«¿√–”« ¿_¬Õ≈ÿÕ»’_À—
 prompt =============================================
 prompt
 @@drn143_Á‡„ÛÁÍ‡_‚ÌÂ¯ÌËı_ÎÒ.prc
+prompt
+prompt Creating procedure DRN143_«¿√–”« ¿_¬Õ≈ÿÕ»’_À—_‘ –
+prompt =================================================
+prompt
+@@drn143_Á‡„ÛÁÍ‡_‚ÌÂ¯ÌËı_ÎÒ_ÙÍ.prc
+prompt
+prompt Creating procedure DRN143_«¿√–”« ¿_¬Õ≈ÿÕ»’_À—_◊√ 
+prompt =================================================
+prompt
+@@drn143_Á‡„ÛÁÍ‡_‚ÌÂ¯ÌËı_ÎÒ_˜„Í.prc
 prompt
 prompt Creating procedure DRN144_ ¿–“Œ◊ »_¬Õ≈ÿÕ»’_À—
 prompt =============================================
@@ -3282,6 +3327,11 @@ prompt ==============================================
 prompt
 @@drn871_ÒÔËÒÍË_Á‡‰ÓÎÊÌ_olap2.prc
 prompt
+prompt Creating procedure DRN872_—œ»— »_«¿ƒŒÀ∆Õ_OLAP3
+prompt ==============================================
+prompt
+@@drn872_ÒÔËÒÍË_Á‡‰ÓÎÊÌ_olap3.prc
+prompt
 prompt Creating procedure DRN87_—œ»— »_œŒ ¿«_—◊
 prompt ========================================
 prompt
@@ -3367,6 +3417,11 @@ prompt =============================================
 prompt
 @@drx6_‡‰ÏËÌ_ÒÔ_Ó„‡ÌËÁ‡ˆËÈ.prc
 prompt
+prompt Creating procedure DRX_PRINT_BILLS_ƒ¬»∆≈Õ»≈
+prompt ===========================================
+prompt
+@@drx_print_bills_‰‚ËÊÂÌËÂ.prc
+prompt
 prompt Creating procedure DRX_PRINT_BILLS_ ¬¿–“
 prompt ========================================
 prompt
@@ -3406,6 +3461,11 @@ prompt Creating procedure DRX_PRINT_BILLS_—◊≈“
 prompt =======================================
 prompt
 @@drx_print_bills_Ò˜ÂÚ.prc
+prompt
+prompt Creating procedure DRX_PRINT_—œ–_œŒ_–¿—◊≈“”_œ≈Õ»
+prompt ================================================
+prompt
+@@drx_print_ÒÔ_ÔÓ_‡Ò˜ÂÚÛ_ÔÂÌË.prc
 prompt
 prompt Creating procedure DRX_¬≈–Õ”“‹_ŒœÀ¿“”
 prompt =====================================
@@ -3562,6 +3622,211 @@ prompt ======================================
 prompt
 @@drn95_Ó·ÓÓÚÌ‡ˇ_ÚÒÊ.prc
 prompt
+prompt Creating package body ADMIN
+prompt ===========================
+prompt
+@@admin.bdy
+prompt
+prompt Creating package body AGENT
+prompt ===========================
+prompt
+@@agent.bdy
+prompt
+prompt Creating package body C_CHANGES
+prompt ===============================
+prompt
+@@c_changes.bdy
+prompt
+prompt Creating package body C_CHARGES
+prompt ===============================
+prompt
+@@c_charges.bdy
+prompt
+prompt Creating package body C_CPENYA
+prompt ==============================
+prompt
+@@c_cpenya.bdy
+prompt
+prompt Creating package body C_DIST_PAY
+prompt ================================
+prompt
+@@c_dist_pay.bdy
+prompt
+prompt Creating package body C_EXP_LIST
+prompt ================================
+prompt
+@@c_exp_list.bdy
+prompt
+prompt Creating package body C_GEN_PAY
+prompt ===============================
+prompt
+@@c_gen_pay.bdy
+prompt
+prompt Creating package body C_GET_PAY
+prompt ===============================
+prompt
+@@c_get_pay.bdy
+prompt
+prompt Creating package body C_KART
+prompt ============================
+prompt
+@@c_kart.bdy
+prompt
+prompt Creating package body C_LOAD_FIAS
+prompt =================================
+prompt
+@@c_load_fias.bdy
+prompt
+prompt Creating package body C_LOAD_PRIVS
+prompt ==================================
+prompt
+@@c_load_privs.bdy
+prompt
+prompt Creating package body C_OBJ_PAR
+prompt ===============================
+prompt
+@@c_obj_par.bdy
+prompt
+prompt Creating package body C_PREP
+prompt ============================
+prompt
+@@c_prep.bdy
+prompt
+prompt Creating package body DBASE_PKG
+prompt ===============================
+prompt
+@@dbase_pkg.bdy
+prompt
+prompt Creating package body DBMS_NUMSYSTEM
+prompt ====================================
+prompt
+@@dbms_numsystem.bdy
+prompt
+prompt Creating package body EXT_PKG
+prompt =============================
+prompt
+@@ext_pkg.bdy
+prompt
+prompt Creating package body GEN
+prompt =========================
+prompt
+@@gen.bdy
+prompt
+prompt Creating package body GENERATOR
+prompt ===============================
+prompt
+@@generator.bdy
+prompt
+prompt Creating package body GEN_STAT
+prompt ==============================
+prompt
+@@gen_stat.bdy
+prompt
+prompt Creating package body INIT
+prompt ==========================
+prompt
+@@init.bdy
+prompt
+prompt Creating package body LOGGER
+prompt ============================
+prompt
+@@logger.bdy
+prompt
+prompt Creating package body P_HOUSES
+prompt ==============================
+prompt
+@@p_houses.bdy
+prompt
+prompt Creating package body P_JAVA
+prompt ============================
+prompt
+@@p_java.bdy
+prompt
+prompt Creating package body P_METER
+prompt =============================
+prompt
+@@p_meter.bdy
+prompt
+prompt Creating package body P_THREAD
+prompt ==============================
+prompt
+@@p_thread.bdy
+prompt
+prompt Creating package body P_VVOD
+prompt ============================
+prompt
+@@p_vvod.bdy
+prompt
+prompt Creating package body REP_BILLS
+prompt ===============================
+prompt
+@@rep_bills.bdy
+prompt
+prompt Creating package body REP_BILLS_COMPOUND
+prompt ========================================
+prompt
+@@rep_bills_compound.bdy
+prompt
+prompt Creating package body REP_BILLS_EXT
+prompt ===================================
+prompt
+@@rep_bills_ext.bdy
+prompt
+prompt Creating package body REP_CHARGES
+prompt =================================
+prompt
+@@rep_charges.bdy
+prompt
+prompt Creating package body REP_LISTS
+prompt ===============================
+prompt
+@@rep_lists.bdy
+prompt
+prompt Creating package body REP_LSK
+prompt =============================
+prompt
+@@rep_lsk.bdy
+prompt
+prompt Creating package body REP_OPL
+prompt =============================
+prompt
+@@rep_opl.bdy
+prompt
+prompt Creating package body REP_SALDO
+prompt ===============================
+prompt
+@@rep_saldo.bdy
+prompt
+prompt Creating package body SCRIPTS
+prompt =============================
+prompt
+@@scripts.bdy
+prompt
+prompt Creating package body SCRIPTS_MIGRATION
+prompt =======================================
+prompt
+@@scripts_migration.bdy
+prompt
+prompt Creating package body STAT
+prompt ==========================
+prompt
+@@stat.bdy
+prompt
+prompt Creating package body UPDATER
+prompt =============================
+prompt
+@@updater.bdy
+prompt
+prompt Creating package body UTILS
+prompt ===========================
+prompt
+@@utils.bdy
+prompt
+prompt Creating package body UTILS_EXT
+prompt ===============================
+prompt
+@@utils_ext.bdy
+prompt
 prompt Creating trigger A_CHARGE2_BIE
 prompt ==============================
 prompt
@@ -3586,6 +3851,11 @@ prompt Creating trigger A_PENYA_BI_E
 prompt =============================
 prompt
 @@a_penya_bi_e.trg
+prompt
+prompt Creating trigger CRAWLER_LOG_BI_E
+prompt =================================
+prompt
+@@crawler_log_bi_e.trg
 prompt
 prompt Creating trigger C_CHANGE_AD_E
 prompt ==============================
@@ -3797,6 +4067,11 @@ prompt =========================
 prompt
 @@deb_bi_e.trg
 prompt
+prompt Creating trigger DOA_EMP_BRIU
+prompt =============================
+prompt
+@@doa_emp_briu.trg
+prompt
 prompt Creating trigger DU_OBJ_BIU_E
 prompt =============================
 prompt
@@ -3916,6 +4191,11 @@ prompt Creating trigger LOG_BI_E
 prompt =========================
 prompt
 @@log_bi_e.trg
+prompt
+prompt Creating trigger LOG_PENYA_BI_E
+prompt ===============================
+prompt
+@@log_penya_bi_e.trg
 prompt
 prompt Creating trigger MESSAGES_AIS
 prompt =============================
@@ -4057,6 +4337,11 @@ prompt ========================
 prompt
 @@spk_bie.trg
 prompt
+prompt Creating trigger SPR_BILL_PRINT_BI_E
+prompt ====================================
+prompt
+@@spr_bill_print_bi_e.trg
+prompt
 prompt Creating trigger SPR_GEN_ITM_AU
 prompt ===============================
 prompt
@@ -4172,10 +4457,10 @@ prompt =================================
 prompt
 @@t_housexlist_bie.trg
 prompt
-prompt Creating trigger T_OBJXPAR_BI
-prompt =============================
+prompt Creating trigger T_OBJXPAR_BIU_E
+prompt ================================
 prompt
-@@t_objxpar_bi.trg
+@@t_objxpar_biu_e.trg
 prompt
 prompt Creating trigger T_ORG_ADU_L2C
 prompt ==============================

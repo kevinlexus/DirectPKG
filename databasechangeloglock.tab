@@ -1,0 +1,33 @@
+create table SCOTT.DATABASECHANGELOGLOCK
+(
+  id          INTEGER not null,
+  locked      NUMBER(1) not null,
+  lockgranted TIMESTAMP(6),
+  lockedby    VARCHAR2(255)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.DATABASECHANGELOGLOCK
+  add constraint PK_DATABASECHANGELOGLOCK primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

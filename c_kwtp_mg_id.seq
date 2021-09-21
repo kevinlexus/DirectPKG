@@ -1,7 +1,7 @@
 create sequence SCOTT.C_KWTP_MG_ID
 minvalue 1
 maxvalue 999999999999999999999999999
-start with 105755
+start with 106055
 increment by 1
 cache 20;
 

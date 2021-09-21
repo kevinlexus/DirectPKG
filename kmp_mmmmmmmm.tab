@@ -1,0 +1,12 @@
+create table SCOTT.KMP_MMMMMMMM
+(
+  id     DATE,
+  dadada NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255;
+comment on column SCOTT.KMP_MMMMMMMM.id
+  is 'Проверка!';
+

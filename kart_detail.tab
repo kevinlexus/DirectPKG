@@ -5,7 +5,9 @@ create table SCOTT.KART_DETAIL
   ord1               NUMBER,
   cadastr_num        VARCHAR2(20),
   is_main            NUMBER default 0 not null,
-  is_main_in_premise NUMBER default 0 not null
+  is_main_in_premise NUMBER default 0 not null,
+  prn_num            NUMBER,
+  is_main_in_klsk    NUMBER default 0 not null
 )
 tablespace USERS
   pctfree 10
@@ -32,6 +34,10 @@ comment on column SCOTT.KART_DETAIL.is_main
   is 'На текущий момент, в контексте K_LSK_ID: Основной(Если нет основного - РСО), незакрытый лиц.счет.-1 Остальные - 0 ';
 comment on column SCOTT.KART_DETAIL.is_main_in_premise
   is 'На текущий момент, в контексте FK_KLSK_PREMISE: Основной(Если нет основного - РСО), незакрытый лиц.счет.-1 Остальные - 0 ';
+comment on column SCOTT.KART_DETAIL.prn_num
+  is '№ порядк печати (указывается для текущего периода)';
+comment on column SCOTT.KART_DETAIL.is_main_in_klsk
+  is 'На текущий момент, в контексте K_LSK_ID: Основной(Если нет основного - РСО), незакрытый лиц.счет.-1 Остальные - 0 ';
 alter table SCOTT.KART_DETAIL
   add constraint KART_DETAIL_P primary key (ID)
   using index 

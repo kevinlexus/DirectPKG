@@ -1,17 +1,19 @@
 create table SCOTT.SPR_GEN_ITM
 (
-  id    NUMBER not null,
-  cd    VARCHAR2(256) not null,
-  name  VARCHAR2(256) not null,
-  npp   NUMBER,
-  proc  NUMBER,
-  sel   NUMBER,
-  state VARCHAR2(1000),
-  err   NUMBER,
-  npp2  NUMBER,
-  dt1   DATE,
-  dt2   DATE,
-  v     NUMBER default 1
+  id            NUMBER not null,
+  cd            VARCHAR2(256) not null,
+  name          VARCHAR2(256) not null,
+  npp           NUMBER,
+  proc          NUMBER,
+  sel           NUMBER,
+  state         VARCHAR2(1000),
+  err           NUMBER,
+  npp2          NUMBER,
+  dt1           DATE,
+  dt2           DATE,
+  v             NUMBER default 1,
+  duration      NUMBER,
+  prev_duration NUMBER
 )
 tablespace USERS
   pctfree 10
@@ -50,6 +52,10 @@ comment on column SCOTT.SPR_GEN_ITM.dt2
   is 'Дата, время окончания формирования';
 comment on column SCOTT.SPR_GEN_ITM.v
   is 'Отображать для выбора? (1-да, 0, null - нет)';
+comment on column SCOTT.SPR_GEN_ITM.duration
+  is 'Продолжительность выполнения';
+comment on column SCOTT.SPR_GEN_ITM.prev_duration
+  is 'Предыдущая продолжительность выполнения';
 alter table SCOTT.SPR_GEN_ITM
   add constraint SPR_GEN_ITM primary key (ID)
   using index 

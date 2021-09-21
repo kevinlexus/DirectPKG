@@ -1,7 +1,7 @@
 create sequence SCOTT.C_VVOD_ID
 minvalue 1
 maxvalue 999999999999999999999999999
-start with 11189
+start with 11489
 increment by 1
 cache 20
 order;

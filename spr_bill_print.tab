@@ -1,0 +1,49 @@
+create table SCOTT.SPR_BILL_PRINT
+(
+  id              NUMBER not null,
+  reu             CHAR(3) not null,
+  filter_reu      VARCHAR2(500),
+  is_export_pdf   NUMBER default 1 not null,
+  prefix          VARCHAR2(256) default 'ОСН',
+  is_export_email NUMBER default 0
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.SPR_BILL_PRINT
+  is 'Справочник экспорта счетов';
+comment on column SCOTT.SPR_BILL_PRINT.id
+  is 'ID';
+comment on column SCOTT.SPR_BILL_PRINT.reu
+  is 'Код УК, основной';
+comment on column SCOTT.SPR_BILL_PRINT.filter_reu
+  is 'Коды УК, в фильтре, например ''003'',''015'',''077''';
+comment on column SCOTT.SPR_BILL_PRINT.is_export_pdf
+  is 'Экспортировать в PDF (0-нет, 1-да)';
+comment on column SCOTT.SPR_BILL_PRINT.prefix
+  is 'Префикс к имени файла,   КОД-УК_PREFIX_ТЫСЯЧА, итоговое выражение, например: 001_ОСН_1 или 001_ДОП_1';
+comment on column SCOTT.SPR_BILL_PRINT.is_export_email
+  is 'Экспортировать только с заполненным параметром send_bill_via_email';
+alter table SCOTT.SPR_BILL_PRINT
+  add constraint SPR_BILL_PRINT_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

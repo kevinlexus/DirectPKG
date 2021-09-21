@@ -48,9 +48,11 @@ create table SCOTT.C_KART_PR
   priv_proc          VARCHAR2(10),
   acpt               NUMBER(1),
   dok_snils          VARCHAR2(11),
-  use_gis_divide_els NUMBER(1) default 0 not null,
+  use_gis_divide_els NUMBER default 0 not null,
   dok_div            VARCHAR2(120),
-  dok_inn            VARCHAR2(12)
+  dok_inn            VARCHAR2(12),
+  dok_death_c        VARCHAR2(10),
+  dok_death_n        VARCHAR2(10)
 )
 tablespace USERS
   pctfree 1
@@ -168,6 +170,10 @@ comment on column SCOTT.C_KART_PR.dok_div
   is 'Код подразделения';
 comment on column SCOTT.C_KART_PR.dok_inn
   is 'ИНН';
+comment on column SCOTT.C_KART_PR.dok_death_c
+  is 'Документ о смерти: Серия';
+comment on column SCOTT.C_KART_PR.dok_death_n
+  is 'Документ о смерти: Номер';
 create index SCOTT.C_KART_PR_I on SCOTT.C_KART_PR (LSK, ID)
   tablespace USERS
   pctfree 10
@@ -175,11 +181,12 @@ create index SCOTT.C_KART_PR_I on SCOTT.C_KART_PR (LSK, ID)
   maxtrans 255
   storage
   (
-    initial 512K
+    initial 64K
     next 1M
     minextents 1
     maxextents unlimited
-  );
+  )
+  compress  nologging;
 create index SCOTT.C_KART_PR_I2 on SCOTT.C_KART_PR (LSK, STATUS)
   tablespace USERS
   pctfree 10
@@ -187,11 +194,12 @@ create index SCOTT.C_KART_PR_I2 on SCOTT.C_KART_PR (LSK, STATUS)
   maxtrans 255
   storage
   (
-    initial 512K
+    initial 64K
     next 1M
     minextents 1
     maxextents unlimited
-  );
+  )
+  compress  nologging;
 alter table SCOTT.C_KART_PR
   add constraint C_KART_PR_P_ID primary key (ID)
   using index 
@@ -241,7 +249,7 @@ alter table SCOTT.C_KART_PR
   references SCOTT.U_LIST (ID);
 alter table SCOTT.C_KART_PR
   add constraint C_KART_PR_F_LSK foreign key (LSK)
-  references SCOTT.KART (LSK);
+  references SCOTT.KART (LSK) on delete cascade;
 alter table SCOTT.C_KART_PR
   add constraint C_KART_PR_F_REL_ID foreign key (RELAT_ID)
   references SCOTT.RELATIONS (ID);

@@ -1,7 +1,7 @@
 create table SCOTT.LOAD_KART_EXT
 (
   id              NUMBER not null,
-  ext_lsk         VARCHAR2(9),
+  ext_lsk         VARCHAR2(20),
   guid            VARCHAR2(36),
   fio             VARCHAR2(60),
   address         VARCHAR2(255),
@@ -13,7 +13,13 @@ create table SCOTT.LOAD_KART_EXT
   status          NUMBER,
   lsk             CHAR(8),
   fk_klsk_premise NUMBER,
-  fk_klsk_id      NUMBER
+  fk_klsk_id      NUMBER,
+  insal           NUMBER,
+  chrg            NUMBER,
+  payment         NUMBER,
+  kw              VARCHAR2(7),
+  raschet_schet   VARCHAR2(20),
+  approve_result  VARCHAR2(255)
 )
 tablespace USERS
   pctfree 10
@@ -45,7 +51,7 @@ comment on column SCOTT.LOAD_KART_EXT.nm
 comment on column SCOTT.LOAD_KART_EXT.period_deb
   is 'Период задолженности';
 comment on column SCOTT.LOAD_KART_EXT.summa
-  is 'Сумма задолженности';
+  is 'Сумма задолженности  (сумма к оплате за текущий период)';
 comment on column SCOTT.LOAD_KART_EXT.comm
   is 'Коментарий по загрузке';
 comment on column SCOTT.LOAD_KART_EXT.status
@@ -56,6 +62,18 @@ comment on column SCOTT.LOAD_KART_EXT.fk_klsk_premise
   is 'FK на помещение (имеет приоритет перед LSK)';
 comment on column SCOTT.LOAD_KART_EXT.fk_klsk_id
   is 'FK на фин.лиц.счет (не должен указываться одновременно с LSK и FK_KLSK_PREMISE)';
+comment on column SCOTT.LOAD_KART_EXT.insal
+  is 'Входящий остаток';
+comment on column SCOTT.LOAD_KART_EXT.chrg
+  is 'Начислено';
+comment on column SCOTT.LOAD_KART_EXT.payment
+  is 'Оплачено';
+comment on column SCOTT.LOAD_KART_EXT.kw
+  is '№ помещения (квартиры)';
+comment on column SCOTT.LOAD_KART_EXT.raschet_schet
+  is 'Расчетный счет, для выставления счетов на оплату (используется в REP_BILLS_COMPOUND)';
+comment on column SCOTT.LOAD_KART_EXT.approve_result
+  is 'Результат сохранения в базу';
 create index SCOTT.LOAD_KART_EXT_I on SCOTT.LOAD_KART_EXT (EXT_LSK)
   tablespace USERS
   pctfree 10

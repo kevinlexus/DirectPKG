@@ -52,7 +52,4 @@ create index SCOTT.MG on SCOTT.PERIOD_REPORTS (MG)
     maxextents unlimited
   )
   nologging;
-alter table SCOTT.PERIOD_REPORTS
-  add constraint PERIOD_REP_F_ foreign key (ID)
-  references SCOTT.REPORTS (ID);
 

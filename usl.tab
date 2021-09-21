@@ -45,7 +45,9 @@ create table SCOTT.USL
   usl_vol        CHAR(3),
   bill_col       NUMBER,
   bill_col2      NUMBER,
-  nm_short       VARCHAR2(3)
+  nm_short       VARCHAR2(3),
+  use_vol_can    NUMBER,
+  hide_chrg      NUMBER default 1
 )
 tablespace USERS
   pctfree 1
@@ -136,6 +138,10 @@ comment on column SCOTT.USL.bill_col2
   is 'Для Счета, отнести к колонке Доп.инф. (0,null - нет, 1-да)';
 comment on column SCOTT.USL.nm_short
   is 'Короткое название услуги (для удобного представления счета при оплате)';
+comment on column SCOTT.USL.use_vol_can
+  is 'Использовать ли объем, в расчете водоотведения, например для двухкомпонентной услуги (х.в. для г.в.+ тепл.энерг для г.в.) (0,null -нет, 1-да)';
+comment on column SCOTT.USL.hide_chrg
+  is 'Скрыть начисление (используется для получения расценки по вирт.услуг в счетах) (0,null -нет, 1-да)';
 create index SCOTT.USL_I2 on SCOTT.USL (FK_CALC_TP)
   tablespace USERS
   pctfree 10

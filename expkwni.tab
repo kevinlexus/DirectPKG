@@ -46,7 +46,8 @@ create table SCOTT.EXPKWNI
   ikodn    NUMBER(8,2),
   ig3      NUMBER(8,2),
   ig2      NUMBER(8,2),
-  iel7     NUMBER(8,2)
+  iel7     NUMBER(8,2),
+  igwxx    NUMBER(8,2)
 )
 tablespace USERS
   pctfree 10

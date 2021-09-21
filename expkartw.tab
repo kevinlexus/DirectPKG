@@ -34,7 +34,8 @@ create table SCOTT.EXPKARTW
   nhwfgws_  NUMBER(8,2),
   nhwgws_   NUMBER(8,2),
   ntepfgws_ NUMBER(8,2),
-  nel7_     NUMBER(8,2)
+  nel7_     NUMBER(8,2),
+  ngwxx_    NUMBER(8,2)
 )
 tablespace USERS
   pctfree 10

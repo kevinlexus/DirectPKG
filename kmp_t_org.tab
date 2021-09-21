@@ -1,0 +1,89 @@
+create table SCOTT.KMP_T_ORG
+(
+  id                        NUMBER not null,
+  cd                        VARCHAR2(32),
+  fk_orgtp                  NUMBER not null,
+  name                      VARCHAR2(64) not null,
+  npp                       NUMBER,
+  v                         NUMBER,
+  parent_id                 NUMBER,
+  reu                       CHAR(3),
+  trest                     CHAR(2),
+  uch                       NUMBER,
+  adr                       VARCHAR2(100),
+  inn                       VARCHAR2(12),
+  manager                   VARCHAR2(50),
+  buh                       VARCHAR2(50),
+  raschet_schet             VARCHAR2(20),
+  k_schet                   VARCHAR2(20),
+  kod_okonh                 VARCHAR2(20),
+  kod_ogrn                  VARCHAR2(20),
+  bik                       VARCHAR2(20),
+  phone                     VARCHAR2(15),
+  kpp                       VARCHAR2(12),
+  bank                      VARCHAR2(100),
+  id_exp                    NUMBER,
+  adr_recip                 VARCHAR2(100),
+  authorized_dir            VARCHAR2(50),
+  authorized_buh            VARCHAR2(50),
+  auth_dir_doc              VARCHAR2(50),
+  auth_buh_doc              VARCHAR2(50),
+  okpo                      VARCHAR2(8),
+  ver_cd                    CHAR(1),
+  full_name                 VARCHAR2(64),
+  phone2                    VARCHAR2(15),
+  parent_id2                NUMBER,
+  fk_org2                   NUMBER,
+  bank_cd                   VARCHAR2(32),
+  adr_www                   VARCHAR2(256),
+  email                     VARCHAR2(256),
+  head_name                 VARCHAR2(50),
+  raschet_schet2            VARCHAR2(20),
+  post_indx                 VARCHAR2(10),
+  r_sch_addit               VARCHAR2(20),
+  fk_bill_var               NUMBER,
+  aoguid                    VARCHAR2(36),
+  oktmo                     VARCHAR2(11),
+  code_deb                  VARCHAR2(10),
+  dolg_name                 VARCHAR2(64),
+  bank_fname                VARCHAR2(100),
+  grp                       NUMBER,
+  r_sch_gis                 VARCHAR2(20),
+  dist_pay_tp               NUMBER,
+  adr_cash                  VARCHAR2(100),
+  is_rso                    NUMBER,
+  is_exchange_gis           NUMBER,
+  org_tp_gis                NUMBER,
+  grp_deb                   NUMBER,
+  is_exchange_ext           NUMBER,
+  service_name_gis          VARCHAR2(20),
+  usl_for_create_ext_lsk    CHAR(3),
+  is_create_ext_lsk_in_kart NUMBER,
+  ext_lsk_format_tp         NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.KMP_T_ORG
+  add constraint KMP_T_ORG_PK unique (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

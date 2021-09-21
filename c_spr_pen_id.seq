@@ -1,7 +1,7 @@
 create sequence SCOTT.C_SPR_PEN_ID
 minvalue 1
 maxvalue 999999999999999999999999999
-start with 1321
+start with 1601
 increment by 1
 cache 20
 order;
