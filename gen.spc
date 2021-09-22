@@ -57,7 +57,7 @@ create or replace package scott.gen is
                       p_drop in number);
   procedure drop_part(tablename_ in varchar2, mg_ in varchar2);
   procedure trunc_part(tablename_ in varchar2, mg_ in varchar2);
-  procedure auto_charge;
+  --procedure auto_charge;
   procedure prep_template_tree_objects;
 end gen;
 /

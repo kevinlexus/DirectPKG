@@ -1352,11 +1352,9 @@ create or replace package body scott.gen is
         (lsk, summa, org, usl)
         select
          p.lsk, sum(p.summa) as summa, t.fk_org2, p.usl
-          from c_charge p, nabor k, t_org t, params m
+          from c_charge p, t_org t, params m
          where p.type = 1
-           and k.usl = p.usl
-           and k.lsk=p.lsk
-           and k.org=t.id
+           and p.org=t.id
          group by p.lsk, p.usl, t.fk_org2;
       commit;
       logger.log_(time_, 'INSERT INTO t_charges_for_saldo (USL)');
@@ -1365,12 +1363,10 @@ create or replace package body scott.gen is
           (lsk, summa, org, usl)
           select
            p.lsk, sum(p.summa) as summa, t.fk_org2, p.usl
-            from c_charge p, nabor k, t_org t, params m
+            from c_charge p, t_org t, params m
            where p.type = 1
-             and k.usl = p.usl
-             and k.lsk=p.lsk
              and p.lsk=lsk_
-             and k.org=t.id
+             and p.org=t.id
            group by p.lsk, p.usl, t.fk_org2;
     end if;
 
@@ -1426,6 +1422,7 @@ create or replace package body scott.gen is
             and k.org=t.id
             and p.org is null  -- где не указан код орг и новые периоды
             and p.mg2 >= m.period
+            and p.dtek between k.dt1 and k.dt2
             and to_char(p.dtek, 'YYYYMM') = m.period
          union all
          select
@@ -1494,29 +1491,6 @@ create or replace package body scott.gen is
        and p.dat_ink between init.g_dt_start and init.g_dt_end
        group by p.lsk, p.usl, p.org;
     end if;
-
-    --субсидии - не работают уже нигде они!!!
-/*    if lsk_ is null then
-      time_ := sysdate;
-      insert into t_subsidii_for_saldo
-        (lsk, summa, org, usl)
-        select p.lsk, sum(p.summa) as summa, k.org, p.usl
-          from nabor k, c_charge p, params m
-         where p.type = 2
-           and k.usl = p.usl
-         group by p.lsk, p.usl, k.org;
-      commit;
-      logger.log_(time_, 'INSERT INTO t_subsidii_for_saldo (USL)');
-    else
-      insert into t_subsidii_for_saldo
-        (lsk, summa, org, usl)
-        select p.lsk, sum(p.summa) as summa, k.org, p.usl
-          from nabor k, c_charge p, params m
-         where k.lsk = lsk_
-           and p.type = 2
-           and k.usl = p.usl
-         group by p.lsk, p.usl, k.org;
-    end if;*/
 
     if lsk_ is null then
       time_ := sysdate;
@@ -3486,23 +3460,6 @@ procedure prepare_arch_k_lsk(k_lsk_id_     in kart.k_lsk_id%type,
          where c.lsk = lsk_;
     end if;
 
-    if lsk_ is null then
-      delete from a_nabor_progs a where a.mg=mg_;
-      insert into a_nabor_progs
-        (id, lsk, usl, fk_tarif, mg)
-      select t.id, t.lsk, t.usl, t.fk_tarif, p.period
-       from nabor_progs t, params p;
-    else
-      delete from a_nabor_progs a
-       where a.lsk = lsk_
-         and a.mg = mg_;
-      insert into a_nabor_progs
-        (id, lsk, usl, fk_tarif, mg)
-      select c.id, c.lsk, c.usl, c.fk_tarif, p.period
-       from nabor_progs c, params p
-       where c.lsk=lsk_;
-    end if;
-
     -- Создаём архив начисления (без льгот и субсидий) по Л/C
     if lsk_ is null then
       trunc_part('arch_charges', mg_);
@@ -4471,7 +4428,7 @@ end;
 
 
 -- ред.24.04.2019 WTF??? Что это?? для кого это???
-  procedure auto_charge is
+/*  procedure auto_charge is
     cnt_sch_ number;
     part_ number;
   begin
@@ -4565,7 +4522,7 @@ end;
   logger.log_(null, 'gen.auto_charge (автоначисление счетчиков)');
   commit;
   end;
-
+*/
 
 -- подготовить дерево объектов для древовидного меню в OLAP отчетах -- TODO: перекинуть вызов в Java из gen_saldo_houses!
 procedure prep_template_tree_objects is

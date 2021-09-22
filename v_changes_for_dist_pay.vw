@@ -8,9 +8,11 @@ select
             and k.org=t.id
             and p.org is null  -- где не указан код орг и старые периоды
             and exists             --и где найдена услуга в архивном справочнике
-            (select * from a_nabor2 n where n.lsk=k.lsk and p.mg2 between n.mgFrom and n.mgTo and n.usl=k.usl)
+            (select * from a_nabor2 n where n.lsk=k.lsk and p.mg2 between n.mgFrom and n.mgTo and n.usl=k.usl
+            and to_date(p.mg2||'01','YYYYMMDD') between n.dt1 and n.dt2)
             and p.mg2 < m.period
             and to_char(p.dtek, 'YYYYMM') = m.period
+            and to_date(p.mg2||'01','YYYYMMDD') between k.dt1 and k.dt2
          union all
           select
           p.lsk, p.summa, p.usl, t.fk_org2, p.mgchange
@@ -20,9 +22,11 @@ select
             and p.org is null  -- где не указан код орг и старые периоды
             and k.org=t.id
             and not exists             --и где НЕ найдена услуга в архивном справочнике
-            (select * from a_nabor2 n where n.lsk=k.lsk and p.mg2 between n.mgFrom and n.mgTo and n.usl=k.usl)
+            (select * from a_nabor2 n where n.lsk=k.lsk and p.mg2 between n.mgFrom and n.mgTo and n.usl=k.usl
+            and to_date(p.mg2||'01','YYYYMMDD') between n.dt1 and n.dt2)
             and p.mg2 < m.period
             and to_char(p.dtek, 'YYYYMM') = m.period
+            and to_date(p.mg2||'01','YYYYMMDD') between k.dt1 and k.dt2
          union all
          select
           p.lsk, p.summa, p.usl, t.fk_org2, p.mgchange
@@ -33,6 +37,7 @@ select
             and p.org is null  -- где не указан код орг и новые периоды
             and p.mg2 >= m.period
             and to_char(p.dtek, 'YYYYMM') = m.period
+            and to_date(p.mg2||'01','YYYYMMDD') between k.dt1 and k.dt2
          union all
           select
           p.lsk, p.summa, p.usl, nvl(t.fk_org2, 0) as org, p.mgchange

@@ -220,7 +220,7 @@ PROCEDURE gen_changes_proc(lsk_start_ in c_change.lsk%type,
       select nvl(count(*),0) into cnt_ from
       (select 1 as cnt from list_choices_changes t, params p
         where not exists (select * from nabor n where n.lsk=lsk_start_
-         and n.usl=t.usl_id)
+         and n.usl=t.usl_id and init.get_date() between n.dt1 and n.dt2)
          and p.period=t.mg
          and ((nvl(t.proc1,0)<>0 or nvl(t.cnt_days,0)<>0 or nvl(t.abs_set,0)<>0)
               and nvl(t.org1_id,0)=0 or
@@ -671,6 +671,7 @@ insert into c_change
          where t.mg >=p.period
          and t.usl = n.usl and t.org is null --если новые будущие периоды и не указана явно орг - ставим код орг из текущ.справочника
          and nvl(t.abs_set, 0) <> 0
+         and init.get_date() between n.dt1 and n.dt2
          and t.lsk=n.lsk;
 
 insert into c_change
@@ -689,6 +690,7 @@ insert into c_change
          where t.mg < p.period
          and t.mg between n.mgFrom and n.mgTo --если старые периоды и не указана явно орг - ставим код орг из арх.справочника
          and t.usl = n.usl and t.org is null
+         and to_date(t.mg||'01','YYYYMMDD') between n.dt1 and n.dt2
          and nvl(t.abs_set, 0) <> 0
          and t.lsk=n.lsk;
 

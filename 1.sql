@@ -1,6 +1,6 @@
 -------------------------------------------
 -- Export file for user SCOTT@ORCL       --
--- Created by Leo on 21.09.2021, 8:02:59 --
+-- Created by Leo on 22.09.2021, 8:44:41 --
 -------------------------------------------
 
 set define off
@@ -2211,11 +2211,6 @@ prompt Creating view V_CHANGES_FOR_SALDO
 prompt =================================
 prompt
 @@v_changes_for_saldo.vw
-prompt
-prompt Creating view V_CHANGES_FOR_SALDO_DET
-prompt =====================================
-prompt
-@@v_changes_for_saldo_det.vw
 prompt
 prompt Creating view V_CHECK_INKAS
 prompt ===========================

@@ -19,7 +19,9 @@ create table SCOTT.NABOR
   kf_kpr_wro_sch NUMBER,
   limit          NUMBER,
   nrm_kpr2       NUMBER,
-  id             NUMBER not null
+  id             NUMBER not null,
+  dt1            DATE default to_date('19000101','YYYYMMDD') not null,
+  dt2            DATE default to_date('25000101','YYYYMMDD') not null
 )
 tablespace USERS
   pctfree 1
@@ -73,26 +75,18 @@ comment on column SCOTT.NABOR.nrm_kpr2
   is 'Кол-во проживающих для расценки';
 comment on column SCOTT.NABOR.id
   is 'ID';
-create unique index SCOTT.NABOR_I on SCOTT.NABOR (LSK, USL, ORG)
+comment on column SCOTT.NABOR.dt1
+  is 'Начало работы';
+comment on column SCOTT.NABOR.dt2
+  is 'Окончание работы';
+create unique index SCOTT.NABOR_I_U on SCOTT.NABOR (LSK, USL, ORG, DT1, DT2)
   tablespace USERS
   pctfree 10
   initrans 2
   maxtrans 255
   storage
   (
-    initial 20M
-    next 1M
-    minextents 1
-    maxextents unlimited
-  );
-create unique index SCOTT.NABOR_I2 on SCOTT.NABOR (LSK, USL)
-  tablespace USERS
-  pctfree 10
-  initrans 2
-  maxtrans 255
-  storage
-  (
-    initial 20M
+    initial 64K
     next 1M
     minextents 1
     maxextents unlimited

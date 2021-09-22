@@ -42,7 +42,8 @@ begin
         --потом сделать распределение платежей, принятых будущими периодами
         if utils.get_int_param('DIST_PAY_TP') = 0 then
           --по-сальдовый способ распределения оплаты
-          c_gen_pay.dist_pay_lsk(rec_, 0);
+          --c_gen_pay.dist_pay_lsk(rec_, 0);
+         Raise_application_error(-20000, 'DIST_PAY_TP=1 не используется!');
         else
           --по-периодный способ распределения оплаты (Полыс.)
           select reu into l_reu from kart k where k.lsk = rec_.lsk;

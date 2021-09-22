@@ -21,7 +21,8 @@ create table SCOTT.C_CHARGE
   kprz          NUMBER,
   kpro          NUMBER,
   kpr2          NUMBER,
-  opl           NUMBER
+  opl           NUMBER,
+  org           NUMBER
 )
 tablespace USERS
   pctfree 30
@@ -74,6 +75,8 @@ comment on column SCOTT.C_CHARGE.kpr2
   is 'Кол-во проживающих в т.ч. все, В.О. В.З. В.П.';
 comment on column SCOTT.C_CHARGE.opl
   is 'Площадь, которую надо всё равно учитывать (например когда отопление гКал, где в VOL сидят - гКал)';
+comment on column SCOTT.C_CHARGE.org
+  is 'Поставщик услуги';
 create index SCOTT.C_CHARGE_I_LSK on SCOTT.C_CHARGE (LSK, USL)
   tablespace USERS
   pctfree 10

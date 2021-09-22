@@ -339,6 +339,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
                   where h.house_id=d.house_id and h.mg=d.mg and d.mg between mg_ and mg1_
                         and d.usl=u.usl
                         and d.id=n.fk_vvod and d.usl=n.usl and h.lsk=n.lsk and d.mg between n.mgFrom and n.mgTo
+                        and to_date(d.mg||'01','YYYYMMDD') between n.dt1 and n.dt2
                         and h.psch not in (8,9)
                         and h.reu=s.reu 
                         and case when var_=3 and h.reu = reu_
@@ -743,6 +744,7 @@ CREATE OR REPLACE PACKAGE BODY SCOTT.stat IS
                   where h.house_id=d.house_id and h.mg=d.mg and d.mg between mg_ and mg1_
                         and d.usl=u.usl
                         and d.id=n.fk_vvod and d.usl=n.usl and h.lsk=n.lsk and d.mg between n.mgFrom and n.mgTo
+                        and to_date(d.mg||'01','YYYYMMDD') between n.dt1 and n.dt2
                         and h.psch not in (8,9)
                         and h.reu=s.reu 
                         and case when var_=3 and h.reu = reu_
@@ -2371,7 +2373,7 @@ select t.trest||'' ''||t.name_reu as predp,
     --по Дому
     open prep_refcursor for
      select distinct null as btn, k.house_id, u.usl, u.npp, u.nm, t.org, g.id, g.id||' '||g.name as name, m.id||' '||m.name as name2,
-       t.koeff, t.norm, u.sptarn
+       t.koeff, t.norm, u.sptarn, t.dt1, t.dt2
        from kart k, nabor t, usl u, t_org g, t_org m, v_lsk_tp tp
         where k.lsk=t.lsk and t.usl=u.usl
         and t.org=g.id and g.fk_org2=m.id
@@ -2380,12 +2382,12 @@ select t.trest||'' ''||t.name_reu as predp,
         and tp.cd=l_sel
         and k.reu = reu_
         and k.psch not in (8,9)
-       order by u.npp, g.id, t.koeff, t.norm;
+       order by u.npp, t.dt1, g.id, t.koeff, t.norm;
     elsif var_ = 2 then
     --по УК
     open prep_refcursor for
      select distinct null as btn, null as house_id, u.usl, u.npp, u.nm, t.org, g.id, g.id||' '||g.name as name, m.id||' '||m.name as name2,
-       t.koeff, t.norm, u.sptarn
+       t.koeff, t.norm, u.sptarn, t.dt1, t.dt2
        from kart k, nabor t, usl u, t_org g, t_org m, v_lsk_tp tp
         where k.lsk=t.lsk and t.usl=u.usl
         and t.org=g.id and g.fk_org2=m.id
@@ -2393,12 +2395,12 @@ select t.trest||'' ''||t.name_reu as predp,
         and k.fk_tp=tp.id
         and tp.cd=l_sel
         and k.psch not in (8,9)
-       order by u.npp, g.id, t.koeff, t.norm;
+       order by u.npp, t.dt1, g.id, t.koeff, t.norm;
     elsif var_ = 1 then
     --по Фонду
     open prep_refcursor for
      select distinct null as btn, null as house_id, u.usl, u.npp, u.nm, t.org, g.id, g.id||' '||g.name as name, m.id||' '||m.name as name2,
-       t.koeff, t.norm, u.sptarn
+       t.koeff, t.norm, u.sptarn, t.dt1, t.dt2
        from kart k, nabor t, usl u, t_org g, t_org m, v_lsk_tp tp
         where k.lsk=t.lsk and t.usl=u.usl
         and t.org=g.id and g.fk_org2=m.id
@@ -2406,19 +2408,19 @@ select t.trest||'' ''||t.name_reu as predp,
         and exists (select * from s_reu_trest r where r.reu=k.reu and r.trest=trest_)
         and tp.cd=l_sel
         and k.psch not in (8,9)
-       order by u.npp, g.id, t.koeff, t.norm;
+       order by u.npp, t.dt1, g.id, t.koeff, t.norm;
     elsif var_ = 0 then
     --по Городу
     open prep_refcursor for
      select distinct null as btn, null as house_id, u.usl, u.npp, u.nm, t.org, g.id, g.id||' '||g.name as name, m.id||' '||m.name as name2,
-       t.koeff, t.norm, u.sptarn
+       t.koeff, t.norm, u.sptarn, t.dt1, t.dt2
        from kart k, nabor t, usl u, t_org g, t_org m, v_lsk_tp tp
         where k.lsk=t.lsk and t.usl=u.usl
         and t.org=g.id and g.fk_org2=m.id
         and k.fk_tp=tp.id
         and tp.cd=l_sel
         and k.psch not in (8,9)
-       order by u.npp, g.id, t.koeff, t.norm;
+       order by u.npp, t.dt1, g.id, t.koeff, t.norm;
     end if;
    else
    --прошлый период
@@ -2426,7 +2428,7 @@ select t.trest||'' ''||t.name_reu as predp,
     --по Дому
     open prep_refcursor for
      select distinct null as btn, k.house_id, u.usl, u.npp, u.nm, t.org, g.id, g.id||' '||g.name as name, m.id||' '||m.name as name2,
-       t.koeff, t.norm, u.sptarn
+       t.koeff, t.norm, u.sptarn, t.dt1, t.dt2
        from arch_kart k, a_nabor2 t, usl u, t_org g, t_org m, v_lsk_tp tp
         where k.lsk=t.lsk and t.usl=u.usl
         and t.org=g.id and g.fk_org2=m.id
@@ -2435,12 +2437,12 @@ select t.trest||'' ''||t.name_reu as predp,
         and k.fk_tp=tp.id
         and tp.cd=l_sel
         and k.psch not in (8,9)
-       order by u.npp, g.id, t.koeff, t.norm;
+       order by u.npp, t.dt1, g.id, t.koeff, t.norm;
     elsif var_ = 2 then
     --по УК
     open prep_refcursor for
      select distinct null as btn, null as house_id, u.usl, u.npp, u.nm, t.org, g.id, g.id||' '||g.name as name, m.id||' '||m.name as name2,
-       t.koeff, t.norm, u.sptarn
+       t.koeff, t.norm, u.sptarn, t.dt1, t.dt2
        from arch_kart k, a_nabor2 t, usl u, t_org g, t_org m, v_lsk_tp tp
         where k.lsk=t.lsk and t.usl=u.usl
         and t.org=g.id and g.fk_org2=m.id
@@ -2449,12 +2451,12 @@ select t.trest||'' ''||t.name_reu as predp,
         and k.fk_tp=tp.id
         and tp.cd=l_sel
         and k.psch not in (8,9)
-       order by u.npp, g.id, t.koeff, t.norm;
+       order by u.npp, t.dt1, g.id, t.koeff, t.norm;
     elsif var_ = 1 then
     --по Фонду
     open prep_refcursor for
      select distinct null as btn, null as house_id, u.usl, u.npp, u.nm, t.org, g.id, g.id||' '||g.name as name, m.id||' '||m.name as name2,
-       t.koeff, t.norm, u.sptarn
+       t.koeff, t.norm, u.sptarn, t.dt1, t.dt2
        from arch_kart k, a_nabor2 t, usl u, t_org g, t_org m, v_lsk_tp tp
         where k.lsk=t.lsk and t.usl=u.usl
         and t.org=g.id and g.fk_org2=m.id
@@ -2463,12 +2465,12 @@ select t.trest||'' ''||t.name_reu as predp,
         and k.fk_tp=tp.id
         and tp.cd=l_sel
         and k.psch not in (8,9)
-       order by u.npp, g.id, t.koeff, t.norm;
+       order by u.npp, t.dt1, g.id, t.koeff, t.norm;
     elsif var_ = 0 then
     --по Городу
     open prep_refcursor for
      select distinct null as btn, null as house_id, u.usl, u.npp, u.nm, t.org, g.id, g.id||' '||g.name as name, m.id||' '||m.name as name2,
-       t.koeff, t.norm, u.sptarn
+       t.koeff, t.norm, u.sptarn, t.dt1, t.dt2
        from arch_kart k, a_nabor2 t, usl u, t_org g, t_org m, v_lsk_tp tp
         where k.lsk=t.lsk and t.usl=u.usl
         and t.org=g.id and g.fk_org2=m.id
@@ -2476,7 +2478,7 @@ select t.trest||'' ''||t.name_reu as predp,
         and k.fk_tp=tp.id
         and tp.cd=l_sel
         and k.psch not in (8,9)
-       order by u.npp, g.id, t.koeff, t.norm;
+       order by u.npp, t.dt1, g.id, t.koeff, t.norm;
     end if;
    end if;
 
@@ -2533,6 +2535,7 @@ select t.trest||'' ''||t.name_reu as predp,
                                    and mg_ between t.mgFrom and t.mgTo
                               left join scott.a_vvod d on d.mg=mg_ and n.fk_vvod=d.id
                where mg_ between n.mgFrom and n.mgTo
+               and to_date(mg_||'01','YYYYMMDD') between n.dt1 and n.dt2
              group by k.k_lsk_id) a
            where k.kul=s.id and k.k_lsk_id=a.k_lsk_id(+)
            and k.mg=mg_ and k.psch not in (8,9)
@@ -3150,11 +3153,13 @@ elsif сd_ in  ('85') then
        group by s.lsk) d2,
        (select n.lsk, o.name, o2.name as name2 from nabor n,
          t_org o, t_org o2, usl u where n.org=o.id and n.usl=u.usl and
-         u.cd in (''отоп'') --организации, котельные (здесь по одной услуге иначе - удвоится)
+         init.get_date() between n.dt1 and n.dt2
+         and u.cd in (''отоп'') --организации, котельные (здесь по одной услуге иначе - удвоится)
          and n.org=o.id and o.fk_org2=o2.id(+)) r,
        (select n.lsk, o.name, o2.name as name2 from nabor n,
          t_org o, t_org o2, usl u where n.org=o.id and n.usl=u.usl and
-         u.cd in (''отоп.гкал.'') --организации, котельные (здесь по одной услуге иначе - удвоится)
+         init.get_date() between n.dt1 and n.dt2
+         and u.cd in (''отоп.гкал.'') --организации, котельные (здесь по одной услуге иначе - удвоится)
          and n.org=o.id and o.fk_org2=o2.id(+)) r2
     where s.lsk = e.lsk(+)
      and s.lsk = e2.lsk(+)
@@ -3256,6 +3261,7 @@ elsif сd_ in  ('86') then
          and n.mg=s.mg
          and n.usl=s.usl
          and n.fk_vvod=s.id
+         and to_date(s.mg||''01'',''YYYYMMDD'') between n.dt1 and n.dt2
          ) f,
       (select s.lsk, sum(s.summa) as summa from a_change s, usl u where '||sqlstr_||' and s.usl=u.usl and
        u.cd in (''отоп'', ''отоп/0 зарег.'') --перерасчёты по отоплению
@@ -3264,12 +3270,14 @@ elsif сd_ in  ('86') then
        u.cd in (''отоп.гкал.'', ''отоп.гкал./0 зарег.'') --перерасчёты по отоплению (гКал)
        group by s.lsk) d2,
        (select n.lsk, o.name, o2.name as name2 from nabor n,
-         t_org o, t_org o2, usl u where n.org=o.id and n.usl=u.usl and
-         u.cd in (''отоп'') --организации, котельные (здесь по одной услуге иначе - удвоится)
+         t_org o, t_org o2, usl u where n.org=o.id and n.usl=u.usl 
+         and init.get_date() between n.dt1 and n.dt2
+         and u.cd in (''отоп'') --организации, котельные (здесь по одной услуге иначе - удвоится)
          and n.org=o.id and o.fk_org2=o2.id(+)) r,
        (select n.lsk, o.name, o2.name as name2 from nabor n,
-         t_org o, t_org o2, usl u where n.org=o.id and n.usl=u.usl and
-         u.cd in (''отоп.гкал.'') --организации, котельные (здесь по одной услуге иначе - удвоится)
+         t_org o, t_org o2, usl u where n.org=o.id and n.usl=u.usl 
+         and init.get_date() between n.dt1 and n.dt2
+         and u.cd in (''отоп.гкал.'') --организации, котельные (здесь по одной услуге иначе - удвоится)
          and n.org=o.id and o.fk_org2=o2.id(+)) r2
     where s.lsk = e.lsk(+)
      and s.lsk = f.lsk(+)
@@ -3999,6 +4007,7 @@ elsif сd_ in  ('88') then
        from a_charge2 s
        join a_nabor2 n on s.lsk=n.lsk and 
        mg_ between s.mgFrom and s.mgTo and mg_ between n.mgFrom and n.mgTo
+       and to_date(mg_||'01','YYYYMMDD') between n.dt1 and n.dt2
        join a_vvod d on n.fk_vvod=d.id and n.usl=d.usl
        and d.mg between s.mgFrom and s.mgTo
        join usl u2 on n.usl=u2.usl and u2.cd in ('эл.энерг.2')
@@ -4011,6 +4020,7 @@ elsif сd_ in  ('88') then
      max(n.norm) as norm
        from a_charge2 s, a_nabor2 n, usl u where 
        s.usl=u.usl and s.lsk=n.lsk
+       and to_date(mg_||'01','YYYYMMDD') between n.dt1 and n.dt2
        and mg_ between s.mgFrom and s.mgTo and mg_ between n.mgFrom and n.mgTo
        and s.usl=n.usl and
        u.cd in ('х.вода', 'х.вода/св.нор') and s.type=1
@@ -4022,6 +4032,7 @@ elsif сd_ in  ('88') then
      max(d.nrm) as nrm
        from a_charge2 s
        join a_nabor2 n on s.lsk=n.lsk
+       and to_date(mg_||'01','YYYYMMDD') between n.dt1 and n.dt2
        and mg_ between s.mgFrom and s.mgTo and mg_ between n.mgFrom and n.mgTo
        join a_vvod d on n.fk_vvod=d.id and n.usl=d.usl
        and d.mg between s.mgFrom and s.mgTo
@@ -4035,6 +4046,7 @@ elsif сd_ in  ('88') then
      max(n.norm) as norm
        from a_charge2 s, a_nabor2 n, usl u where 
        s.usl=u.usl and s.lsk=n.lsk
+       and to_date(mg_||'01','YYYYMMDD') between n.dt1 and n.dt2
        and mg_ between s.mgFrom and s.mgTo and mg_ between n.mgFrom and n.mgTo
        and s.usl=n.usl and
        u.cd in ('г.вода', 'г.вода/св.нор') and s.type=1
@@ -4046,6 +4058,7 @@ elsif сd_ in  ('88') then
      max(d.nrm) as nrm
        from a_charge2 s
        join a_nabor2 n on s.lsk=n.lsk
+       and to_date(mg_||'01','YYYYMMDD') between n.dt1 and n.dt2
        and mg_ between s.mgFrom and s.mgTo and mg_ between n.mgFrom and n.mgTo
        join a_vvod d on n.fk_vvod=d.id and n.usl=d.usl
        and d.mg between s.mgFrom and s.mgTo
@@ -4059,6 +4072,7 @@ elsif сd_ in  ('88') then
      max(n.norm) as norm
        from a_charge2 s, a_nabor2 n, usl u where 
        s.usl=u.usl and s.lsk=n.lsk
+       and to_date(mg_||'01','YYYYMMDD') between n.dt1 and n.dt2
        and mg_ between s.mgFrom and s.mgTo and mg_ between n.mgFrom and n.mgTo
        and s.usl=n.usl and
        u.cd in ('канализ', 'канализ/св.нор') and s.type=1
@@ -4070,6 +4084,7 @@ elsif сd_ in  ('88') then
      null as norm
        from a_charge2 s, a_nabor2 n, usl u where 
        s.usl=u.usl and s.lsk=n.lsk
+       and to_date(mg_||'01','YYYYMMDD') between n.dt1 and n.dt2
        and mg_ between s.mgFrom and s.mgTo and mg_ between n.mgFrom and n.mgTo
        and s.usl=n.usl and
        u.cd in ('отоп', 'отоп/св.нор') and s.type=1
@@ -4091,6 +4106,7 @@ elsif сd_ in  ('88') then
         case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
        from 
          a_nabor2 n join usl u on n.usl=u.usl 
+                and to_date(mg_||'01','YYYYMMDD') between n.dt1 and n.dt2
          join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
       where r.mg=mg_ 
       and u.cd in ('т/сод', 'т/сод/св.нор', 'лифт', 'лифт/св.нор', 'дерат.', 'дерат/св.нор', 'мус.площ.', 'мус.площ./св.нор')
@@ -4104,6 +4120,7 @@ elsif сd_ in  ('88') then
         case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
        from 
          a_nabor2 n join usl u on n.usl=u.usl 
+               and to_date(mg_||'01','YYYYMMDD') between n.dt1 and n.dt2
          join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
       where r.mg=mg_ 
       and u.cd in ('кап.', 'кап/св.нор')
@@ -4119,6 +4136,7 @@ elsif сd_ in  ('88') then
         case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
        from 
          a_nabor2 n join usl u on n.usl=u.usl 
+                and to_date(mg_||'01','YYYYMMDD') between n.dt1 and n.dt2
          join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
       where r.mg=mg_ 
       and u.cd in ('найм')
@@ -4132,6 +4150,7 @@ elsif сd_ in  ('88') then
         case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
        from 
          a_nabor2 n join usl u on n.usl=u.usl 
+                and to_date(mg_||'01','YYYYMMDD') between n.dt1 and n.dt2
          join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
       where r.mg=mg_ 
       and u.cd in ('эл.энерг.2','эл.эн.2/св.нор')
@@ -4146,6 +4165,7 @@ elsif сd_ in  ('88') then
         case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
        from 
          a_nabor2 n join usl u on n.usl=u.usl 
+                and to_date(mg_||'01','YYYYMMDD') between n.dt1 and n.dt2
          join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
       where r.mg=mg_ 
       and u.cd in ('EL_SOD')
@@ -4160,6 +4180,7 @@ elsif сd_ in  ('88') then
         case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
        from 
          a_nabor2 n join usl u on n.usl=u.usl 
+                and to_date(mg_||'01','YYYYMMDD') between n.dt1 and n.dt2
          join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
       where r.mg=mg_ 
       and u.cd in ('х.вода', 'х.вода/св.нор')
@@ -4174,6 +4195,7 @@ elsif сd_ in  ('88') then
         case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
        from 
          a_nabor2 n join usl u on n.usl=u.usl 
+                and to_date(mg_||'01','YYYYMMDD') between n.dt1 and n.dt2
          join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
       where r.mg=mg_ 
       and u.cd in ('х.вода.ОДН', 'HW_SOD')
@@ -4188,6 +4210,7 @@ elsif сd_ in  ('88') then
         case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
        from 
          a_nabor2 n join usl u on n.usl=u.usl 
+                and to_date(mg_||'01','YYYYMMDD') between n.dt1 and n.dt2
          join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
       where r.mg=mg_ 
       and u.cd in ('г.вода', 'г.вода/св.нор')
@@ -4202,6 +4225,7 @@ elsif сd_ in  ('88') then
         case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
        from 
          a_nabor2 n join usl u on n.usl=u.usl 
+                and to_date(mg_||'01','YYYYMMDD') between n.dt1 and n.dt2
          join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
       where r.mg=mg_ 
       and u.cd in ('г.вода.ОДН', 'GW_SOD')
@@ -4216,6 +4240,7 @@ elsif сd_ in  ('88') then
         case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
        from 
          a_nabor2 n join usl u on n.usl=u.usl 
+                and to_date(mg_||'01','YYYYMMDD') between n.dt1 and n.dt2
          join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
       where r.mg=mg_ 
       and u.cd in ('канализ', 'канализ/св.нор')
@@ -4230,6 +4255,7 @@ elsif сd_ in  ('88') then
         case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
        from 
          a_nabor2 n join usl u on n.usl=u.usl 
+                and to_date(mg_||'01','YYYYMMDD') between n.dt1 and n.dt2
          join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
       where r.mg=mg_ 
       and u.cd in ('отоп', 'отоп/св.нор')
@@ -4247,6 +4273,7 @@ elsif сd_ in  ('88') then
        join a_nabor2 n on s.lsk=n.lsk and 
         mg_ between n.mgfrom and n.mgto and
         mg_ between s.mgfrom and s.mgto
+       and to_date(mg_||'01','YYYYMMDD') between n.dt1 and n.dt2
        join usl u2 on n.usl=u2.usl and u2.cd in ('канализ')
        join usl u on s.usl=u.usl and u.cd in ('KAN_SOD') and s.type=1 --канализ МКД
      group by s.lsk) e13 on s.lsk = e13.lsk
@@ -4259,6 +4286,7 @@ elsif сd_ in  ('88') then
         case when n.koeff is not null and u.sptarn in (0,2,3,4) then n.koeff else 1 end * r.summa else 0 end),2) as tf2
        from 
          a_nabor2 n join usl u on n.usl=u.usl 
+                and to_date(mg_||'01','YYYYMMDD') between n.dt1 and n.dt2
          join a_prices r on n.usl=r.usl and r.mg=mg_
       where 
       mg_ between n.mgfrom and n.mgto
@@ -4271,6 +4299,7 @@ elsif сd_ in  ('88') then
      (select n.lsk, max(round(n.koeff * r.summa ,2)) as tf1
        from 
          a_nabor2 n join usl u on n.usl=u.usl 
+                and to_date(mg_||'01','YYYYMMDD') between n.dt1 and n.dt2
          join a_prices r on n.usl=r.usl and r.mg between n.mgFrom and n.mgTo
       where r.mg=mg_ 
       and u.cd in ('выв.мус.') -- вывоз ТКО

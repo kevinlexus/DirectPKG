@@ -43,11 +43,9 @@ insert into c_deb_usl
    from c_deb_usl t --задолжность по прошлому периоду
   where t.period=l_mg1 and t.lsk=l_lsk
  union all
- select t.lsk, t.usl, n.org, t.summa, l_mg as mg, l_mg as period
-   from c_charge t, nabor n --начисление
-  where t.lsk = n.lsk
-    and t.usl=n.usl
-    and t.type = 1 and t.lsk=l_lsk
+ select t.lsk, t.usl, t.org, t.summa, l_mg as mg, l_mg as period
+   from c_charge t
+  where t.type = 1 and t.lsk=l_lsk
  union all
  --перерасчеты - начало
  select /*+ INDEX (k A_NABOR2_I)*/ p.lsk, p.usl, t.fk_org2 as org, p.summa, p.mgchange, l_mg
@@ -233,11 +231,9 @@ begin
       select nvl(count(*),0) into l_cnt
       from (
       select d.usl, d.org, sum(d.summa) from (
-      select n.usl, n.org, t.summa
-          from c_charge t, nabor n
+      select t.usl, t.org, t.summa
+          from c_charge t
           where t.lsk=p_rec.lsk
-          and t.lsk=n.lsk
-          and t.usl=n.usl
           and t.type=1
       union all
       select t.usl, t.org, t.summa
@@ -344,11 +340,9 @@ begin
     select rec_summ(d.usl, d.fk_org2, sum(d.summa), 0) bulk collect --убрал редирект - тормозит у полыс
           into t_summ
      from (
-     select n.usl, o.fk_org2, t.summa          
-        from c_charge t, nabor n, t_org o
-        where t.lsk=p_rec.lsk and n.org=o.id
-        and t.lsk=n.lsk
-        and t.usl=n.usl
+     select t.usl, o.fk_org2, t.summa          
+        from c_charge t, t_org o
+        where t.lsk=p_rec.lsk and t.org=o.id
         and t.type=1
       union all
       select t.usl, t.org, t.summa
@@ -369,11 +363,9 @@ begin
               where t.lsk=p_rec.lsk
               and t.mg=p.period
             union all
-            select n.usl, o.fk_org2 as org, t.summa --убрал редирект - тормозит у полыс
-              from c_charge t, nabor n, t_org o  --прибавить текущее начисление
-              where t.lsk=p_rec.lsk and n.org=o.id
-              and t.lsk=n.lsk
-              and t.usl=n.usl
+            select t.usl, o.fk_org2 as org, t.summa --убрал редирект - тормозит у полыс
+              from c_charge t, t_org o  --прибавить текущее начисление
+              where t.lsk=p_rec.lsk and t.org=o.id
               and t.type=1
             union all
             select t.usl, t.org, -1*t.summa
@@ -396,11 +388,9 @@ begin
               where t.lsk=p_rec.lsk
               and t.mg=p.period
             union all
-            select n.usl, o.fk_org2 as org, t.summa --убрал редирект - тормозит у полыс
-              from c_charge t, nabor n, t_org o  --прибавить текущее начисление
-              where t.lsk=p_rec.lsk and n.org=o.id
-              and t.lsk=n.lsk
-              and t.usl=n.usl
+            select t.usl, o.fk_org2 as org, t.summa --убрал редирект - тормозит у полыс
+              from c_charge t, t_org o  --прибавить текущее начисление
+              where t.lsk=p_rec.lsk and t.org=o.id
               and t.type=1
             union all
             select t.usl, t.org, -1*t.summa
@@ -423,11 +413,9 @@ begin
               where t.lsk=p_rec.lsk
               and t.mg=p.period
             union all
-            select n.usl, o.fk_org2 as org, t.summa --убрал редирект - тормозит у полыс
-              from c_charge t, nabor n, t_org o  --прибавить текущее начисление
-              where t.lsk=p_rec.lsk and n.org=o.id
-              and t.lsk=n.lsk
-              and t.usl=n.usl
+            select t.usl, o.fk_org2 as org, t.summa --убрал редирект - тормозит у полыс
+              from c_charge t, t_org o  --прибавить текущее начисление
+              where t.lsk=p_rec.lsk and t.org=o.id
               and t.type=1
              ) d
              group by d.usl, d.org
@@ -484,11 +472,9 @@ begin
               where t.lsk=p_rec.lsk
               and t.mg=p.period
             union all
-            select n.usl, o.fk_org2 as org, t.summa --убрал редирект - тормозит у полыс
-              from c_charge t, nabor n, t_org o  --прибавить текущее начисление
-              where t.lsk=p_rec.lsk and n.org=o.id
-              and t.lsk=n.lsk
-              and t.usl=n.usl
+            select t.usl, o.fk_org2 as org, t.summa --убрал редирект - тормозит у полыс
+              from c_charge t, t_org o  --прибавить текущее начисление
+              where t.lsk=p_rec.lsk and t.org=o.id
               and t.type=1
              ) d
              group by d.usl, d.org
@@ -544,11 +530,9 @@ begin
               where t.lsk=p_rec.lsk
               and t.mg=p.period
             union all
-            select n.usl, o.fk_org2 as org, t.summa
-              from c_charge t, nabor n, t_org o  --прибавить текущее начисление
-              where t.lsk=p_rec.lsk and n.org=o.id
-              and t.lsk=n.lsk
-              and t.usl=n.usl
+            select t.usl, o.fk_org2 as org, t.summa
+              from c_charge t, t_org o  --прибавить текущее начисление
+              where t.lsk=p_rec.lsk and t.org=o.id
               and t.type=1
             union all
             select t.usl, t.org, -1*t.summa
@@ -632,11 +616,9 @@ begin
 
         ) t where t.lsk=p_rec.lsk and t.org is not null --добавить перерасчеты
             union all
-            select n.usl, o.fk_org2 as org, t.summa
-              from c_charge t, nabor n, t_org o  --прибавить текущее начисление
-              where t.lsk=p_rec.lsk and n.org=o.id
-              and t.lsk=n.lsk
-              and t.usl=n.usl
+            select t.usl, o.fk_org2 as org, t.summa
+              from c_charge t, t_org o  --прибавить текущее начисление
+              where t.lsk=p_rec.lsk and t.org=o.id
               and t.type=1
             union all
             select t.usl, t.org, -1*t.summa
@@ -852,10 +834,8 @@ if utils.get_int_param('PAY_ORD1') = 1 then
   if l_summa <> 0 then
     --распределить по текущему начислению (если оно есть вообще), но без корректировочной проводки
     select nvl(count(*),0) into l_cnt2
-          from c_charge t, nabor n
+          from c_charge t
           where t.lsk=p_rec.lsk
-          and t.lsk=n.lsk
-          and t.usl=n.usl
           and t.type=1
           and t.summa > 0;
     if l_cnt<>0 then
@@ -895,10 +875,8 @@ else
     if l_summa <> 0 then
       --распределить по текущему начислению (если оно есть вообще), но без корректировочной проводки
       select nvl(count(*),0) into l_cnt2
-            from c_charge t, nabor n
+            from c_charge t
             where t.lsk=p_rec.lsk
-            and t.lsk=n.lsk
-            and t.usl=n.usl
             and t.type=1
             and t.summa > 0;
       if l_cnt<>0 then
@@ -922,43 +900,6 @@ else
         exit when l_summa =0 or i >=500 ;
       end loop;
     end if;
-/*  else
-    --прочие УК КИС:
-    --пункт 3
-    if l_summa <> 0 then
-      --распределить по дебетовому сальдо, с учётом принятой оплаты, но без корректировочной проводки
-      i:=0;
-      loop
-        l_summa_tmp:=dist(p_rec.dopl, l_summa, 1, 15, null);
-        l_summa:=l_summa-l_summa_tmp;
-        i:=i+1;
-        exit when l_summa =0 or i >=500 ;
-      end loop;
-    end if;
-
-    --пункт 4
-    if l_summa <> 0 then
-      --распределить по текущему начислению (если оно есть вообще), но без корректировочной проводки
-      select nvl(count(*),0) into l_cnt2
-            from c_charge t, nabor n
-            where t.lsk=p_rec.lsk
-            and t.lsk=n.lsk
-            and t.usl=n.usl
-            and t.type=1
-            and t.summa > 0;
-      if l_cnt<>0 then
-        i:=0;
-        loop
-          l_summa_tmp:=dist(p_rec.dopl, l_summa, 1, 16, null);
-          l_summa:=l_summa-l_summa_tmp;
-          i:=i+1;
-          exit when l_summa =0 or i >=500 ;
-        end loop;
-      end if;
-    end if;
-
-  end if;*/
-
 end if;
 
 
