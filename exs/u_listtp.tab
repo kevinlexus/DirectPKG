@@ -1,0 +1,85 @@
+create table EXS.U_LISTTP
+(
+  id        NUMBER not null,
+  cd        VARCHAR2(32) not null,
+  name      VARCHAR2(255) not null,
+  tp_s1     VARCHAR2(255),
+  dt1       TIMESTAMP(6),
+  grp       VARCHAR2(255),
+  isload    NUMBER,
+  fk_ext    NUMBER,
+  fk_eolink NUMBER
+)
+tablespace DATA
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table EXS.U_LISTTP
+  is 'Тип справочника';
+comment on column EXS.U_LISTTP.id
+  is 'ID';
+comment on column EXS.U_LISTTP.cd
+  is 'ИЗ ГИС ЖКХ: С префиксом "GIS_" Реестровый номер справочника.';
+comment on column EXS.U_LISTTP.name
+  is 'ИЗ ГИС ЖКХ: Наименование справочника.';
+comment on column EXS.U_LISTTP.dt1
+  is 'ИЗ ГИС ЖКХ: Дата и время последнего изменения справочника. Timestamp - чтобы хранить миллисекунды';
+comment on column EXS.U_LISTTP.grp
+  is 'ИЗ ГИС ЖКХ: Группа справочника: NSI - (по умолчанию) общесистемный NSIRAO - ОЖФ';
+comment on column EXS.U_LISTTP.isload
+  is 'Признак необходимости загрузки справочника из ГИС ЖКХ';
+comment on column EXS.U_LISTTP.fk_ext
+  is 'ИЗ ГИС ЖКХ: ID во внешней системе';
+comment on column EXS.U_LISTTP.fk_eolink
+  is 'FK на организацию в EOLINK';
+create index U_LISTTP_I_GRP on EXS.U_LISTTP (GRP)
+  tablespace INDX_FAST
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table EXS.U_LISTTP
+  add constraint U_LISTTP_P primary key (ID)
+  using index 
+  tablespace DATA
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table EXS.U_LISTTP
+  add constraint U_LISTTP_I_U unique (FK_EOLINK, CD)
+  using index 
+  tablespace DATA
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table EXS.U_LISTTP
+  add constraint U_LISTTP_F_EOLINK foreign key (FK_EOLINK)
+  references EXS.EOLINK (ID) on delete cascade;
+

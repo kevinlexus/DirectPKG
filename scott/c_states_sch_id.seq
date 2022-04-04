@@ -1,0 +1,7 @@
+create sequence SCOTT.C_STATES_SCH_ID
+minvalue 1
+maxvalue 999999999999999999999999999
+start with 52941
+increment by 1
+cache 20;
+

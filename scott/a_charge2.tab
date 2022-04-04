@@ -1,0 +1,68 @@
+create table SCOTT.A_CHARGE2
+(
+  id            NUMBER not null,
+  lsk           CHAR(8) not null,
+  usl           CHAR(3) not null,
+  summa         NUMBER,
+  kart_pr_id    NUMBER,
+  spk_id        NUMBER,
+  type          NUMBER,
+  test_opl      NUMBER,
+  test_cena     NUMBER,
+  test_tarkoef  NUMBER,
+  test_spk_koef NUMBER,
+  main          NUMBER,
+  lg_doc_id     NUMBER,
+  npp           NUMBER,
+  sch           NUMBER,
+  kpr           NUMBER,
+  kprz          NUMBER,
+  kpro          NUMBER,
+  kpr2          NUMBER,
+  opl           NUMBER,
+  mgfrom        NUMBER not null,
+  mgto          NUMBER not null,
+  org           NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 2M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on column SCOTT.A_CHARGE2.npp
+  is 'ID';
+comment on column SCOTT.A_CHARGE2.sch
+  is 'Код счетчика по итерации';
+comment on column SCOTT.A_CHARGE2.kpr
+  is 'Кол-во проживающих';
+comment on column SCOTT.A_CHARGE2.kprz
+  is 'Кол-во временно зарег';
+comment on column SCOTT.A_CHARGE2.kpro
+  is 'Кол-во временно отсут';
+comment on column SCOTT.A_CHARGE2.kpr2
+  is 'Кол-во проживающих в т.ч. все, В.О. В.З. В.П.';
+comment on column SCOTT.A_CHARGE2.opl
+  is 'Площадь, которую надо всё равно учитывать (например когда отопление гКал, где в VOL сидят - гКал)';
+comment on column SCOTT.A_CHARGE2.org
+  is 'Поставщик услуги';
+alter table SCOTT.A_CHARGE2
+  add constraint A_CHARGE2_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

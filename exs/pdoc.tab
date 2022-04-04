@@ -1,0 +1,115 @@
+create table EXS.PDOC
+(
+  id              NUMBER not null,
+  guid            VARCHAR2(36),
+  cd              VARCHAR2(128),
+  uniqnum         VARCHAR2(255),
+  fk_eolink       NUMBER not null,
+  tguid           VARCHAR2(36),
+  status          NUMBER default 0 not null,
+  v               NUMBER default 1 not null,
+  dt              DATE,
+  err             NUMBER default 0,
+  dt_crt          DATE default sysdate not null,
+  dt_upd          DATE default sysdate not null,
+  result          VARCHAR2(1024),
+  comm            VARCHAR2(1024),
+  summa_in        NUMBER,
+  penya_in        NUMBER,
+  summa_out       NUMBER,
+  penya_out       NUMBER,
+  confirm_correct NUMBER default 1
+)
+tablespace DATA
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table EXS.PDOC
+  is 'Платежный документ в ГИС';
+comment on column EXS.PDOC.id
+  is 'ID';
+comment on column EXS.PDOC.guid
+  is 'GUID документа во внешней системе';
+comment on column EXS.PDOC.cd
+  is 'Номер документа в биллинге';
+comment on column EXS.PDOC.uniqnum
+  is 'Уникальный номер документа во внешней системе';
+comment on column EXS.PDOC.fk_eolink
+  is 'Лицевой счет к которому прикреплен ПД';
+comment on column EXS.PDOC.tguid
+  is 'от ГИС ЖКХ Транспортный GUID';
+comment on column EXS.PDOC.status
+  is 'Статус загрузки в ГИС (0-добавлен на загрузку, 1-загружен, 2-отменён)';
+comment on column EXS.PDOC.v
+  is 'Статус (1-действующий, 0-отменён)';
+comment on column EXS.PDOC.dt
+  is 'Дата платежного документа';
+comment on column EXS.PDOC.err
+  is 'Код ошибки, при загрузке ПД в ГИС (0-нет ошибки, 1-есть)';
+comment on column EXS.PDOC.dt_crt
+  is 'Дата создания записи';
+comment on column EXS.PDOC.dt_upd
+  is 'Дата обновления записи';
+comment on column EXS.PDOC.result
+  is 'Последний результат отправки';
+comment on column EXS.PDOC.comm
+  is 'Комментарий по импорту-экспорту';
+comment on column EXS.PDOC.summa_in
+  is 'Импортируется в ГИС: Сумма долга, в т.ч. долг по пене (в последующем - для распределении оплаты)';
+comment on column EXS.PDOC.penya_in
+  is 'Импортируется в ГИС: Долг по пеня (в последующем - для распределении оплаты)';
+comment on column EXS.PDOC.summa_out
+  is 'Экспортируется из ГИС: Сумма долга, в т.ч. долг по пене (в последующем - для распределении оплаты)';
+comment on column EXS.PDOC.penya_out
+  is 'Экспортируется из ГИС: Долг по пеня (в последующем - для распределении оплаты)';
+comment on column EXS.PDOC.confirm_correct
+  is 'Считать корректными значения сумм документа, если они расходятся с автоматически рассчитанными (ГИС) (0-нет, 1-да)';
+create index PDOC_I on EXS.PDOC (FK_EOLINK)
+  tablespace INDX_FAST
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create index PDOC_I2_U on EXS.PDOC (FK_EOLINK, DT)
+  tablespace INDX
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table EXS.PDOC
+  add constraint PDOC_P primary key (ID)
+  using index 
+  tablespace DATA
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table EXS.PDOC
+  add constraint PDOC_F_EOLINK foreign key (FK_EOLINK)
+  references EXS.EOLINK (ID) on delete cascade;
+

@@ -1,0 +1,79 @@
+create table EXS.SERVGIS
+(
+  id        NUMBER not null,
+  fk_serv   NUMBER,
+  fk_usl    VARCHAR2(3) not null,
+  fk_list   NUMBER not null,
+  grp       NUMBER,
+  fk_eolink NUMBER not null
+)
+tablespace DATA
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table EXS.SERVGIS
+  is 'Справочник соответствий услуг ГИС-Услугам Новой и Старой разработки';
+comment on column EXS.SERVGIS.id
+  is 'ID';
+comment on column EXS.SERVGIS.fk_serv
+  is 'FK на услугу в Новой разработке';
+comment on column EXS.SERVGIS.fk_usl
+  is 'FK на услугу в Старой разработке';
+comment on column EXS.SERVGIS.fk_list
+  is 'FK на элемент услуги в справочнике ГИС ЖКХ, который содержит GUID';
+comment on column EXS.SERVGIS.grp
+  is 'NOT USED! с 13.07.2018 - Групппировка услуг, для нахождения корректной расценки по услуге (по норме и свыше)';
+comment on column EXS.SERVGIS.fk_eolink
+  is 'FK на организацию в EOLINK';
+create unique index EXS.SERVGIS_I2 on EXS.SERVGIS (FK_SERV)
+  tablespace TEST
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create unique index EXS.SERVGIS_I3 on EXS.SERVGIS (FK_USL, FK_LIST, FK_EOLINK)
+  tablespace DATA
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table EXS.SERVGIS
+  add constraint SERVGIS_P primary key (ID)
+  using index 
+  tablespace DATA
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table EXS.SERVGIS
+  add constraint SERVGIS_F_EOLINK foreign key (FK_EOLINK)
+  references EXS.EOLINK (ID) on delete cascade;
+alter table EXS.SERVGIS
+  add constraint SERVGIS_F_U_LIST foreign key (FK_LIST)
+  references EXS.U_LIST (ID) on delete set null;
+

@@ -1,0 +1,16 @@
+create table SCOTT.KMP_LSK
+(
+  lsk CHAR(8)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

@@ -1,0 +1,30 @@
+create table SCOTT.TEMP_LOAD_PRIVS_TKO
+(
+  org1    VARCHAR2(30),
+  datn    DATE,
+  posel   VARCHAR2(30),
+  nasp    VARCHAR2(90),
+  nylic   VARCHAR2(90),
+  ndom    VARCHAR2(7),
+  nkorp   VARCHAR2(3),
+  nkw     VARCHAR2(15),
+  nkomn   VARCHAR2(15),
+  lchet   VARCHAR2(24),
+  famil   VARCHAR2(50),
+  imja    VARCHAR2(50),
+  otch    VARCHAR2(50),
+  drog    DATE,
+  id_pku  NUMBER(11),
+  pku     VARCHAR2(11),
+  gku1    VARCHAR2(100),
+  lchet1  VARCHAR2(24),
+  ed_izm1 VARCHAR2(10),
+  fakt1   NUMBER(15,8),
+  sum_f1  NUMBER(8,2),
+  prz1    NUMBER(1)
+)
+tablespace DATA
+  pctfree 10
+  initrans 1
+  maxtrans 255;
+

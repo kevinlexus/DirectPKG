@@ -1,0 +1,42 @@
+create table SCOTT.A_CHANGE_DOCS
+(
+  id         NUMBER,
+  mgchange   CHAR(6),
+  dtek       DATE,
+  ts         DATE,
+  user_id    NUMBER,
+  text       VARCHAR2(2000),
+  mg         CHAR(6),
+  param_json VARCHAR2(2000),
+  cd_tp      VARCHAR2(132)
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on column SCOTT.A_CHANGE_DOCS.param_json
+  is 'Параметр перерасчета в виде JSON';
+comment on column SCOTT.A_CHANGE_DOCS.cd_tp
+  is 'Тип корректировки (PAY_SAL-корректировка сальдо, оплатой)';
+create index SCOTT.A_CHANGE_DOCS_I on SCOTT.A_CHANGE_DOCS (ID, USER_ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+  nologging;
+

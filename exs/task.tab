@@ -1,0 +1,200 @@
+create table EXS.TASK
+(
+  id             NUMBER not null,
+  fk_eolink      NUMBER,
+  state          VARCHAR2(25),
+  parent_id      NUMBER,
+  uniqnum        VARCHAR2(255),
+  fk_act         NUMBER not null,
+  result         VARCHAR2(1024),
+  guid           VARCHAR2(36),
+  tguid          VARCHAR2(36),
+  app_tp         NUMBER default 0 not null,
+  fk_user        NUMBER,
+  dt_crt         DATE default sysdate,
+  msgguid        VARCHAR2(1024),
+  dep_id         NUMBER,
+  npp            NUMBER,
+  comm           VARCHAR2(1024),
+  dt_upd         DATE default sysdate,
+  cd             VARCHAR2(64),
+  errackcnt      NUMBER default 0,
+  priority       NUMBER,
+  trace          NUMBER default 0,
+  fk_proc_uk     NUMBER,
+  dt_nextstart   DATE,
+  lag_nextstart  NUMBER,
+  id_from        NUMBER,
+  id_to          NUMBER,
+  fk_eolink_last NUMBER
+)
+tablespace DATA
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 1M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table EXS.TASK
+  is 'Задание на выполнение запроса в ГИСЖКХ';
+comment on column EXS.TASK.id
+  is 'ID';
+comment on column EXS.TASK.fk_eolink
+  is 'FK на связь с внешним объектом';
+comment on column EXS.TASK.state
+  is 'CD состояния (''INS'' - добавлено для выполнения, ''ACP'' - выполнено, принято, ''ACK'' -запрос статуса,
+ ''ERR'' - ошибка отправки, ''ERA'' - превышение установленного кол-ва запросов состояния,
+ ''ERS'' - ошибки отправки в дочерних заданиях, ''TPL'' - Задание-шаблон,
+ ''STP''-остановлено, ''RPT''-статус повторяемого задания)';
+comment on column EXS.TASK.parent_id
+  is 'FK на родит. запись';
+comment on column EXS.TASK.uniqnum
+  is 'от ГИС ЖКХ получено: Уникальный номер';
+comment on column EXS.TASK.fk_act
+  is 'FK на действие select * from list t where t.fk_listtp=145';
+comment on column EXS.TASK.result
+  is 'Результат отправки';
+comment on column EXS.TASK.guid
+  is 'GUID объекта (Полученный от ГИС ЖКХ, переданный в ГИС ЖКХ для выполнения запроса по несуществующему пока объекту в EOLINK)';
+comment on column EXS.TASK.tguid
+  is 'от ГИС ЖКХ Транспортный GUID';
+comment on column EXS.TASK.app_tp
+  is 'NOT USED! Тип информационной системы (0-"Квартплата", 1- "Новая разработка") - NOT USED? Разобраться, удалить возможно Lev.09.02.2018';
+comment on column EXS.TASK.fk_user
+  is 'Пользователь, кто создал запись';
+comment on column EXS.TASK.dt_crt
+  is 'Дата создания';
+comment on column EXS.TASK.msgguid
+  is 'от ГИС ЖКХ получено: GUID сообщения (задания)';
+comment on column EXS.TASK.dep_id
+  is 'FK на ведущее задание, после выполнения которого, в статус "ACP", начнёт выполняться текущее';
+comment on column EXS.TASK.npp
+  is 'Порядок выполнения заданий';
+comment on column EXS.TASK.comm
+  is 'Комментарий к заданию';
+comment on column EXS.TASK.dt_upd
+  is 'Дата обновления';
+comment on column EXS.TASK.cd
+  is 'CD задания';
+comment on column EXS.TASK.errackcnt
+  is 'NOT_USED??? Кол-во ошибок при запросе ACK';
+comment on column EXS.TASK.priority
+  is 'Больше число - выше приоритет по выполнению TaskController';
+comment on column EXS.TASK.trace
+  is 'Уровень трассировки задания (0-не трассировать в лог, 1-записывать только XML)';
+comment on column EXS.TASK.fk_proc_uk
+  is 'FK на Eolink УК  - нужен для обработки задания по конкретному УК (РСО)';
+comment on column EXS.TASK.dt_nextstart
+  is 'Следующий старт (При опросе ACK, если не пришёл ответ, увеличить следующий старт на N секунд)';
+comment on column EXS.TASK.lag_nextstart
+  is 'Cледующая задержка задания в статусе ACK, в секундах ';
+comment on column EXS.TASK.id_from
+  is 'Загружать объекты начиная с Id, для проверки XML запроса в ГИС, если не заполнено - возьмутся все объекты';
+comment on column EXS.TASK.id_to
+  is 'Загружать объекты по Id, для проверки XML запроса в ГИС, если не заполнено - возьмутся все объекты';
+comment on column EXS.TASK.fk_eolink_last
+  is 'ID последнего обработанного объекта, в задачах, где обрабатывать необходимо по N объектов';
+create index EXS.TASK_I on EXS.TASK (STATE, FK_ACT)
+  tablespace INDX_FAST
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create index EXS.TASK_I2 on EXS.TASK (PARENT_ID)
+  tablespace TEST
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create index EXS.TASK_I3 on EXS.TASK (DEP_ID)
+  tablespace INDX_FAST
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create index EXS.TASK_I4 on EXS.TASK (FK_EOLINK)
+  tablespace INDX
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create unique index EXS.TASK_I_CD on EXS.TASK (CD)
+  tablespace INDX_FAST
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table EXS.TASK
+  add constraint TASK_P primary key (ID)
+  using index 
+  tablespace DATA
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table EXS.TASK
+  add constraint TASK_F_ACT foreign key (FK_ACT)
+  references BS.LIST (ID)
+  novalidate;
+alter table EXS.TASK
+  add constraint TASK_F_DEP_ID foreign key (DEP_ID)
+  references EXS.TASK (ID) on delete cascade;
+alter table EXS.TASK
+  add constraint TASK_F_EOLINK foreign key (FK_EOLINK)
+  references EXS.EOLINK (ID) on delete cascade
+  novalidate;
+alter table EXS.TASK
+  add constraint TASK_F_EOLINK_LAST foreign key (FK_EOLINK_LAST)
+  references EXS.EOLINK (ID);
+alter table EXS.TASK
+  add constraint TASK_F_FK_USER foreign key (FK_USER)
+  references SEC.T_USER (ID)
+  novalidate;
+alter table EXS.TASK
+  add constraint TASK_F_PARENT_ID foreign key (PARENT_ID)
+  references EXS.TASK (ID) on delete cascade;
+alter table EXS.TASK
+  add constraint TASK_F_PROC_UK foreign key (FK_PROC_UK)
+  references EXS.EOLINK (ID)
+  novalidate;
+

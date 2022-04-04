@@ -1,0 +1,37 @@
+create table SCOTT.KMP_T_OBJXPAR
+(
+  id          NUMBER not null,
+  fk_lsk      CHAR(8),
+  fk_k_lsk    NUMBER,
+  fk_list     NUMBER not null,
+  s1          VARCHAR2(255),
+  d1          DATE,
+  n1          NUMBER,
+  c1          CLOB,
+  pass        RAW(50),
+  fk_user     NUMBER,
+  fk_usl      CHAR(3),
+  tp          NUMBER,
+  ts          DATE,
+  mg          VARCHAR2(6),
+  fk_val      NUMBER,
+  status      NUMBER not null,
+  tguid       VARCHAR2(36),
+  comm        VARCHAR2(1024),
+  fk_doc      NUMBER,
+  dt_crt      DATE,
+  dt_upd      DATE,
+  fk_user_upd NUMBER
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

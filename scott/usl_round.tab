@@ -1,0 +1,38 @@
+create table SCOTT.USL_ROUND
+(
+  reu CHAR(3) not null,
+  usl CHAR(3) not null
+)
+tablespace DATA
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.USL_ROUND
+  is 'Округление услуг тек.содержания для ГИС ЖКХ';
+comment on column SCOTT.USL_ROUND.reu
+  is 'Код УК';
+comment on column SCOTT.USL_ROUND.usl
+  is 'Код услуги';
+create unique index SCOTT.USL_ROUND_U_I on SCOTT.USL_ROUND (REU, USL)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.USL_ROUND
+  add constraint USL_ROUND_F_USL foreign key (USL)
+  references SCOTT.USL (USL);
+

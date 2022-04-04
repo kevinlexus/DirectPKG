@@ -1,0 +1,55 @@
+create table SCOTT.TREE_ADR
+(
+  id               NUMBER not null,
+  kul              VARCHAR2(4),
+  nd               VARCHAR2(6),
+  kw               VARCHAR2(7),
+  adr              VARCHAR2(100),
+  k_lsk_id         NUMBER,
+  tp               NUMBER,
+  k_lsk_id_divided NUMBER
+)
+tablespace DATA
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table SCOTT.TREE_ADR
+  is 'Адреса для поиска и выбора объектов';
+comment on column SCOTT.TREE_ADR.id
+  is 'ID';
+comment on column SCOTT.TREE_ADR.kul
+  is 'Код улицы';
+comment on column SCOTT.TREE_ADR.nd
+  is '№ дома';
+comment on column SCOTT.TREE_ADR.kw
+  is '№ помещения';
+comment on column SCOTT.TREE_ADR.adr
+  is 'Адрес';
+comment on column SCOTT.TREE_ADR.k_lsk_id
+  is 'k_lsk_id, фин.лиц.счет';
+comment on column SCOTT.TREE_ADR.tp
+  is 'тип записи (0-дом, 1 - квартира)';
+comment on column SCOTT.TREE_ADR.k_lsk_id_divided
+  is 'k_lsk_id, фин.лиц.счет разделенного помещения';
+alter table SCOTT.TREE_ADR
+  add constraint TREE_ADR_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

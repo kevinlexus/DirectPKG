@@ -1,0 +1,26 @@
+create table SCOTT.TEMP_DEBITS_LSK_MONTH
+(
+  lsk       CHAR(8),
+  reu       CHAR(3),
+  kul       CHAR(4),
+  name      CHAR(35),
+  nd        CHAR(6),
+  kw        CHAR(7),
+  fio       CHAR(55),
+  status    NUMBER,
+  opl       NUMBER(10,2),
+  cnt_month NUMBER,
+  dolg      NUMBER(10,2),
+  nachisl   NUMBER(10,2),
+  penya     NUMBER(10,2),
+  mg        CHAR(6),
+  payment   NUMBER(10,2),
+  pay_pen   NUMBER(10,2),
+  pen_in    NUMBER(10,2),
+  pen_cur   NUMBER(10,2)
+)
+tablespace DATA
+  pctfree 10
+  initrans 1
+  maxtrans 255;
+

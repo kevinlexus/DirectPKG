@@ -1,7 +1,0 @@
-create sequence SCOTT.U_LIST_ID
-minvalue 1
-maxvalue 999999999999999999999
-start with 555620
-increment by 1
-nocache;
-

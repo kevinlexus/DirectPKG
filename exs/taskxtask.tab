@@ -1,0 +1,74 @@
+create table EXS.TASKXTASK
+(
+  id        NUMBER not null,
+  fk_parent NUMBER not null,
+  fk_child  NUMBER,
+  fk_tp     NUMBER not null
+)
+tablespace DATA
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table EXS.TASKXTASK
+  is 'Связь заданий друг с другом';
+comment on column EXS.TASKXTASK.fk_parent
+  is 'FK на родительское задание';
+comment on column EXS.TASKXTASK.fk_child
+  is 'FK на дочернее задание';
+comment on column EXS.TASKXTASK.fk_tp
+  is 'FK на тип связи';
+create index TASKXTASK_I on EXS.TASKXTASK (FK_PARENT)
+  tablespace INDX_FAST
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create index TASKXTASK_I2 on EXS.TASKXTASK (FK_CHILD)
+  tablespace INDX_FAST
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table EXS.TASKXTASK
+  add constraint TASKXTASK_P primary key (ID)
+  using index 
+  tablespace DATA
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table EXS.TASKXTASK
+  add constraint TASKXTASK_F_TASK_CHILD foreign key (FK_CHILD)
+  references EXS.TASK (ID) on delete cascade;
+alter table EXS.TASKXTASK
+  add constraint TASKXTASK_F_TASK_PARENT foreign key (FK_PARENT)
+  references EXS.TASK (ID) on delete cascade;
+alter table EXS.TASKXTASK
+  add constraint TASKXTASK_F_TP foreign key (FK_TP)
+  references BS.LIST (ID) on delete cascade;
+

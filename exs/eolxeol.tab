@@ -1,0 +1,56 @@
+create table EXS.EOLXEOL
+(
+  id        NUMBER not null,
+  fk_parent NUMBER not null,
+  fk_child  NUMBER not null,
+  fk_tp     NUMBER not null
+)
+tablespace DATA
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+comment on table EXS.EOLXEOL
+  is 'Связь внешних объектов Eolink друг с другом';
+comment on column EXS.EOLXEOL.fk_parent
+  is 'FK на внешний родительский объект ';
+comment on column EXS.EOLXEOL.fk_child
+  is 'FK на внешний дочерний объект ';
+comment on column EXS.EOLXEOL.fk_tp
+  is 'FK на тип связи';
+create unique index EOLXEOL_I_U on EXS.EOLXEOL (FK_PARENT, FK_CHILD, FK_TP)
+  tablespace INDX_FAST
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table EXS.EOLXEOL
+  add constraint EOLXEOL_P primary key (ID)
+  using index 
+  tablespace DATA
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table EXS.EOLXEOL
+  add constraint EOLXEOL_F_TP foreign key (FK_TP)
+  references BS.LIST (ID) on delete cascade;
+

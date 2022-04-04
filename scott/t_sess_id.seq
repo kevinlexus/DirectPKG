@@ -1,0 +1,7 @@
+create sequence SCOTT.T_SESS_ID
+minvalue 1
+maxvalue 999999999999999999999999999
+start with 6292
+increment by 1
+cache 20;
+

@@ -1,0 +1,318 @@
+create table SCOTT.ARCH_KART
+(
+  lsk             CHAR(8) not null,
+  kul             CHAR(4),
+  nd              CHAR(6),
+  kw              CHAR(7),
+  fio             VARCHAR2(55),
+  kpr             NUMBER(3) not null,
+  kpr_wr          NUMBER(3) not null,
+  kpr_ot          NUMBER(3) not null,
+  kpr_cem         NUMBER(3),
+  kpr_s           NUMBER(2),
+  opl             NUMBER(7,2),
+  ppl             NUMBER(7,2),
+  pldop           NUMBER(7,2),
+  ki              NUMBER(2),
+  psch            NUMBER(1) not null,
+  psch_dt         DATE,
+  gt              CHAR(4),
+  status          NUMBER(1),
+  kwt             NUMBER(8,3),
+  lodpl           NUMBER(5,1),
+  bekpl           NUMBER(5,1),
+  balpl           NUMBER(5,1),
+  komn            NUMBER(2),
+  et              NUMBER(2),
+  kfg             NUMBER(2),
+  kfot            NUMBER(2),
+  phw             NUMBER(9,3),
+  mhw             NUMBER(9,3),
+  pgw             NUMBER(9,3),
+  mgw             NUMBER(9,3),
+  pel             NUMBER(10,3),
+  mel             NUMBER(10,3),
+  sub_nach        DATE,
+  subsidii        NUMBER(9,2),
+  sub_data        DATE,
+  polis           CHAR(8),
+  sch_el          NUMBER(1),
+  reu             CHAR(3),
+  vvod            CHAR(1),
+  vvod_el         CHAR(2),
+  text            CHAR(35),
+  schel_dt        DATE,
+  eksub1          NUMBER(10,2),
+  eksub2          NUMBER(10,2),
+  kran            NUMBER(1),
+  kran1           NUMBER(1),
+  el              NUMBER(6,2),
+  el1             NUMBER(6,2),
+  sgku            NUMBER(9,2),
+  doppl           NUMBER(9,2),
+  subs_cor        NUMBER(9,2),
+  subs_cur        NUMBER(9,2),
+  house_id        NUMBER,
+  ovrpaymnt       NUMBER,
+  dolg            NUMBER,
+  penya           NUMBER,
+  mg              CHAR(6),
+  c_lsk_id        NUMBER,
+  old_dolg        NUMBER,
+  mg1             CHAR(6),
+  mg2             CHAR(6),
+  kan_sch         NUMBER,
+  subs_inf        NUMBER(9,2),
+  old_pen         NUMBER,
+  k_lsk_id        NUMBER,
+  dog_num         CHAR(35),
+  schel_end       DATE,
+  fk_deb_org      NUMBER,
+  c_vvod_el_id    NUMBER,
+  k_fam           VARCHAR2(25),
+  k_im            VARCHAR2(15),
+  k_ot            VARCHAR2(15),
+  memo            VARCHAR2(50),
+  fk_distr        NUMBER,
+  law_doc         VARCHAR2(50),
+  fk_pasp_org     NUMBER,
+  fk_err          NUMBER,
+  law_doc_dt      DATE,
+  prvt_doc        VARCHAR2(50),
+  prvt_doc_dt     DATE,
+  cpn             NUMBER,
+  kpr_wrp         NUMBER,
+  pn_dt           DATE,
+  lsk_ext         VARCHAR2(8),
+  fk_tp           NUMBER,
+  for_bill        NUMBER,
+  prn_num         NUMBER,
+  prn_new         NUMBER,
+  sel1            NUMBER,
+  vvod_ot         NUMBER,
+  entr            NUMBER,
+  pot             NUMBER,
+  mot             NUMBER,
+  parent_lsk      CHAR(8),
+  fk_klsk_obj     NUMBER,
+  fact_meter_tp   NUMBER,
+  kpr_own         NUMBER,
+  fk_klsk_premise NUMBER,
+  divided         NUMBER(1) default 0 not null,
+  id              NUMBER not null
+)
+tablespace USERS
+  pctfree 10
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 112M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on column SCOTT.ARCH_KART.fio
+  is 'Фамилия квартиросъемщика';
+comment on column SCOTT.ARCH_KART.kpr_wr
+  is 'Кол-во вр.зарег.';
+comment on column SCOTT.ARCH_KART.kpr_ot
+  is 'Кол-во вр.отсут.';
+comment on column SCOTT.ARCH_KART.ppl
+  is 'Жилая площадь';
+comment on column SCOTT.ARCH_KART.psch
+  is 'Признак карточки';
+comment on column SCOTT.ARCH_KART.status
+  is 'Статус квартиры (муницип, приват)';
+comment on column SCOTT.ARCH_KART.komn
+  is 'Кол-во комнат';
+comment on column SCOTT.ARCH_KART.et
+  is 'Этаж';
+comment on column SCOTT.ARCH_KART.kfg
+  is 'Коэфф жилья';
+comment on column SCOTT.ARCH_KART.kfot
+  is 'Коэфф отоп';
+comment on column SCOTT.ARCH_KART.phw
+  is 'Показания сч. х.в.';
+comment on column SCOTT.ARCH_KART.mhw
+  is 'Расход сч. х.в.';
+comment on column SCOTT.ARCH_KART.pgw
+  is 'Показания сч. г.в.';
+comment on column SCOTT.ARCH_KART.mgw
+  is 'Расход сч. г.в.';
+comment on column SCOTT.ARCH_KART.pel
+  is 'Показания сч. Эл.эн';
+comment on column SCOTT.ARCH_KART.mel
+  is 'Расход сч. х.в. Эл.эн';
+comment on column SCOTT.ARCH_KART.text
+  is '№ телефона абонента (антенн), Квартиросъемщика';
+comment on column SCOTT.ARCH_KART.subs_cur
+  is 'Субсидия';
+comment on column SCOTT.ARCH_KART.house_id
+  is 'ID Дома';
+comment on column SCOTT.ARCH_KART.ovrpaymnt
+  is 'Переплата';
+comment on column SCOTT.ARCH_KART.dolg
+  is 'Предъявлено в тек. месяце, включая долги';
+comment on column SCOTT.ARCH_KART.penya
+  is 'Разница пени с предыдущим месяцем (дельта) (ред.10.04.2012)';
+comment on column SCOTT.ARCH_KART.c_lsk_id
+  is 'ID Финансового идентификатора';
+comment on column SCOTT.ARCH_KART.old_dolg
+  is 'долг по старым лицевым';
+comment on column SCOTT.ARCH_KART.mg1
+  is 'период действия лицевого';
+comment on column SCOTT.ARCH_KART.mg2
+  is 'период действия лицевого';
+comment on column SCOTT.ARCH_KART.kan_sch
+  is '1- учит канализ по счетчикам, 0, null - не учит. ';
+comment on column SCOTT.ARCH_KART.old_pen
+  is 'Пеня по старому лицевому';
+comment on column SCOTT.ARCH_KART.k_lsk_id
+  is 'KLSK Помещения';
+comment on column SCOTT.ARCH_KART.dog_num
+  is '№ договора (антенн)';
+comment on column SCOTT.ARCH_KART.schel_end
+  is 'Дата окончания договора (антенн)';
+comment on column SCOTT.ARCH_KART.fk_deb_org
+  is 'Организация, в которой работает должник';
+comment on column SCOTT.ARCH_KART.c_vvod_el_id
+  is 'ID ввода по Эл.Эн';
+comment on column SCOTT.ARCH_KART.k_fam
+  is 'Фамилия квартиросъемщика';
+comment on column SCOTT.ARCH_KART.k_im
+  is 'Имя квартиросъемщика';
+comment on column SCOTT.ARCH_KART.k_ot
+  is 'Отчество квартиросъемщика';
+comment on column SCOTT.ARCH_KART.memo
+  is 'Примечание по л/с';
+comment on column SCOTT.ARCH_KART.fk_distr
+  is 'Район города';
+comment on column SCOTT.ARCH_KART.law_doc
+  is 'Правоустанавливающий документ';
+comment on column SCOTT.ARCH_KART.fk_pasp_org
+  is 'ID Паспортного стола';
+comment on column SCOTT.ARCH_KART.fk_err
+  is 'Признак корректности карточки (0, null- корректна, 1-некорректна)';
+comment on column SCOTT.ARCH_KART.law_doc_dt
+  is 'Дата правоустанавливающего документа';
+comment on column SCOTT.ARCH_KART.prvt_doc
+  is 'Документ приватизации';
+comment on column SCOTT.ARCH_KART.prvt_doc_dt
+  is 'Дата приватизации';
+comment on column SCOTT.ARCH_KART.cpn
+  is 'Начислять пеню? (0, null, -да, 1 - нет)';
+comment on column SCOTT.ARCH_KART.kpr_wrp
+  is 'Кол-во временно проживающих (не путать с вр.зарег)';
+comment on column SCOTT.ARCH_KART.pn_dt
+  is 'Дата ограничения пени';
+comment on column SCOTT.ARCH_KART.lsk_ext
+  is 'Лицевой счет в внешней базе данных (Денис)';
+comment on column SCOTT.ARCH_KART.fk_tp
+  is 'FK на тип лицевого счета (основной, дополнительный)';
+comment on column SCOTT.ARCH_KART.for_bill
+  is 'Для распечатки счета (Null,0 - нет, 1-да) ';
+comment on column SCOTT.ARCH_KART.prn_num
+  is '№ порядк печати';
+comment on column SCOTT.ARCH_KART.prn_new
+  is 'Новый лист счета? (Null,0 - нет, 1-да) ';
+comment on column SCOTT.ARCH_KART.sel1
+  is 'Лиц.счет отобран для выгрузки реестра для УСЗН';
+comment on column SCOTT.ARCH_KART.vvod_ot
+  is 'Ввод (для ведомости по отоплению) (Бред, но никуда не денешься)';
+comment on column SCOTT.ARCH_KART.entr
+  is '№ подъезда';
+comment on column SCOTT.ARCH_KART.pot
+  is 'Последнее показание счетчика отопления';
+comment on column SCOTT.ARCH_KART.mot
+  is 'Объем по счетчику отопления';
+comment on column SCOTT.ARCH_KART.parent_lsk
+  is 'Родительский (основной лиц.счет)';
+comment on column SCOTT.ARCH_KART.fk_klsk_obj
+  is 'KLSK Лиц.счета';
+comment on column SCOTT.ARCH_KART.fact_meter_tp
+  is 'Фактическое наличие счетчика, в случае отсутствия объема, для формирования статистики (1-х.в г.в, 2- х.в., 3-г.в.)';
+comment on column SCOTT.ARCH_KART.kpr_own
+  is 'Кол-собственников (ТСЖ, для начисления мусора, воды)';
+comment on column SCOTT.ARCH_KART.fk_klsk_premise
+  is 'KLSK Помещения';
+comment on column SCOTT.ARCH_KART.divided
+  is 'Разеделенный лиц.счет (ГИС ЖКХ)';
+comment on column SCOTT.ARCH_KART.id
+  is 'ID';
+create index SCOTT.ARCH_KART_I_C_LSK_ID on SCOTT.ARCH_KART (C_LSK_ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 20M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create index SCOTT.ARCH_KART_I_FOR_BILL on SCOTT.ARCH_KART (MG, FOR_BILL)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create index SCOTT.ARCH_KART_I_KUL_ND_KW on SCOTT.ARCH_KART (KUL, ND, KW)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 20M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create index SCOTT.ARCH_KART_I_K_LSK_ID on SCOTT.ARCH_KART (K_LSK_ID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 20M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+create index SCOTT.ARCH_KART_I_LSK on SCOTT.ARCH_KART (LSK)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 20M
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.ARCH_KART
+  add constraint ARCH_KART_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+

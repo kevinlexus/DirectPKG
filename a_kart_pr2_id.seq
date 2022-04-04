@@ -1,8 +1,0 @@
-create sequence SCOTT.A_KART_PR2_ID
-minvalue 1
-maxvalue 999999999999999999999999999
-start with 15841
-increment by 1
-cache 20
-order;
-

@@ -1,0 +1,109 @@
+create table SCOTT.C_HOUSES
+(
+  id           NUMBER not null,
+  kul          CHAR(4) not null,
+  nd           CHAR(6) not null,
+  uch          NUMBER,
+  maxlsk       CHAR(8),
+  kw           NUMBER,
+  minlsk       CHAR(8),
+  house_type   NUMBER,
+  opl          NUMBER,
+  psch         NUMBER,
+  fk_pasp_org  NUMBER,
+  kran1        NUMBER,
+  k_lsk_id     NUMBER,
+  fk_other_org NUMBER,
+  fk_typespay  NUMBER,
+  postcode     VARCHAR2(6),
+  guid         VARCHAR2(36),
+  is_private   NUMBER default 0,
+  dt_crt       DATE default sysdate,
+  dt_upd       DATE default sysdate
+)
+tablespace USERS
+  pctfree 1
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 128K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  )
+nologging;
+comment on table SCOTT.C_HOUSES
+  is 'Справочник домов';
+comment on column SCOTT.C_HOUSES.id
+  is 'ID дома';
+comment on column SCOTT.C_HOUSES.uch
+  is 'Участок';
+comment on column SCOTT.C_HOUSES.maxlsk
+  is 'Кон. Л.С.';
+comment on column SCOTT.C_HOUSES.kw
+  is 'Кол-во квартир';
+comment on column SCOTT.C_HOUSES.minlsk
+  is 'Нач.Л.С.';
+comment on column SCOTT.C_HOUSES.house_type
+  is 'Тип дома. 1- общежитие';
+comment on column SCOTT.C_HOUSES.opl
+  is 'Общая площадь по дому';
+comment on column SCOTT.C_HOUSES.psch
+  is 'признак счета (0-открыт, 1-закрыт) - ВНИМАНИЕ! НЕ ИСПОЛЬЗОВАТЬ!';
+comment on column SCOTT.C_HOUSES.fk_pasp_org
+  is 'ID Паспортного стола';
+comment on column SCOTT.C_HOUSES.kran1
+  is 'Признак установки Кранов из системы отопления в карточках дома';
+comment on column SCOTT.C_HOUSES.k_lsk_id
+  is 'FK на k_lsk';
+comment on column SCOTT.C_HOUSES.fk_other_org
+  is 'FK на прочую орг. (например на котельную)';
+comment on column SCOTT.C_HOUSES.fk_typespay
+  is 'Распределять оплату принудительно на этот FK';
+comment on column SCOTT.C_HOUSES.postcode
+  is 'Почтовый индекс';
+comment on column SCOTT.C_HOUSES.guid
+  is 'GUID по справочнику ФИАС';
+comment on column SCOTT.C_HOUSES.is_private
+  is 'Является частным домом? (не МКД) (0-нет, 1-да)';
+comment on column SCOTT.C_HOUSES.dt_crt
+  is 'Дата создания записи';
+comment on column SCOTT.C_HOUSES.dt_upd
+  is 'Дата обновления записи';
+create unique index SCOTT.C_HOUSES_I on SCOTT.C_HOUSES (GUID)
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.C_HOUSES
+  add constraint C_HOUSES_P primary key (ID)
+  using index 
+  tablespace USERS
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SCOTT.C_HOUSES
+  add constraint C_HOUSES_F_C_HOUSES_F_TYPESPAY foreign key (FK_TYPESPAY)
+  references SCOTT.SPR_TYPESPAY (ID);
+alter table SCOTT.C_HOUSES
+  add constraint C_HOUSES_F_K_LSK foreign key (K_LSK_ID)
+  references SCOTT.K_LSK (ID);
+alter table SCOTT.C_HOUSES
+  add constraint C_HOUSES_F_OTHER_ORG foreign key (FK_OTHER_ORG)
+  references SCOTT.T_ORG (ID);
+
